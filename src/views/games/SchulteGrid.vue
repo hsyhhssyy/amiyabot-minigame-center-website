@@ -263,6 +263,10 @@ onUnmounted(() => {
 
 var sendMessage = () => {
   console.log('发送消息' + newMessage.value);
+  if(newMessage.value.trim() === ''){
+    return;
+  }
+  
   invokeGameHub('SendMove', roomId, JSON.stringify({
     CharacterName: newMessage.value
   }));

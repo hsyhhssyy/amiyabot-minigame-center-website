@@ -6,7 +6,7 @@ interface LoginResult {
 }
 
 var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
-// rootUrl = "http://localhost:5003"
+// rootUrl = "http://127.0.0.1:5003"
 
 export const loginAPI = async (email: string, password: string): Promise<LoginResult> => {
     try {

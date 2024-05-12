@@ -11,8 +11,11 @@
 
             <!-- 普通账户表单 -->
             <el-form v-if="accountType === '普通账户'" @submit.native.prevent="register" label-width="100px">
-                <el-form-item label="用户名：">
-                    <el-input v-model="username"></el-input>
+                <el-form-item label="邮箱">
+                    <el-input v-model="email"></el-input>
+                </el-form-item>
+                <el-form-item label="昵称：">
+                    <el-input v-model="nickname"></el-input>
                 </el-form-item>
                 <el-form-item label="密码：">
                     <el-input type="password" v-model="password"></el-input>
@@ -51,7 +54,7 @@ const accountType = ref('普通账户');
 const email = ref(''); // 用于存储用户输入的邮箱
 const password = ref(''); // 用于存储用户输入的密码
 const confirmPassword = ref(''); // 用于存储用户输入的确认密码
-const username = ref(''); // 用于存储用户输入的用户名
+const nickname = ref(''); // 用于存储用户输入的昵称
 
 const register = async () => {
     try {
@@ -64,14 +67,25 @@ const register = async () => {
             return
         }
 
+        //验证合法邮箱
+        if (!email.value || !email.value.includes('@')|| !email.value.includes('.')) {
+            ElMessage({
+                message: '请输入合法的邮箱地址',
+                type: 'error',
+            });
+            return;
+        }
+        
+
         const registerModel = {
-            Email: accountType.value === '开发者账户' ? email.value : '',
+            Email:  email.value,
             Password: password.value,
+            Nickname: nickname.value,
             ClaimedRole: accountType.value,
         };
 
-        if (accountType.value === '普通账户') {
-            registerModel.Email = username.value;
+        if (accountType.value === '开发者账户') {
+            registerModel.Email = email.value;
         }
 
         const response = await axios.post('/api/account/register', registerModel);

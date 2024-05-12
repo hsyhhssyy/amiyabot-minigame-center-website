@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
-// rootUrl = "http://localhost:5003"
 
 export const getGame = async (gameId:string) => {
     try {
