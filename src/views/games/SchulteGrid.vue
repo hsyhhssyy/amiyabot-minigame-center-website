@@ -10,7 +10,7 @@
               :style="{ 'font-size': '' + (100 / x * font_factor) + 'vw' }">
               {{ col }}
             </div>
-            <img v-if="col == '❤'" class="img" src="./img/amiya.png" />
+            <img v-if="col == '❤'" class="img" src="/amiya.png" />
             <div v-if="col.startsWith('◇')" class="text_fade"
               :style="{ 'font-size': '' + (100 / x * font_factor) + 'vw' }">
               {{ col.substring(1) }}
@@ -37,7 +37,7 @@
         </div>
         <!-- 聊天信息显示区域 -->
         <div class="chat-display">
-          <div class="chat-message" v-for="message in messages" :key="message.id">
+          <div class="chat-message" v-for="message in messages">
             <img :src="message.avatar" class="chat-avatar" />
             <div
               :class="{ 'chat-right-container': true, 'correct': message.result === 'Correct', 'wrong': message.result === 'Wrong' }">
@@ -69,9 +69,9 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted , watchEffect, nextTick} from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import ConfirmDialog from '@src/views/dialogs/ConfirmDialog.vue';
-import AlertDialog from '@src/views/dialogs/AlertDialog.vue';
+import { useRoute } from 'vue-router';
+// import ConfirmDialog from '@src/views/dialogs/ConfirmDialog.vue';
+// import AlertDialog from '@src/views/dialogs/AlertDialog.vue';
 import { getGame } from '@src/api/SchulteGrid';
 import CryptoJS from 'crypto-js';
 import { invokeGameHub, addGameHubListener, removeGameHubListener } from '@src/api/SignalR.ts';
@@ -94,7 +94,7 @@ const players = ref([
 ]);
 const isGameEnded = ref(false);
 
-var roomId: string = route.params.roomId
+var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 messages.value=[]
 
 var gameInfoUpdatedListener = (response: string) => {
