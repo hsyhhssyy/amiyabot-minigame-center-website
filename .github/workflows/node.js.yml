@@ -39,7 +39,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: harbor.hsyhhssyy.net/home-esxi/amiya-bot-minigame-center-website:latest, harbor.hsyhhssyy.net/home-esxi/amiya-bot-minigame-center-website:${{ github.sha }}
+        tags: harbor.hsyhhssyy.net/home-esxi/amiyabot-minigame-center-website:latest, harbor.hsyhhssyy.net/home-esxi/amiyabot-minigame-center-website:${{ github.sha }}
     - name: Setup kubectl
       uses: azure/setup-kubectl@v3
       id: install
@@ -55,5 +55,5 @@ jobs:
         namespace: amiya-bot
         manifests: pod.yaml
         images: |
-          harbor.hsyhhssyy.net/home-esxi/amiya-bot-minigame-center-website:${{ github.sha }}
+          harbor.hsyhhssyy.net/home-esxi/amiyabot-minigame-center-website:${{ github.sha }}
         imagepullsecrets: harbor.hsyhhssyy.net

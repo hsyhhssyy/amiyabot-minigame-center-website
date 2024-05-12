@@ -7,11 +7,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: amiya-bot-minigame-center-website
+      app: amiyabot-minigame-center-website
   template:
     metadata:
       labels:
-        app: amiya-bot-minigame-center-website
+        app: amiyabot-minigame-center-website
     spec:
       containers:
         - command:
@@ -21,9 +21,9 @@ spec:
           env:
             - name: TZ
               value: Asia/Shanghai
-          image: harbor.hsyhhssyy.net/home-esxi/amiya-bot-minigame-center-website:1
+          image: harbor.hsyhhssyy.net/home-esxi/amiyabot-minigame-center-website:1
           imagePullPolicy: Always
-          name: amiya-bot-minigame-center-website
+          name: amiyabot-minigame-center-website
           ports:
             - containerPort: 80
               name: http
