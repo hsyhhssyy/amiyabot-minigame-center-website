@@ -23,16 +23,16 @@ function joinRoom() {
     invokeGameHub('JoinGame', roomNumber.value);
 }
 
-var gameJoinListener = (response:string) => {
+var gameJoinListener = (response:any) => {
     
-    var responseObj = JSON.parse(response);
-    var playerJoined = responseObj.UserSignalRId;
-    if(playerJoined != localStorage.getItem('signalrId')){
+    var playerJoined = response.UserId;
+    if(playerJoined != localStorage.getItem('user-id')){
+        //意外收到别人的消息,不处理
         return;
     }
 
-    var gameId = roomNumber.value;
-    localStorage.setItem('gameId', gameId);    
+    var gameId = response.GameId;
+    localStorage.setItem('current-game-id', gameId);    
     // 跳转到房间等待页面
     router.push('/regular-home/room-waiting/'+gameId);
 }

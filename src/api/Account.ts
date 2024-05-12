@@ -31,7 +31,7 @@ export const loginAPI = async (email: string, password: string): Promise<LoginRe
                 }
                 const userId = user.id;
                 if (userId) {
-                    localStorage.setItem('userId', userId);
+                    localStorage.setItem('user-id', userId);
                 }
             }
 

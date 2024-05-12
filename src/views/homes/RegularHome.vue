@@ -28,7 +28,6 @@ const nickname = ref(localStorage.getItem('nickname') || '');
 const defaultGravatar = 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(email.value.trim().toLowerCase()) + '?d=identicon';
 
 onMounted(async () => {
-
   if (!email.value) {
     router.push('/login');
   }

@@ -1,6 +1,6 @@
 <template>
     <div class="room-page">
-        <h2>游戏房间 {{ roomId }}</h2>
+        <h2>游戏房间 {{ joinCode }}</h2>
         <div class="player-list">
             <div v-for="player in players" :key="player.id" @click="kickPlayer(player.id)" class="player">
                 <img :src="player.avatar" alt="Player Avatar" class="avatar">
@@ -33,6 +33,7 @@ const router = useRouter();
 
 var roomId = route.params.roomId
 
+const joinCode = ref("")
 const showConfirm = ref(false);
 const selectedPlayerId = ref("");
 const isHost = ref(false);
@@ -46,7 +47,7 @@ var alertConfirmed = () => {
 }
 
 const players = ref([
-    { id: localStorage.getItem("signalrId")||"", name: localStorage.getItem("nickname"), avatar: 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(localStorage.getItem('email') ?? "".trim().toLowerCase()) + '?d=identicon' },
+    { id: localStorage.getItem("user-id")||"", connection: localStorage.getItem("connection-id")||"", name: localStorage.getItem("nickname"), avatar: 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(localStorage.getItem('email') ?? "".trim().toLowerCase()) + '?d=identicon' },
 ]);
 
 function kickPlayer(playerId: string) {
@@ -63,7 +64,6 @@ function startGame() {
     console.log('开始游戏');
     // 实现开始游戏的逻辑
     invokeGameHub('StartGame', roomId);
-    router.push('/regular-home/games/schulte-grid/' + roomId);
 }
 
 function closeRoom() {
@@ -78,40 +78,41 @@ function exitRoom() {
     router.push('/regular-home');
 }
 
-var playerJoinedListener = (response: string) => {
-    var responseObj = JSON.parse(response);
-    var player = {
-        id: responseObj.UserSignalRId,
-        name: responseObj.UserName,
-        avatar: 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(responseObj.UserEmail.trim().toLowerCase()) + '?d=identicon'
-    }
-    players.value.push(player);
+var playerJoinedListener = (_: any) => {
+    invokeGameHub('GetGame', roomId);
 }
 
-var gameInfoUpdatedListener = (response: string) => {
-    var responseObj = JSON.parse(response);
-    var playerList = responseObj.PlayerList;
-    isHost.value = responseObj.CreatorSignalRId === localStorage.getItem('signalrId');
+var gameInfoUpdatedListener = (response: any) => {
+    var playerList = response.PlayerList;
+    isHost.value = response.CreatorId == localStorage.getItem('user-id');
+    joinCode.value = response.GameJoinCode;
     players.value = playerList.map((p: any) => {
         return {
-            id: p.UserSignalRId,
+            id: p.UserId,
             name: p.UserName,
-            avatar: 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(p.UserEmail.trim().toLowerCase()) + '?d=identicon'
+            avatar: p.UserAvatar
         }
     });
+
+    if(response.GameStarted){
+        router.push('/regular-home/games/schulte-grid/' + roomId);
+    }
 }
 
-var playerLeftListener = (response: string) => {
-    var responseObj = JSON.parse(response);
-    var playerId = responseObj.LeavingPlayerSignalRId;
-    var method = responseObj.LeavingMethod;
+var playerLeftListener = (response: any) => {
+    var playerId = response.LeavingPlayerId;
+    var method = response.LeavingMethod;
     players.value = players.value.filter(p => p.id !== playerId);
 
     //如果是自己被踢，弹出提示并返回首页
-    if (playerId == localStorage.getItem('signalrId')&&method == 'Kicked') {
+    if (playerId == localStorage.getItem('user-id')&&method == 'Kicked') {
         alertMessage.value = '您已被房主踢出房间';
         showAlert.value = true;
     }
+}
+
+var gameStartedListener = (_: string) => {
+    router.push('/regular-home/games/schulte-grid/' + roomId);
 }
 
 var gameClosedListener = (_: string) => {
@@ -125,6 +126,7 @@ onMounted(() => {
     addGameHubListener('PlayerLeft', playerLeftListener);
     addGameHubListener('PlayerKicked', playerLeftListener);
     addGameHubListener('GameClosed', gameClosedListener);
+    addGameHubListener('GameStarted', gameStartedListener);
 
     invokeGameHub('GetGame', roomId);
 
@@ -140,6 +142,7 @@ onUnmounted(() => {
     removeGameHubListener('PlayerLeft', playerLeftListener);
     removeGameHubListener('PlayerKicked', playerLeftListener);
     removeGameHubListener('GameClosed', gameClosedListener);
+    removeGameHubListener('GameStarted', gameStartedListener);
 });
 
 

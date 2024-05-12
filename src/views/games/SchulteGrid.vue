@@ -4,50 +4,52 @@
       <!-- 左侧格子显示区域 -->
       <div class="grid-container" :style="{ 'grid-template-columns': '1fr '.repeat(x) }"
         v-if="expanded_data.length > 0">
-        <div v-for="col in expanded_data" :key="col" class="cell">
+        <div v-for="col in expanded_data" class="cell">
           <div class="text_div">
-            <div v-if="col != '❤' && !col.startsWith('◇') && !col.startsWith('♣')" class="text"
-              :style="{ 'font-size': '' + (100 / x * font_factor) + 'vw' }">
-              {{ col }}
+            <div v-if="col.fade == false && col.recent == false && col.placeholder == false" class="text"
+              :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
+              {{ col.char }}
             </div>
-            <img v-if="col == '❤'" class="img" src="/amiya.png" />
-            <div v-if="col.startsWith('◇')" class="text_fade"
-              :style="{ 'font-size': '' + (100 / x * font_factor) + 'vw' }">
-              {{ col.substring(1) }}
+            <img v-if="col.placeholder == true" class="img" src="/amiya.png" />
+            <div v-if="col.fade == true" class="text_fade"
+              :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
+              {{ col.char }}
             </div>
-            <div v-if="col.startsWith('♣')" class="text_fade_recent"
-              :style="{ 'font-size': '' + (100 / x * font_factor) + 'vw' }">
-              {{ col.substring(1) }}
+            <div v-if="col.recent == true" class="text_fade_recent"
+              :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
+              {{ col.char }}
             </div>
           </div>
         </div>
       </div>
       <!-- 右侧区域 -->
       <div class="right-panel">
-        
         <div class="player-list">
-            <div v-for="player in players" :key="player.id" class="player">
-                <img :src="player.avatar" alt="Player Avatar" class="avatar">
-                <span class="player-name">{{ player.name }}</span>
-                <span class="player-score">
-                  <i class="fa-solid fa-star"></i>
-                  {{ player.score }}
-                </span>
-            </div>
+          <button class="exit-button" @click="endGame" v-if="isHost && !isGameEnded">结束<br />游戏</button>
+          <button class="home-button" @click="goHome" v-if="!isHost || isGameEnded">退出<br />房间</button>
+          <div v-for="player in players" :key="player.id" class="player">
+            <img :src="player.avatar" alt="Player Avatar" class="avatar">
+            <span class="player-name">{{ player.name }}</span>
+            <span class="player-score">
+              <i class="fa-solid fa-star"></i>
+              {{ player.score }}
+            </span>
+          </div>
         </div>
         <!-- 聊天信息显示区域 -->
         <div class="chat-display">
           <div class="chat-message" v-for="message in messages">
             <img :src="message.avatar" class="chat-avatar" />
             <div
-              :class="{ 'chat-right-container': true, 'correct': message.result === 'Correct', 'wrong': message.result === 'Wrong' }">
+              :class="{ 'chat-right-container': true, 'correct': message.result === 'Correct', 'wrong': message.result !== 'Correct' }">
               <div class="nickname">{{ message.nickname }}</div>
               <div class="chat-bubble">{{ message.content }}
               </div>
             </div>
-            
+
             <span class="chat-icon" v-if="message.result === 'Correct'"><i class="fas fa-check"></i></span>
             <span class="chat-icon" v-if="message.result === 'Wrong'"><i class="fas fa-times"></i></span>
+            <span class="chat-icon" v-if="message.result === 'Answered'"><i class="fas fa-poop"></i></span>
           </div>
           <div class="chat-message" v-if="isGameEnded">
             <img src="/amiya.png" class="chat-avatar" />
@@ -59,17 +61,20 @@
         </div>
         <!-- 消息输入区域 -->
         <div class="message-input">
+          <div class="room-number">
+          <i class="fa-solid fa-house"></i> {{ joinCode }}</div>
           <input type="text" v-model="newMessage" @keyup.enter="sendMessage" placeholder="输入一个干员名..." />
-          <button @click="sendMessage">Send</button>
+          <button @click="sendMessage">发送</button>
         </div>
+
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted , watchEffect, nextTick} from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, onMounted, onUnmounted, watchEffect, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 // import ConfirmDialog from '@src/views/dialogs/ConfirmDialog.vue';
 // import AlertDialog from '@src/views/dialogs/AlertDialog.vue';
 import { getGame } from '@src/api/SchulteGrid';
@@ -77,12 +82,34 @@ import CryptoJS from 'crypto-js';
 import { invokeGameHub, addGameHubListener, removeGameHubListener } from '@src/api/SignalR.ts';
 
 const route = useRoute();
+const router = useRouter();
 
 const backcolor = ref('white');
-const x = ref(5);
-const y = ref(5);
-const font_factor = ref(0.15);
-const expanded_data = ref(['A', 'B', 'C', '❤', '◇E', '♣F']);
+const x = ref(2);
+const y = ref(2);
+const font_factor = ref(10);
+const joinCode = ref('');
+const expanded_data = ref([{
+  'char': 'A',
+  'fade': false,
+  'recent': false,
+  'placeholder': false
+}, {
+  'char': 'A',
+  'fade': false,
+  'recent': false,
+  'placeholder': false
+}, {
+  'char': 'A',
+  'fade': false,
+  'recent': false,
+  'placeholder': false
+}, {
+  'char': 'A',
+  'fade': false,
+  'recent': false,
+  'placeholder': false
+}]);
 const messages = ref([
   { content: "That's correct!", result: 'Correct', nickname: 'User1', avatar: 'path_to_avatar1.jpg' },
   { content: "Sorry, that's not right.", result: 'Wrong', nickname: 'User2', avatar: 'path_to_avatar2.jpg' }
@@ -90,25 +117,39 @@ const messages = ref([
 const newMessage = ref('');
 const isHost = ref(false);
 const players = ref([
-  { id: localStorage.getItem("signalrId") || "", name: localStorage.getItem("nickname"), avatar: 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(localStorage.getItem('email') ?? "".trim().toLowerCase()) + '?d=identicon', score:0 },
+  { id: localStorage.getItem("signalrId") || "", name: localStorage.getItem("nickname"), avatar: 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(localStorage.getItem('email') ?? "".trim().toLowerCase()) + '?d=identicon', score: 0 },
 ]);
 const isGameEnded = ref(false);
 
 var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
-messages.value=[]
+messages.value = []
 
-var gameInfoUpdatedListener = (response: string) => {
-  var responseObj = JSON.parse(response);
-  var playerList = responseObj.PlayerList;
-  isHost.value = responseObj.CreatorSignalRId === localStorage.getItem('signalrId');
+var gameInfoUpdatedListener = (response: any) => {
+  isHost.value = response.CreatorId === localStorage.getItem('user-id');
+  joinCode.value = response.GameJoinCode;
+  var playerList = response.PlayerList;
   players.value = playerList.map((p: any) => {
     return {
-      id: p.UserSignalRId,
+      id: p.UserId,
       name: p.UserName,
-      avatar: 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(p.UserEmail.trim().toLowerCase()) + '?d=identicon',
+      avatar: p.UserAvatar,
       score: p.Score
     }
   });
+
+  //检查一下答案
+  var answers = response.CurrentStatus.AnswerList
+ 
+  answers.forEach((element:any) => {
+    for (var point of element.GridPointList) {
+    var loc = point.Y * y.value + point.X
+    var current = expanded_data.value[loc]
+    if(current.fade==false&&current.recent==false){
+      current.fade = true
+    }
+  }
+  });
+  
 }
 
 watchEffect(() => {
@@ -120,30 +161,42 @@ watchEffect(() => {
   });
 });
 
-var receiveMoveListener = (playerId: string, response: string) => {
-  var responseObj = JSON.parse(response);
-  const player = players.value.find(p => p.id === playerId);
+var receiveMoveListener = (response: any) => {
+  const player = players.value.find(p => p.id === response.PlayerId);
+  const result = response.Result
+  const content = result == 'Correct' ? response.CharacterName + ' - ' + response.Answer.SkillName : response.CharacterName;
   messages.value.push({
-    content: responseObj.CharacterName + ' - ' + responseObj.Answer.SkillName,
-    result: responseObj.Result,
+    content: content,
+    result: result,
     nickname: player?.name || 'Unknown',
     avatar: player?.avatar || 'path_to_avatar.jpg'
   });
 
-  //调整Grid,将Answer中GridPointList的点标记为♣
-  for(var char of expanded_data.value){
-    if(char.startsWith('♣')){
-      expanded_data.value[expanded_data.value.indexOf(char)] = "◇"+char.substring(1)
+  if (result === 'Correct') {
+    var dataArray = [...expanded_data.value]
+
+    //调整Grid,将Answer中GridPointList的点标记为♣
+    for (let i = 0; i < dataArray.length; i++) {
+      if (dataArray[i].recent) {
+        dataArray[i].fade = true;
+        dataArray[i].recent = false;
+      }
     }
-  }
-  var grid = expanded_data.value
-  for(var point of responseObj.Answer.GridPointList){
-    var loc = point.Y * y.value + point.X
-    grid[loc] = '♣' + grid[loc]
+
+
+    for (var point of response.Answer.GridPointList) {
+      var loc = point.Y * y.value + point.X
+      dataArray[loc].recent = true
+    }
+
+    isGameEnded.value = response.Completed;
+
+    expanded_data.value = dataArray
+    console.log(dataArray.length)
   }
 
-  isGameEnded.value = responseObj.Completed;
-  
+
+
 
   nextTick(() => {
     const container = document.querySelector('.chat-display');
@@ -153,9 +206,22 @@ var receiveMoveListener = (playerId: string, response: string) => {
   });
 }
 
+var endGame = () => {
+  console.log('结束游戏');
+  invokeGameHub('CloseGame', roomId);
+}
+
+var goHome = () => {
+  console.log('返回首页');
+  router.push('/regular-home');
+}
+
 onMounted(() => {
   addGameHubListener('ReceiveMove', receiveMoveListener);
   addGameHubListener('GameInfo', gameInfoUpdatedListener);
+  addGameHubListener('GameClosed', () => {
+    isGameEnded.value = true;
+  });
 
   invokeGameHub('GetGame', roomId);
 
@@ -171,9 +237,16 @@ onMounted(() => {
       expanded_data.value = []
       for (var i = 0; i < grid.length; i++) {
         for (var j = 0; j < grid[i].length; j++) {
-          expanded_data.value.push(grid[i][j])
+          expanded_data.value.push({
+            'char': grid[i][j],
+            'fade': false,
+            'recent': false,
+            'placeholder': grid[i][j] === '❤'
+          })
         }
       }
+
+      font_factor.value = 6 / Math.max(x.value, y.value);
 
       y.value = grid.length;
       x.value = grid[0] ? grid[0].length : 0; // 默认data的每个子数组长度是相同的
@@ -184,7 +257,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   removeGameHubListener('ReceiveMove', receiveMoveListener);
-  addGameHubListener('GameInfo', gameInfoUpdatedListener);
+  removeGameHubListener('GameInfo', gameInfoUpdatedListener);
+
 });
 
 var sendMessage = () => {
@@ -230,8 +304,7 @@ var sendMessage = () => {
   padding: 10px;
 }
 
-.answer-container,
-.message-input {
+.answer-container{
   margin-bottom: 20px;
 }
 
@@ -254,6 +327,23 @@ var sendMessage = () => {
   cursor: pointer;
 }
 
+.exit-button {
+  padding: 10px 20px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.home-button {
+  padding: 10px 20px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+
 .grid-container {
   display: grid;
   grid-gap: 5px;
@@ -267,7 +357,6 @@ var sendMessage = () => {
   display: block;
   aspect-ratio: 1 / 1;
   background-color: #fbf8cd;
-  margin: 4px 4px;
   border-radius: 4px;
   position: relative;
 }
@@ -394,8 +483,10 @@ var sendMessage = () => {
   overflow-y: auto;
   padding: 10px;
   border: 1px solid #ccc;
-  height: 100px; /* 示例高度，根据需要调整 */
-  overflow-y: auto; /* 添加垂直滚动条 */
+  height: 100px;
+  /* 示例高度，根据需要调整 */
+  overflow-y: auto;
+  /* 添加垂直滚动条 */
   margin-bottom: 20px;
 }
 
@@ -435,7 +526,8 @@ var sendMessage = () => {
 }
 
 .chat-icon {
-  margin-left: 10px; /* 在文字和图标之间添加一些间隔 */
+  margin-left: 10px;
+  /* 在文字和图标之间添加一些间隔 */
   font-size: 30px;
   width: 40px;
   text-align: center;
@@ -452,31 +544,40 @@ var sendMessage = () => {
 }
 
 .player-list {
-    display: flex;
-    justify-content: left;
-    gap: 10px;
-    margin-bottom: 10px;
+  display: flex;
+  justify-content: left;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.room-number{
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+  font-size: 20px;
+  margin-right: 10px;
 }
 
 .player {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60px;
 }
 
 .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-bottom: 5px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-bottom: 5px;
 }
 
 .player-name {
-    font-size: 12px;
+  font-size: 12px;
 }
+
 .player-score {
-    font-size: 16px;
+  font-size: 16px;
 }
 
 @media (min-width: 600px) {

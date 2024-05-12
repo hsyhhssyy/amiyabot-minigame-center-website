@@ -27,13 +27,12 @@ export const connetToGameHub = async () => {
                 await connection.start();
                 console.log("SignalR Connected.");
 
-                connection.on("ReceiveMyId", (response)=>{
+                connection.on("MyConnectionInfo", (response)=>{
                     var responseObj = JSON.parse(response);
-                    console.log("ReceiveMyId",responseObj.SignalRId);
-                    localStorage.setItem('signalrId', responseObj.SignalRId);                
+                    localStorage.setItem('connection-id', responseObj.ConnectionId);                
                 });
 
-                await connection.invoke("GetMyId");
+                await connection.invoke("Me");
 
             } catch (err) {
                 console.log(err);
@@ -53,12 +52,24 @@ export const connetToGameHub = async () => {
     }
 };
 
+var callbacks: { originalCallback: (...args: any[]) => void; jsonCallback: (response: any) => void; }[] = [];
+
 export const addGameHubListener = (eventName: string, callback: (...args: any[]) => void) => {
-    connection.on(eventName, callback);
+    var jsonParshCallback = (response:any)=>{
+        var responseObj = JSON.parse(response);
+        callback(responseObj);
+    }
+
+    callbacks.push({"originalCallback":callback, "jsonCallback": jsonParshCallback});
+
+    connection.on(eventName, jsonParshCallback);
 };
 
 export const removeGameHubListener = (eventName: string, callback: (...args: any[]) => void) => {
-    connection.off(eventName, callback);
+    var callbackObj = callbacks.find(x=>x.originalCallback == callback);
+    if (callbackObj){
+        connection.off(eventName, callbackObj.jsonCallback);
+    }
 };
 
 export const invokeGameHub = (methodName: string, ...args: any[]) => {

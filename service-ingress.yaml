@@ -11,3 +11,33 @@ spec:
     protocol: TCP
     port: 80
     targetPort: 80
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: amiyabot-minigame-center-website-ingress
+  namespace: amiya-bot
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+spec:
+  tls:
+    - hosts:
+        - minigame.hsyhhssyy.net
+      secretName: minigame.hsyhhssyy.net.tls
+  rules:
+  - host: minigame.hsyhhssyy.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: amiyabot-minigame-center-website-service
+            port:
+              number: 80
+
+

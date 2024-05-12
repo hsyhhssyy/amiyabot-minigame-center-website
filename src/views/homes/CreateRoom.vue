@@ -7,6 +7,7 @@
             <div class="game-list">
                 <button v-for="game in games" :key="game.id" @click="selectGame(game.id)" class="game-button">
                     <img :src="game.image" :alt="game.name" class="game-image">
+                    <div class="game-name">{{ game.name }}</div>
                 </button>
             </div>
             <button @click="goBack" class="back-button">返回首页</button>
@@ -23,9 +24,7 @@ const router = useRouter();
 
 // 示例游戏数据，应从后端或其他数据源获取
 const games = ref([
-    { id: 1, image: 'path_to_game_screenshot1.png' , name: '猜干员'},
-    { id: 2, image: 'path_to_game_screenshot2.png' , name: '技能方格'},
-    { id: 3, image: 'path_to_game_screenshot3.png' , name: '游戏3'},
+    { id: 2, image: '/SchulteGrid.jpg' , name: '技能方格'},
     // 添加更多游戏
 ]);
 
@@ -33,14 +32,12 @@ function selectGame(gameId: number) {
     console.log(`选择游戏 ${gameId}`);
     
     // 创建房间并跳转到房间等待页面
-    invokeGameHub('CreateGame', "SchulteGrid");
+    invokeGameHub('CreateGame', "SchulteGrid","{}");
 }
 
-var gameCreateListener = (response:string) => {
-    
-    var responseObj = JSON.parse(response);
-    var gameId = responseObj.GameId;
-    localStorage.setItem('gameId', gameId);
+var gameCreateListener = (response:any) => {    
+    var gameId = response.GameId;
+    localStorage.setItem('current-game-id', gameId);
     
     // 跳转到房间等待页面
     router.push('/regular-home/room-waiting/'+gameId);
@@ -88,9 +85,14 @@ function goBack() {
 }
 
 .game-image {
-    width: 100%;
-    height: 100%;
+    width: 80%;
+    height: 80%;
     object-fit: cover;
+}
+
+.game-name {
+    font-size: 20px;
+    font-weight: bold;
 }
 
 .back-button {
