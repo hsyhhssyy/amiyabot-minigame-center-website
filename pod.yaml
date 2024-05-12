@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amiya-bot-minigame-center-website
+  namespace: amiya-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amiya-bot-minigame-center-website
+  template:
+    metadata:
+      labels:
+        app: amiya-bot-minigame-center-website
+    spec:
+      containers:
+        - command:
+            - nginx
+            - '-g'
+            - 'daemon off;'
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          image: harbor.hsyhhssyy.net/home-esxi/amiya-bot-minigame-center-website:1
+          imagePullPolicy: Always
+          name: amiya-bot-minigame-center-website
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      imagePullSecrets:
+        - name: harbor.hsyhhssyy.net
