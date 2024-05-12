@@ -124,6 +124,8 @@ var gameClosedListener = (_: string) => {
     showAlert.value = true;
 }
 
+var getGameInterval:NodeJS.Timeout
+
 onMounted(() => {
     addGameHubListener('GameInfo', gameInfoUpdatedListener);
     addGameHubListener('PlayerJoined', playerJoinedListener);
@@ -135,7 +137,7 @@ onMounted(() => {
     invokeGameHub('GetGame', roomId);
 
     // 间隔一段时间获取一次房间信息
-    setInterval(() => {
+    getGameInterval = setInterval(() => {
         invokeGameHub('GetGame', roomId);
     }, 4000);
 });
@@ -147,6 +149,8 @@ onUnmounted(() => {
     removeGameHubListener('PlayerKicked', playerLeftListener);
     removeGameHubListener('GameClosed', gameClosedListener);
     removeGameHubListener('GameStarted', gameStartedListener);
+
+    clearInterval(getGameInterval);
 });
 
 

@@ -24,6 +24,7 @@
                     <el-input type="password" v-model="confirmPassword"></el-input>
                 </el-form-item>
                 <el-button type="primary" @click="register">注册</el-button>
+                        <el-button type="secondary" @click="backToLogin">返回登录</el-button>
             </el-form>
 
             <!-- 开发者账户表单 -->
@@ -38,6 +39,7 @@
                     <el-input type="password" v-model="confirmPassword"></el-input>
                 </el-form-item>
                 <el-button type="primary" @click="register">注册</el-button>
+                        <el-button type="secondary" @click="backToLogin">返回登录</el-button>
             </el-form>
         </div>
     </div>
@@ -55,6 +57,10 @@ const email = ref(''); // 用于存储用户输入的邮箱
 const password = ref(''); // 用于存储用户输入的密码
 const confirmPassword = ref(''); // 用于存储用户输入的确认密码
 const nickname = ref(''); // 用于存储用户输入的昵称
+
+var backToLogin = () => {
+    router.push('/login');
+}
 
 const register = async () => {
     try {
@@ -106,6 +112,12 @@ const register = async () => {
             for (const item of error.response.data) {
                 message += '\n' + item.description;
             }
+        }
+
+        if (error.response &&
+            error.response.data &&
+            error.response.data.message) {
+                message += '\n' + error.response.data.message;
         }
 
         // 显示红色的toast
