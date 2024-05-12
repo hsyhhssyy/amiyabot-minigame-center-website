@@ -27,7 +27,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
-    - run: yarn build --if-present
+    - run: yarn build
     - name: Login to Private Harbor
       uses: docker/login-action@v2
       with:
