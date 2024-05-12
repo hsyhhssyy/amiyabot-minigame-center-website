@@ -2,21 +2,21 @@
     <div class="room-page">
         <h2>游戏房间 {{ joinCode }}</h2>
         <div class="player-list">
-            <div v-for="player in players" :key="player.id" @click="kickPlayer(player.id)" class="player">
+            <div v-for="player in players" :key="player.id" @click="handleKickPlayer(player.id)" class="player">
                 <img :src="player.avatar" alt="Player Avatar" class="avatar">
                 <span>{{ player.name }}</span>
             </div>
         </div>
         <div :hidden="!isHost">
-            <button @click="startGame" class="start-game-button">开始游戏</button>
-            <button @click="closeRoom" class="close-room-button">关闭房间</button>
+            <button @click="handleStartGame" class="start-game-button">开始游戏</button>
+            <button @click="handleCloseRoom" class="close-room-button">关闭房间</button>
         </div>
         <div :hidden="isHost">
-            <button @click="exitRoom" class="close-room-button">离开房间</button>
+            <button @click="handleExitRoom" class="close-room-button">离开房间</button>
         </div>
     </div>
-    <ConfirmDialog :visible="showConfirm" message="确定要踢出这位玩家吗？" @confirm="kickPlayerConfirmed" @cancel="hideConfirm" />
-    <AlertDialog :visible="showAlert" :message="alertMessage" @confirm="alertConfirmed"/>
+    <ConfirmDialog :visible="showConfirm" message="确定要踢出这位玩家吗？" @confirm="handleKickPlayerConfirmed" @cancel="handleCancelKickPlayer" />
+    <AlertDialog :visible="showAlert" :message="alertMessage" @confirm="handleAlertConfirmed"/>
 </template>
 
 <script lang="ts" setup>
@@ -24,7 +24,6 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import ConfirmDialog from '@src/views/dialogs/ConfirmDialog.vue';
 import AlertDialog from '@src/views/dialogs/AlertDialog.vue';
-import CryptoJS from 'crypto-js';
 import { invokeGameHub, addGameHubListener, removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
 //import { on } from 'events';
 
@@ -45,16 +44,17 @@ if(!isConnected()){
   router.push('/regular-home');
 }
 
-var alertConfirmed = () => {
+
+const players = ref([
+    { id: "", connection: "", name: '', avatar: '' },
+]);
+
+var handleAlertConfirmed = () => {
     showAlert.value = false;
     router.push('/regular-home');
 }
 
-const players = ref([
-    { id: localStorage.getItem("user-id")||"", connection: localStorage.getItem("connection-id")||"", name: localStorage.getItem("nickname"), avatar: 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(localStorage.getItem('email') ?? "".trim().toLowerCase()) + '?d=identicon' },
-]);
-
-function kickPlayer(playerId: string) {
+var handleKickPlayer =(playerId: string)=>{
     if (!isHost.value) {
         return;
     }
@@ -64,29 +64,39 @@ function kickPlayer(playerId: string) {
     showConfirm.value = true;
 }
 
-function startGame() {
+var handleStartGame = ()=>{
     console.log('开始游戏');
-    // 实现开始游戏的逻辑
     invokeGameHub('StartGame', roomId);
 }
 
-function closeRoom() {
+var handleCloseRoom = () => {
     console.log('关闭房间');
     invokeGameHub('CloseGame', roomId);
     router.push('/regular-home');
 }
 
-function exitRoom() {
+var handleExitRoom = () => {
     console.log('退出房间');
     invokeGameHub('LeaveGame', roomId);
     router.push('/regular-home');
+}
+
+var handleKickPlayerConfirmed = () => {
+    console.log(`确认踢出玩家 ${selectedPlayerId.value}`);
+    invokeGameHub('KickPlayer', roomId, selectedPlayerId.value);
+    players.value = players.value.filter(p => p.id !== selectedPlayerId.value);
+    showConfirm.value = false;
+}
+
+var handleCancelKickPlayer = ()=>{
+    showConfirm.value = false;
 }
 
 var playerJoinedListener = (_: any) => {
     invokeGameHub('GetGame', roomId);
 }
 
-var gameInfoUpdatedListener = (response: any) => {
+var gameInfoListener = (response: any) => {
     var playerList = response.PlayerList;
     isHost.value = response.CreatorId == localStorage.getItem('user-id');
     joinCode.value = response.GameJoinCode;
@@ -127,7 +137,7 @@ var gameClosedListener = (_: string) => {
 var getGameInterval:NodeJS.Timeout
 
 onMounted(() => {
-    addGameHubListener('GameInfo', gameInfoUpdatedListener);
+    addGameHubListener('GameInfo', gameInfoListener);
     addGameHubListener('PlayerJoined', playerJoinedListener);
     addGameHubListener('PlayerLeft', playerLeftListener);
     addGameHubListener('PlayerKicked', playerLeftListener);
@@ -143,7 +153,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    removeGameHubListener('GameInfo', gameInfoUpdatedListener);
+    removeGameHubListener('GameInfo', gameInfoListener);
     removeGameHubListener('PlayerJoined', playerJoinedListener);
     removeGameHubListener('PlayerLeft', playerLeftListener);
     removeGameHubListener('PlayerKicked', playerLeftListener);
@@ -152,19 +162,6 @@ onUnmounted(() => {
 
     clearInterval(getGameInterval);
 });
-
-
-function kickPlayerConfirmed() {
-    console.log(`确认踢出玩家 ${selectedPlayerId.value}`);
-    invokeGameHub('KickPlayer', roomId, selectedPlayerId.value);
-    players.value = players.value.filter(p => p.id !== selectedPlayerId.value);
-    showConfirm.value = false;
-}
-
-function hideConfirm() {
-    showConfirm.value = false;
-}
-
 </script>
 
 <style scoped>

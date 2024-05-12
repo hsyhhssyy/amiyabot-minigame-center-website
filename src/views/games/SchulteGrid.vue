@@ -25,8 +25,8 @@
       <!-- 右侧区域 -->
       <div class="right-panel">
         <div class="player-list">
-          <button class="exit-button" @click="endGame" v-if="isHost && !isGameEnded">结束<br />游戏</button>
-          <button class="home-button" @click="goHome" v-if="!isHost || isGameEnded">退出<br />房间</button>
+          <el-button class="button" @click="handleEndCurrentGame" v-if="isHost && !isGameEnded" >结束<br />游戏</el-button>
+          <el-button class="button" @click="handleReturnToHomePage" v-if="!isHost || isGameEnded">退出<br />房间</el-button>
           <div v-for="player in players" :key="player.id" class="player">
             <img :src="player.avatar" alt="Player Avatar" class="avatar">
             <span class="player-name">{{ player.name }}</span>
@@ -51,7 +51,7 @@
             <span class="chat-icon" v-if="message.result === 'Wrong'"><i class="fas fa-times"></i></span>
             <span class="chat-icon" v-if="message.result === 'Answered'"><i class="fas fa-poop"></i></span>
           </div>
-          <div class="chat-message" v-for="message in remainAnswers" v-if="isGameEnded">
+          <div class="chat-message" v-for="message in remainingAnswers" v-if="isGameEnded">
             <img src="/amiya.png" class="chat-avatar" />
             <div class="chat-right-container correct">
               <div class="nickname">管理员兔兔</div>
@@ -62,16 +62,16 @@
             <img src="/amiya.png" class="chat-avatar" />
             <div class="chat-right-container correct">
               <div class="nickname">管理员兔兔</div>
-              <div class="chat-bubble">游戏结束{{ remainAnswers.length == 0 ?"。":"，未答出的答案如上。"  }}</div>
+              <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ?"。":"，未答出的答案如上。"  }}</div>
             </div>
           </div>
         </div>
         <!-- 消息输入区域 -->
         <div class="message-input">
           <div class="room-number">
-          <i class="fa-solid fa-house"></i> {{ joinCode }}</div>
-          <input type="text" v-model="newMessage" @keyup.enter="sendMessage" placeholder="输入一个干员名..." />
-          <button @click="sendMessage">发送</button>
+          <i class="fa-solid fa-house room-number-icon"></i> {{ joinCode }}</div>
+          <el-input type="text" class="message-to-send"v-model="messageToSend" @keyup.enter="handleSendMessage" placeholder="输入一个干员名..." />
+          <el-button type="secondary" class="button" @click="handleSendMessage">发送</el-button>
         </div>
 
       </div>
@@ -82,10 +82,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, watchEffect, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-// import ConfirmDialog from '@src/views/dialogs/ConfirmDialog.vue';
-// import AlertDialog from '@src/views/dialogs/AlertDialog.vue';
 import { getGame } from '@src/api/SchulteGrid';
-import CryptoJS from 'crypto-js';
 import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
 
 const route = useRoute();
@@ -101,33 +98,17 @@ const expanded_data = ref([{
   'fade': false,
   'recent': false,
   'placeholder': false
-}, {
-  'char': 'A',
-  'fade': false,
-  'recent': false,
-  'placeholder': false
-}, {
-  'char': 'A',
-  'fade': false,
-  'recent': false,
-  'placeholder': false
-}, {
-  'char': 'A',
-  'fade': false,
-  'recent': false,
-  'placeholder': false
 }]);
 const messages = ref([
-  { content: "That's correct!", result: 'Correct', nickname: 'User1', avatar: 'path_to_avatar1.jpg' },
-  { content: "Sorry, that's not right.", result: 'Wrong', nickname: 'User2', avatar: 'path_to_avatar2.jpg' }
+  { content: '', result: '', nickname: '', avatar: '' }
 ]);
-const newMessage = ref('');
+const messageToSend = ref('');
 const isHost = ref(false);
 const players = ref([
-  { id: localStorage.getItem("signalrId") || "", name: localStorage.getItem("nickname"), avatar: 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(localStorage.getItem('email') ?? "".trim().toLowerCase()) + '?d=identicon', score: 0 },
+  { id: '', name: '', avatar: '', score: 0 },
 ]);
 const isGameEnded = ref(false);
-const remainAnswers = ref(['Answer1', 'Answer2', 'Answer3']);
+const remainingAnswers = ref(['']);
 
 if(!isConnected()){
   router.push('/regular-home');
@@ -136,7 +117,17 @@ if(!isConnected()){
 var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 messages.value = []
 
-var gameInfoUpdatedListener = (response: any) => {
+
+watchEffect(() => {
+  nextTick(() => {
+    const container = document.querySelector('.chat-display');
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  });
+});
+
+var gameInfoListener = (response: any) => {
   isHost.value = response.CreatorId === localStorage.getItem('user-id');
   joinCode.value = response.GameJoinCode;
   var playerList = response.PlayerList;
@@ -163,15 +154,6 @@ var gameInfoUpdatedListener = (response: any) => {
   });
   
 }
-
-watchEffect(() => {
-  nextTick(() => {
-    const container = document.querySelector('.chat-display');
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  });
-});
 
 var receiveMoveListener = (response: any) => {
   const player = players.value.find(p => p.id === response.PlayerId);
@@ -225,28 +207,40 @@ var receiveMoveListener = (response: any) => {
 var gameClosedListener = (response:any) => {
   console.log('游戏已关闭');
     isGameEnded.value = true;
-    remainAnswers.value = []
+    remainingAnswers.value = []
     const answers = response.RemainingAnswers
     for (var i = 0; i < answers.length; i++) {
-      remainAnswers.value.push(answers[i].CharacterName + ' - ' + answers[i].SkillName)
+      remainingAnswers.value.push(answers[i].CharacterName + ' - ' + answers[i].SkillName)
     }
 }
 
-var endGame = () => {
+var handleEndCurrentGame = () => {
   console.log('结束游戏');
   invokeGameHub('CloseGame', roomId);
 }
 
-var goHome = () => {
+var handleReturnToHomePage = () => {
   console.log('返回首页');
   router.push('/regular-home');
+}
+
+var handleSendMessage = () => {
+  console.log('发送消息' + messageToSend.value);
+  if(messageToSend.value.trim() === ''){
+    return;
+  }
+
+  invokeGameHub('SendMove', roomId, JSON.stringify({
+    CharacterName: messageToSend.value
+  }));
+  messageToSend.value = '';
 }
 
 var getGameInterval:NodeJS.Timeout
 
 onMounted(() => {
   addGameHubListener('ReceiveMove', receiveMoveListener);
-  addGameHubListener('GameInfo', gameInfoUpdatedListener);
+  addGameHubListener('GameInfo', gameInfoListener);
   addGameHubListener('GameClosed', gameClosedListener);
 
   invokeGameHub('GetGame', roomId);
@@ -283,24 +277,11 @@ onMounted(() => {
 
 onUnmounted(() => {
   removeGameHubListener('ReceiveMove', receiveMoveListener);
-  removeGameHubListener('GameInfo', gameInfoUpdatedListener);
+  removeGameHubListener('GameInfo', gameInfoListener);
   removeGameHubListener('GameClosed', gameClosedListener);
 
   clearInterval(getGameInterval);
 });
-
-var sendMessage = () => {
-  console.log('发送消息' + newMessage.value);
-  if(newMessage.value.trim() === ''){
-    return;
-  }
-
-  invokeGameHub('SendMove', roomId, JSON.stringify({
-    CharacterName: newMessage.value
-  }));
-  newMessage.value = '';
-}
-
 </script>
 
 <style scoped>
@@ -359,20 +340,8 @@ var sendMessage = () => {
   cursor: pointer;
 }
 
-.exit-button {
-  padding: 10px 20px;
-  background-color: #2196F3;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.home-button {
-  padding: 10px 20px;
-  background-color: #2196F3;
-  color: white;
-  border: none;
-  cursor: pointer;
+.button {
+  height: auto;
 }
 
 
@@ -634,6 +603,8 @@ var sendMessage = () => {
 @media (max-width: 768px) {
   #template {
     flex-direction: column;
+    border: none;
+    align-items: center;
   }
 
   .grid-container,
@@ -641,4 +612,5 @@ var sendMessage = () => {
     width: 100%;
   }
 }
+
 </style>

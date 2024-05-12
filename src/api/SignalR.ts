@@ -1,11 +1,11 @@
 import * as signalR from '@microsoft/signalr';
 
-var connection: signalR.HubConnection;
+var connection: signalR.HubConnection | null;
 
 var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
 
 export const isConnected = () => {
-    return connection!=undefined&&connection != null;
+    return connection != undefined && connection != null;
 }
 
 export const connetToGameHub = async () => {
@@ -18,7 +18,7 @@ export const connetToGameHub = async () => {
         connection = new signalR.HubConnectionBuilder()
             .withUrl(rootUrl + "/gamehub", {
                 accessTokenFactory: () => {
-                    console.log("jwt",localStorage.getItem('jwt-token'))
+                    console.log("jwt", localStorage.getItem('jwt-token'))
                     return localStorage.getItem('jwt-token') ?? ""
                 }
             })
@@ -27,15 +27,17 @@ export const connetToGameHub = async () => {
 
         async function start() {
             try {
-                await connection.start();
-                console.log("SignalR Connected.");
+                if (connection && connection != null) {
+                    await connection.start();
+                    console.log("SignalR Connected.");
 
-                connection.on("MyConnectionInfo", (response)=>{
-                    var responseObj = JSON.parse(response);
-                    localStorage.setItem('connection-id', responseObj.ConnectionId);                
-                });
+                    connection.on("MyConnectionInfo", (response) => {
+                        var responseObj = JSON.parse(response);
+                        localStorage.setItem('connection-id', responseObj.ConnectionId);
+                    });
 
-                await connection.invoke("Me");
+                    await connection.invoke("Me");
+                }
 
             } catch (err) {
                 console.log(err);
@@ -64,12 +66,12 @@ export const addGameHubListener = (eventName: string, callback: (...args: any[])
         return;
     }
 
-    var jsonParshCallback = (response:any)=>{
+    var jsonParshCallback = (response: any) => {
         var responseObj = JSON.parse(response);
         callback(responseObj);
     }
 
-    callbacks.push({"originalCallback":callback, "jsonCallback": jsonParshCallback});
+    callbacks.push({ "originalCallback": callback, "jsonCallback": jsonParshCallback });
 
     connection.on(eventName, jsonParshCallback);
 };
@@ -79,8 +81,8 @@ export const removeGameHubListener = (eventName: string, callback: (...args: any
         return;
     }
 
-    var callbackObj = callbacks.find(x=>x.originalCallback == callback);
-    if (callbackObj){
+    var callbackObj = callbacks.find(x => x.originalCallback == callback);
+    if (callbackObj) {
         connection.off(eventName, callbackObj.jsonCallback);
     }
 };
