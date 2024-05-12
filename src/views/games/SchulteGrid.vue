@@ -51,11 +51,18 @@
             <span class="chat-icon" v-if="message.result === 'Wrong'"><i class="fas fa-times"></i></span>
             <span class="chat-icon" v-if="message.result === 'Answered'"><i class="fas fa-poop"></i></span>
           </div>
+          <div class="chat-message" v-for="message in remainAnswers" v-if="isGameEnded">
+            <img src="/amiya.png" class="chat-avatar" />
+            <div class="chat-right-container correct">
+              <div class="nickname">管理员兔兔</div>
+              <div class="chat-bubble">{{ message }}.</div>
+            </div>
+          </div>
           <div class="chat-message" v-if="isGameEnded">
             <img src="/amiya.png" class="chat-avatar" />
             <div class="chat-right-container correct">
               <div class="nickname">管理员兔兔</div>
-              <div class="chat-bubble">游戏结束.</div>
+              <div class="chat-bubble">游戏结束{{ remainAnswers.length == 0 ?"。":"，未答出的答案如上。"  }}</div>
             </div>
           </div>
         </div>
@@ -79,7 +86,7 @@ import { useRoute, useRouter } from 'vue-router';
 // import AlertDialog from '@src/views/dialogs/AlertDialog.vue';
 import { getGame } from '@src/api/SchulteGrid';
 import CryptoJS from 'crypto-js';
-import { invokeGameHub, addGameHubListener, removeGameHubListener } from '@src/api/SignalR.ts';
+import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
 
 const route = useRoute();
 const router = useRouter();
@@ -120,6 +127,11 @@ const players = ref([
   { id: localStorage.getItem("signalrId") || "", name: localStorage.getItem("nickname"), avatar: 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(localStorage.getItem('email') ?? "".trim().toLowerCase()) + '?d=identicon', score: 0 },
 ]);
 const isGameEnded = ref(false);
+const remainAnswers = ref(['Answer1', 'Answer2', 'Answer3']);
+
+if(!isConnected()){
+  router.push('/regular-home');
+}
 
 var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 messages.value = []
@@ -164,13 +176,8 @@ watchEffect(() => {
 var receiveMoveListener = (response: any) => {
   const player = players.value.find(p => p.id === response.PlayerId);
   const result = response.Result
-  const content = result == 'Correct' ? response.CharacterName + ' - ' + response.Answer.SkillName : response.CharacterName;
-  messages.value.push({
-    content: content,
-    result: result,
-    nickname: player?.name || 'Unknown',
-    avatar: player?.avatar || 'path_to_avatar.jpg'
-  });
+  var content = response.CharacterName;
+
 
   if (result === 'Correct') {
     var dataArray = [...expanded_data.value]
@@ -183,20 +190,29 @@ var receiveMoveListener = (response: any) => {
       }
     }
 
+    content = content + ' - '
 
-    for (var point of response.Answer.GridPointList) {
-      var loc = point.Y * y.value + point.X
-      dataArray[loc].recent = true
-    }
-
-    isGameEnded.value = response.Completed;
-
+    response.Answer.forEach((answer:any) => {
+      for (var point of answer.GridPointList) {
+        var loc = point.Y * y.value + point.X
+        dataArray[loc].recent = true
+        dataArray[loc].fade = false
+      }
+      content = content + answer.SkillName + ' '
+    });
+    
     expanded_data.value = dataArray
     console.log(dataArray.length)
+
+    isGameEnded.value = response.Completed;
   }
 
-
-
+  messages.value.push({
+    content: content,
+    result: result,
+    nickname: player?.name || 'Unknown',
+    avatar: player?.avatar || 'path_to_avatar.jpg'
+  });
 
   nextTick(() => {
     const container = document.querySelector('.chat-display');
@@ -204,6 +220,16 @@ var receiveMoveListener = (response: any) => {
       container.scrollTop = container.scrollHeight;
     }
   });
+}
+
+var gameClosedListener = (response:any) => {
+  console.log('游戏已关闭');
+    isGameEnded.value = true;
+    remainAnswers.value = []
+    const answers = response.RemainingAnswers
+    for (var i = 0; i < answers.length; i++) {
+      remainAnswers.value.push(answers[i].CharacterName + ' - ' + answers[i].SkillName)
+    }
 }
 
 var endGame = () => {
@@ -219,9 +245,7 @@ var goHome = () => {
 onMounted(() => {
   addGameHubListener('ReceiveMove', receiveMoveListener);
   addGameHubListener('GameInfo', gameInfoUpdatedListener);
-  addGameHubListener('GameClosed', () => {
-    isGameEnded.value = true;
-  });
+  addGameHubListener('GameClosed', gameClosedListener);
 
   invokeGameHub('GetGame', roomId);
 
@@ -258,7 +282,7 @@ onMounted(() => {
 onUnmounted(() => {
   removeGameHubListener('ReceiveMove', receiveMoveListener);
   removeGameHubListener('GameInfo', gameInfoUpdatedListener);
-
+  removeGameHubListener('GameClosed', gameClosedListener);
 });
 
 var sendMessage = () => {
@@ -266,7 +290,7 @@ var sendMessage = () => {
   if(newMessage.value.trim() === ''){
     return;
   }
-  
+
   invokeGameHub('SendMove', roomId, JSON.stringify({
     CharacterName: newMessage.value
   }));

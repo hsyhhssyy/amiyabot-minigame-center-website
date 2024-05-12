@@ -18,7 +18,7 @@
 <script lang="ts" setup>
 import { ref,onMounted,onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { invokeGameHub,addGameHubListener,removeGameHubListener } from '@src/api/SignalR.ts';
+import { invokeGameHub,addGameHubListener,removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
 
 const router = useRouter();
 
@@ -27,6 +27,10 @@ const games = ref([
     { id: 2, image: '/SchulteGrid.jpg' , name: '技能方格'},
     // 添加更多游戏
 ]);
+
+if(!isConnected()){
+  router.push('/regular-home');
+}
 
 function selectGame(gameId: number) {
     console.log(`选择游戏 ${gameId}`);

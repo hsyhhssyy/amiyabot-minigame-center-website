@@ -4,6 +4,10 @@ var connection: signalR.HubConnection;
 
 var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
 
+export const isConnected = () => {
+    return connection!=undefined&&connection != null;
+}
+
 export const connetToGameHub = async () => {
     try {
 
@@ -40,6 +44,7 @@ export const connetToGameHub = async () => {
         };
 
         connection.onclose(async () => {
+            connection = null;
             await start();
         });
 
@@ -54,6 +59,11 @@ export const connetToGameHub = async () => {
 var callbacks: { originalCallback: (...args: any[]) => void; jsonCallback: (response: any) => void; }[] = [];
 
 export const addGameHubListener = (eventName: string, callback: (...args: any[]) => void) => {
+
+    if (!connection) {
+        return;
+    }
+
     var jsonParshCallback = (response:any)=>{
         var responseObj = JSON.parse(response);
         callback(responseObj);
@@ -65,6 +75,10 @@ export const addGameHubListener = (eventName: string, callback: (...args: any[])
 };
 
 export const removeGameHubListener = (eventName: string, callback: (...args: any[]) => void) => {
+    if (!connection) {
+        return;
+    }
+
     var callbackObj = callbacks.find(x=>x.originalCallback == callback);
     if (callbackObj){
         connection.off(eventName, callbackObj.jsonCallback);
@@ -72,5 +86,9 @@ export const removeGameHubListener = (eventName: string, callback: (...args: any
 };
 
 export const invokeGameHub = (methodName: string, ...args: any[]) => {
+    if (!connection) {
+        return;
+    }
+
     connection.invoke(methodName, ...args).catch((err) => console.error(err));
 };

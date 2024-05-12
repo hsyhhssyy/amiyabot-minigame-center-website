@@ -25,7 +25,7 @@ import { useRoute, useRouter } from 'vue-router';
 import ConfirmDialog from '@src/views/dialogs/ConfirmDialog.vue';
 import AlertDialog from '@src/views/dialogs/AlertDialog.vue';
 import CryptoJS from 'crypto-js';
-import { invokeGameHub, addGameHubListener, removeGameHubListener } from '@src/api/SignalR.ts';
+import { invokeGameHub, addGameHubListener, removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
 //import { on } from 'events';
 
 const route = useRoute();
@@ -40,6 +40,10 @@ const isHost = ref(false);
 
 const showAlert = ref(false);
 const alertMessage = ref('');
+
+if(!isConnected()){
+  router.push('/regular-home');
+}
 
 var alertConfirmed = () => {
     showAlert.value = false;

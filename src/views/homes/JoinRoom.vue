@@ -12,6 +12,7 @@
 <script lang="ts" setup>
 import { ref ,onMounted,onUnmounted} from 'vue';
 import { useRouter } from 'vue-router';
+import {ElMessage} from 'element-plus';
 import { invokeGameHub,addGameHubListener,removeGameHubListener } from '@src/api/SignalR.ts';
 
 const router = useRouter();
@@ -37,12 +38,22 @@ var gameJoinListener = (response:any) => {
     router.push('/regular-home/room-waiting/'+gameId);
 }
 
+var alertListner = (response:any) => {
+    //Toast
+    ElMessage({
+        message: response.Message,
+        type: 'error',
+    });
+}
+
 onMounted(() => {
     addGameHubListener('PlayerJoined', gameJoinListener);
+    addGameHubListener('Alert', alertListner);
 });
 
 onUnmounted(() => {
     removeGameHubListener('PlayerJoined', gameJoinListener);
+    removeGameHubListener('Alert', alertListner);
 });
 
 function goBack() {
