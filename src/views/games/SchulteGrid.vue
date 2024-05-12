@@ -212,6 +212,14 @@ var gameClosedListener = (response:any) => {
     for (var i = 0; i < answers.length; i++) {
       remainingAnswers.value.push(answers[i].CharacterName + ' - ' + answers[i].SkillName)
     }
+
+    
+  nextTick(() => {
+    const container = document.querySelector('.chat-display');
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  });
 }
 
 var handleEndCurrentGame = () => {
