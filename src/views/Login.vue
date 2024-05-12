@@ -2,7 +2,7 @@
     <div class="login-container">
         <el-card class="login-card">
             <div slot="header">
-                <h1>兔兔用户中心</h1>
+                <h1>兔兔小游戏中心</h1>
             </div>
             <p class="disclaimer">本网站<b style="color: red;">不是</b>鹰角网络下属的官方网站。</p>
             <el-form>

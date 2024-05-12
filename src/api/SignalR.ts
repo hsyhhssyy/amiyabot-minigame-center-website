@@ -3,7 +3,7 @@ import * as signalR from '@microsoft/signalr';
 var connection: signalR.HubConnection;
 
 var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
-rootUrl = "http://localhost:5003"
+// rootUrl = "http://localhost:5003"
 
 export const connetToGameHub = async () => {
     try {
