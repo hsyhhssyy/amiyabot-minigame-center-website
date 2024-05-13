@@ -235,6 +235,7 @@ var handleEndCurrentGame = () => {
 
 var handleReturnToHomePage = () => {
   console.log('返回首页');
+  localStorage.removeItem('current-game-id');
   router.push('/regular-home');
 }
 

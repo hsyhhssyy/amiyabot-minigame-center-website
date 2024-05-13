@@ -17,8 +17,8 @@
         <div :hidden="isHost">
             <button @click="handleExitRoom" class="close-room-button">离开房间</button>
         </div>
-        <el-dialog v-model="showConfirm" title="踢出玩家">
-            确定要踢出这位玩家吗？
+        <el-dialog v-model="showConfirm" title="踢出玩家"  center="true" show-close="false">
+            <div style="text-align: center;">确定要踢出这位玩家吗？</div>
             <template #footer>
                 <span class="dialog-footer">
                     <el-button @click="handleCancelKickPlayer">取消</el-button>
@@ -27,8 +27,8 @@
             </template>
         </el-dialog>
         
-        <el-dialog v-model="showAlert" title="提示">
-            {{ alertMessage }}
+        <el-dialog v-model="showAlert" title="提示" center="true" show-close="false">
+            <div style="text-align: center;">{{ alertMessage }}</div>
             <template #footer>
                 <span class="dialog-footer">
                     <el-button type="primary" @click="handleAlertConfirmed">确定</el-button>

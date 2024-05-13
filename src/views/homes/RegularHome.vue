@@ -14,6 +14,15 @@
     <footer>
       <button @click="logout" class="logout-button">登出</button>
     </footer>
+    <el-dialog v-model="showReconnectDialog" title="断线重连" center="true" show-close="false">
+        <div style="text-align: center;">检测到您有一局正在进行的游戏，是否重新连接？</div>
+        <template #footer>
+            <span class="dialog-footer">
+                <el-button type="secondary" @click="handleCancelReconnect">取消</el-button>
+                <el-button type="primary" @click="handleReconnect">确定</el-button>
+            </span>
+        </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -27,16 +36,33 @@ const router = useRouter();
 
 const email = ref(localStorage.getItem('email') || '');
 const nickname = ref(localStorage.getItem('nickname') || '');
+const showReconnectDialog = ref(false);
 const defaultGravatar = "/ceobe.jpeg"//'https://www.gravatar.com/avatar/' + CryptoJS.MD5(email.value.trim().toLowerCase()) + '?d=identicon';
 
 var connect=async ()=>{
   const ret = await connectToGameHub();
   if(ret){
     console.log('RegularHome 连接成功');
+
+    //检查已有房间
+    if(localStorage.getItem('current-game-id')){
+      showReconnectDialog.value = true;
+    }
+
   }else{
     console.log('RegularHome 连接失败');
     setTimeout(connect, 1000);
   }  
+}
+
+var handleCancelReconnect = () => {
+  localStorage.removeItem('current-game-id');
+  showReconnectDialog.value = false;
+}
+
+var handleReconnect = () => {
+  showReconnectDialog.value = false;
+  router.push('/regular-home/room-waiting/'+localStorage.getItem('current-game-id'));
 }
 
 onMounted(async () => {

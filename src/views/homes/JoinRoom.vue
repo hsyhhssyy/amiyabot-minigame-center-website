@@ -68,6 +68,7 @@ onUnmounted(() => {
 
 function goBack() {
     console.log('返回首页');
+    localStorage.removeItem('current-game-id');
     router.push('/regular-home');
 }
 </script>
