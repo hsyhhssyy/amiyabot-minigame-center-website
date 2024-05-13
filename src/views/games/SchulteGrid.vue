@@ -110,9 +110,15 @@ const players = ref([
 const isGameEnded = ref(false);
 const remainingAnswers = ref(['']);
 
-if(!isConnected()){
-  router.push('/regular-home');
+var check_connection = () => {
+  if (!isConnected()) {
+    router.push('/regular-home');
+    return;
+  }
+  setTimeout(check_connection, 500);
 }
+
+check_connection()
 
 var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 messages.value = []

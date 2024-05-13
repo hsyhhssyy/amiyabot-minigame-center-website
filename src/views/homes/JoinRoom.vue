@@ -13,11 +13,21 @@
 import { ref ,onMounted,onUnmounted} from 'vue';
 import { useRouter } from 'vue-router';
 import {ElMessage} from 'element-plus';
-import { invokeGameHub,addGameHubListener,removeGameHubListener } from '@src/api/SignalR.ts';
+import { invokeGameHub,addGameHubListener,removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
 
 const router = useRouter();
 
 const roomNumber = ref('');
+
+var check_connection = () => {
+  if (!isConnected()) {
+    router.push('/regular-home');
+    return;
+  }
+  setTimeout(check_connection, 500);
+}
+
+check_connection()
 
 function joinRoom() {
     console.log(`加入房间号为 ${roomNumber.value} 的房间`);

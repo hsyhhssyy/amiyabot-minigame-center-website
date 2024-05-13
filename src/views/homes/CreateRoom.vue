@@ -28,9 +28,15 @@ const games = ref([
     // 添加更多游戏
 ]);
 
-if(!isConnected()){
-  router.push('/regular-home');
+var check_connection = () => {
+  if (!isConnected()) {
+    router.push('/regular-home');
+    return;
+  }
+  setTimeout(check_connection, 500);
 }
+
+check_connection()
 
 function selectGame(gameId: number) {
     console.log(`选择游戏 ${gameId}`);

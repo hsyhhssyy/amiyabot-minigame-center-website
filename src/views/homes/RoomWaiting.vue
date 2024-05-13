@@ -40,10 +40,15 @@ const isHost = ref(false);
 const showAlert = ref(false);
 const alertMessage = ref('');
 
-if(!isConnected()){
-  router.push('/regular-home');
+var check_connection = () => {
+  if (!isConnected()) {
+    router.push('/regular-home');
+    return;
+  }
+  setTimeout(check_connection, 500);
 }
 
+check_connection()
 
 const players = ref([
     { id: "", connection: "", name: '', avatar: '' },
