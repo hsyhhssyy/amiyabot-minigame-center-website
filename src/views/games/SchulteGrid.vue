@@ -24,7 +24,7 @@
       </div>
       <!-- 右侧区域 -->
       <div class="right-panel">
-        <div class="player-list">
+        <div class="player-list hide-on-very-low-height">
           <el-button class="button" @click="handleEndCurrentGame" v-if="isHost && !isGameEnded" >结束<br />游戏</el-button>
           <el-button class="button" @click="handleReturnToHomePage" v-if="!isHost || isGameEnded">退出<br />房间</el-button>
           <div v-for="player in players" :key="player.id" class="player">
@@ -37,7 +37,7 @@
           </div>
         </div>
         <!-- 聊天信息显示区域 -->
-        <div class="chat-display">
+        <div class="chat-display hide-on-low-height">
           <div class="chat-message" v-for="message in messages">
             <img :src="message.avatar" class="chat-avatar" />
             <div
@@ -626,5 +626,18 @@ onUnmounted(() => {
     width: 100%;
   }
 }
+
+@media (max-height: 700px) {
+  .hide-on-low-height {
+    display: none;
+  }
+}
+
+@media (max-height: 550px) {
+  .hide-on-very-low-height {
+    display: none;
+  }
+}
+
 
 </style>
