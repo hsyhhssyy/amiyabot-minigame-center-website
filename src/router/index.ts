@@ -6,6 +6,7 @@ import JoinRoom from '../views/homes/JoinRoom.vue';
 import RoomWaiting from '../views/homes/RoomWaiting.vue';
 import SchulteGrid from '../views/games/SchulteGrid.vue';
 import Register from '../views/Register.vue';
+import QuickRegister from '../views/QuickRegister.vue';
 import Logout from '../views/Logout.vue';
 
 const routes = [
@@ -13,6 +14,11 @@ const routes = [
     path: '/register',
     name: 'Register',
     component: Register,
+  },
+  {
+    path: '/quickRegister',
+    name: 'QuickRegister',
+    component: QuickRegister,
   },
   {
     path: '/regular-home',

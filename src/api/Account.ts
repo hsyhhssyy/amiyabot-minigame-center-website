@@ -6,7 +6,6 @@ interface LoginResult {
 }
 
 var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
-// rootUrl = "http://127.0.0.1:5003"
 
 export const loginAPI = async (email: string, password: string): Promise<LoginResult> => {
     try {
@@ -16,7 +15,18 @@ export const loginAPI = async (email: string, password: string): Promise<LoginRe
         });
 
         if (response.data.token) {
-            localStorage.setItem('jwt-token', response.data.token);
+            return quickLoginAPI(response.data.token,email);
+        }
+        return { success: false, error: "登录失败" };
+    } catch (error: any) {
+        return { success: false, error: error.message || "未知错误" };
+    }
+};
+
+export const quickLoginAPI = async (token: string,email:string): Promise<LoginResult> => {
+    try {
+        if (token) {
+            localStorage.setItem('jwt-token', token);
             localStorage.setItem('email', email);
 
             const user = await describeAPI();
@@ -41,7 +51,7 @@ export const loginAPI = async (email: string, password: string): Promise<LoginRe
     } catch (error: any) {
         return { success: false, error: error.message || "未知错误" };
     }
-};
+}
 
 export const describeAPI = async () => {
     try {

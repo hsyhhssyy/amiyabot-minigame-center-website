@@ -3,7 +3,9 @@
     <header>
       <h1>兔兔小游戏中心</h1>
       <img :src="defaultGravatar" alt="Player Avatar" class="avatar">
-      <div>{{nickname}}({{ email }})</div>
+      <div>{{nickname}}</div>
+      <div v-if="!email.endsWith('@amiyabot.com')">{{ email }}</div>
+      <div v-if="email.endsWith('@amiyabot.com')">临时账户</div>
     </header>
     <main>
       <button @click="createGame">创建游戏</button>
@@ -18,14 +20,14 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import CryptoJS from 'crypto-js';
+//import CryptoJS from 'crypto-js';
 import { connetToGameHub } from '@src/api/SignalR.ts';
 
 const router = useRouter();
 
 const email = ref(localStorage.getItem('email') || '');
 const nickname = ref(localStorage.getItem('nickname') || '');
-const defaultGravatar = 'https://www.gravatar.com/avatar/' + CryptoJS.MD5(email.value.trim().toLowerCase()) + '?d=identicon';
+const defaultGravatar = "/ceobe.jpeg"//'https://www.gravatar.com/avatar/' + CryptoJS.MD5(email.value.trim().toLowerCase()) + '?d=identicon';
 
 onMounted(async () => {
   if (!email.value) {

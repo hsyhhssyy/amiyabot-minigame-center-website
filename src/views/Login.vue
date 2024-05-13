@@ -16,6 +16,7 @@
                     <div class="button-container">
                         <el-button type="primary" @click="login">登录</el-button>
                         <el-button type="secondary" @click="register">注册</el-button>
+                        <el-button type="success" @click="quickRegister">快速开玩</el-button>
                     </div>
                 </el-form-item>
             </el-form>
@@ -51,11 +52,16 @@ export default {
             router.push('/register');
         };
 
+        const quickRegister = () => {
+            router.push('/quickRegister');
+        };
+
         return {
             email,
             password,
             login,
             register,
+            quickRegister
         };
     },
 };

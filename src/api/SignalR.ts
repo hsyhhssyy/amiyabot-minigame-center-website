@@ -12,7 +12,7 @@ export const connetToGameHub = async () => {
     try {
 
         if (connection) {
-            return;
+            connection.stop();
         }
 
         connection = new signalR.HubConnectionBuilder()
@@ -25,8 +25,18 @@ export const connetToGameHub = async () => {
             .configureLogging(signalR.LogLevel.Information)
             .build();
 
+        var startingJwt = localStorage.getItem('jwt-token');
+
         async function start() {
             try {
+                if(startingJwt != localStorage.getItem('jwt-token')){
+                    return
+                }
+
+                if(connection?.state == signalR.HubConnectionState.Connected){
+                    return
+                }
+
                 if (connection && connection != null) {
                     await connection.start();
                     console.log("SignalR Connected.");

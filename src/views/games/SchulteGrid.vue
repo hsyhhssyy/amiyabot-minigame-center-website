@@ -135,7 +135,7 @@ var gameInfoListener = (response: any) => {
     return {
       id: p.UserId,
       name: p.UserName,
-      avatar: p.UserAvatar,
+      avatar: "/ceobe.jpeg",//p.UserAvatar,
       score: p.Score
     }
   });
