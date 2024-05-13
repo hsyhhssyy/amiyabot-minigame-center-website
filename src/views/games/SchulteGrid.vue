@@ -634,10 +634,6 @@ onUnmounted(() => {
   .message-input{
     margin-bottom: 10px;
   }
-
-  .chat-display {
-    height: 200px;
-  }
 }
 
 </style>
