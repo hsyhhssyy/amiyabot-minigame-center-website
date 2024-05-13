@@ -1,6 +1,8 @@
 # 兔兔小游戏中心
 
-[小游戏开玩咯](https://minigame.hsyhhssyy.net/)
+![小游戏中心](images/image.png)
+
+[点这里开始玩](https://minigame.hsyhhssyy.net/)
 
 ## 备注
 
