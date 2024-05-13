@@ -10,6 +10,7 @@
                 <span>{{ player.name }}</span>
             </div>
         </div>
+        <div style="text-align: center;" v-if="!gameLoaded">该局游戏已经结束，无法重连或加入。</div>
         <div :hidden="!isHost">
             <button @click="handleStartGame" class="start-game-button">开始游戏</button>
             <button @click="handleCloseRoom" class="close-room-button">关闭房间</button>
@@ -54,6 +55,7 @@ const showConfirm = ref(false);
 const selectedPlayerId = ref("");
 const isHost = ref(false);
 const hostId = ref("");
+const gameLoaded = ref(false);
 
 const showAlert = ref(false);
 const alertMessage = ref('');
@@ -100,12 +102,14 @@ var handleStartGame = ()=>{
 
 var handleCloseRoom = () => {
     console.log('关闭房间');
+    localStorage.removeItem('current-game-id');
     invokeGameHub('CloseGame', roomId);
     router.push('/regular-home');
 }
 
 var handleExitRoom = () => {
     console.log('退出房间');
+    localStorage.removeItem('current-game-id');
     invokeGameHub('LeaveGame', roomId);
     router.push('/regular-home');
 }
@@ -130,6 +134,7 @@ var gameInfoListener = (response: any) => {
     isHost.value = response.CreatorId == localStorage.getItem('user-id');
     hostId.value = response.CreatorId;
     joinCode.value = response.GameJoinCode;
+    gameLoaded.value = true
     players.value = playerList.map((p: any) => {
         return {
             id: p.UserId,

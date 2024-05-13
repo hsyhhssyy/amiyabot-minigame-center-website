@@ -8,8 +8,8 @@
       <div v-if="email.endsWith('@amiyabot.com')">临时账户</div>
     </header>
     <main>
-      <button @click="createGame">创建游戏</button>
-      <button @click="joinGame">加入游戏</button>
+      <button class="button" @click="createGame">创建游戏</button>
+      <button class="button"  @click="joinGame">加入游戏</button>
     </main>
     <footer>
       <button @click="logout" class="logout-button">登出</button>
@@ -108,6 +108,10 @@ header {
 
 
 .logout-button {
+  width: 150px;
+  height: 60px;
+  margin: 10px;
+  font-size: 18px;
   padding: 10px 20px;
   background-color: #D32F2F;
   color: white;
@@ -122,11 +126,11 @@ header {
 }
 
 
-main {
+.main {
   margin-top: 20px;
 }
 
-button {
+.button {
   width: 150px;
   height: 60px;
   margin: 10px;
@@ -139,7 +143,7 @@ button {
   transition: background-color 0.3s;
 }
 
-button:hover {
+.button:hover {
   background-color: #45a049;
 }
 </style>
