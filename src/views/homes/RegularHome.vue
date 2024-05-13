@@ -21,7 +21,7 @@
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 //import CryptoJS from 'crypto-js';
-import { connetToGameHub } from '@src/api/SignalR.ts';
+import { connectToGameHub } from '@src/api/SignalR.ts';
 
 const router = useRouter();
 
@@ -29,12 +29,22 @@ const email = ref(localStorage.getItem('email') || '');
 const nickname = ref(localStorage.getItem('nickname') || '');
 const defaultGravatar = "/ceobe.jpeg"//'https://www.gravatar.com/avatar/' + CryptoJS.MD5(email.value.trim().toLowerCase()) + '?d=identicon';
 
+var connect=async ()=>{
+  const ret = await connectToGameHub();
+  if(ret){
+    console.log('RegularHome 连接成功');
+  }else{
+    console.log('RegularHome 连接失败');
+    setTimeout(connect, 1000);
+  }  
+}
+
 onMounted(async () => {
   if (!email.value) {
     router.push('/login');
   }
   
-  await connetToGameHub();
+  await connect();
 });
 
 function createGame() {

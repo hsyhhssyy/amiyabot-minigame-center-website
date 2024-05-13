@@ -19,7 +19,32 @@ export const loginAPI = async (email: string, password: string): Promise<LoginRe
         }
         return { success: false, error: "登录失败" };
     } catch (error: any) {
-        return { success: false, error: error.message || "未知错误" };
+        // 初始化一个默认的错误消息
+        let message = '';
+
+        // 检查error对象是否有符合预期结构的属性
+        // error.response.data可能是数组，如果是数组，需要显示多个toast
+        if (error.response &&
+            error.response.data &&
+            Array.isArray(error.response.data) &&
+            error.response.data[0] &&
+            error.response.data[0].description) {
+            for (const item of error.response.data) {
+                message += '\n' + item.description;
+            }
+        }
+
+        if (error.response &&
+            error.response.data &&
+            error.response.data.message) {
+                message += '\n' + error.response.data.message;
+        }
+
+        if(message === '') {
+            message = error.message || "未知错误";
+        }
+
+        return { success: false, error: message };
     }
 };
 

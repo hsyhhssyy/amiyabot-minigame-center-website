@@ -1,71 +1,70 @@
 import * as signalR from '@microsoft/signalr';
 
-var connection: signalR.HubConnection | null;
 
 var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
 
+var connection: signalR.HubConnection | null = null;
+var lastToken: string | null = null;
+
 export const isConnected = () => {
-    return connection != undefined && connection != null;
-}
+    return connection?.state === signalR.HubConnectionState.Connected;
+};
 
-export const connetToGameHub = async () => {
+export const connectToGameHub = async () =>{
+    // 确保函数不可重入，每次调用都会断开前面的连接
+    if (connection) {
+        await connection.stop();
+        connection = null;
+    }
+
     try {
-
-        if (connection) {
-            connection.stop();
+        // 检查并更新 jwt-token
+        const currentToken = localStorage.getItem('jwt-token');
+        if (lastToken !== currentToken) {
+            lastToken = currentToken;
+            connection = null;
         }
 
+        // 创建新的连接实例
         connection = new signalR.HubConnectionBuilder()
-            .withUrl(rootUrl + "/gamehub", {
-                accessTokenFactory: () => {
-                    console.log("jwt", localStorage.getItem('jwt-token'))
-                    return localStorage.getItem('jwt-token') ?? ""
-                }
+            .withUrl(`${rootUrl}/gamehub`, {
+                accessTokenFactory: () => localStorage.getItem('jwt-token') ?? ""
             })
             .configureLogging(signalR.LogLevel.Information)
             .build();
 
-        var startingJwt = localStorage.getItem('jwt-token');
-
-        async function start() {
-            try {
-                if(startingJwt != localStorage.getItem('jwt-token')){
-                    return
-                }
-
-                if(connection?.state == signalR.HubConnectionState.Connected){
-                    return
-                }
-
-                if (connection && connection != null) {
-                    await connection.start();
-                    console.log("SignalR Connected.");
-
-                    connection.on("MyConnectionInfo", (response) => {
-                        var responseObj = JSON.parse(response);
-                        localStorage.setItem('connection-id', responseObj.ConnectionId);
-                    });
-
-                    await connection.invoke("Me");
-                }
-
-            } catch (err) {
-                console.log(err);
-                setTimeout(start, 5000);
-            }
-        };
-
-        connection.onclose(async () => {
+        // 连接关闭时的处理
+        connection.onclose(async (error) => {
+            console.error('Connection closed due to error.', error);
             connection = null;
-            await start();
         });
 
-        // Start the connection.
-        start();
+        // 启动连接
+        await connection.start();
+        console.log("SignalR Connected.");
+        
+        // 连接成功后的后处理
+        await postConnectionSetup();
 
     } catch (error) {
-        console.error('An error occurred while creating a client: ', error);
+        console.error('An error occurred while connecting to the game hub:', error);
+        return false;
     }
+
+    return true;
+};
+
+const postConnectionSetup = async () => {
+    if (!connection) {
+        return;
+    }
+    console.log("Performing post-connection setup...");
+    connection.on("MyConnectionInfo", (response) => {
+        var responseObj = JSON.parse(response);
+        localStorage.setItem('connection-id', responseObj.ConnectionId);
+    });
+    
+    await connection.invoke("Me");
 };
 
 var callbacks: { originalCallback: (...args: any[]) => void; jsonCallback: (response: any) => void; }[] = [];
