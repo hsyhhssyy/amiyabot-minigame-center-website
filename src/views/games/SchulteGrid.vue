@@ -626,19 +626,18 @@ onUnmounted(() => {
   .right-panel {
     width: 100%;
   }
-}
 
-@media (max-height: 700px) {
-  .hide-on-low-height {
-    display: none;
+  .right-panel {
+    flex-direction: column-reverse;
+  }
+
+  .message-input{
+    margin-bottom: 10px;
+  }
+
+  .chat-display {
+    height: 200px;
   }
 }
-
-@media (max-height: 550px) {
-  .hide-on-very-low-height {
-    display: none;
-  }
-}
-
 
 </style>
