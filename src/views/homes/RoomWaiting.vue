@@ -48,7 +48,7 @@ import { invokeGameHub, addGameHubListener, removeGameHubListener,isConnected } 
 const route = useRoute();
 const router = useRouter();
 
-const roomId =  route.params.roomId
+const roomId =  Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 
 const joinCode = ref("")
 const showConfirm = ref(false);
@@ -59,6 +59,8 @@ const gameLoaded = ref(false);
 
 const showAlert = ref(false);
 const alertMessage = ref('');
+
+localStorage.setItem('current-game-id', roomId);
 
 var check_connection = () => {
   if (!isConnected()) {
