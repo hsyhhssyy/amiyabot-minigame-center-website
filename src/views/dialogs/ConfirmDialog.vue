@@ -1,47 +1,33 @@
-<!-- ConfirmDialog.vue -->
 <template>
-  <div v-if="visible" class="modal-overlay">
-    <div class="modal">
-      <p>{{ message }}</p>
-      <button @click="confirm">确定</button>
-      <button @click="cancel">取消</button>
-    </div>
-  </div>
+  <el-dialog :visible="!visible" :title="title">
+    <p>{{ message }}</p>
+      <span class="dialog-footer">
+        <el-button @click="cancel">取消</el-button>
+        <el-button type="primary" @click="confirm">确定</el-button>
+      </span>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
+import { ElDialog, ElButton } from 'element-plus'
 
 // 定义 props 和 emits
-defineProps<{ visible: boolean; message: string }>()
+defineProps<{ visible: boolean; message: string; title:string }>()
 const emit = defineEmits(['confirm', 'cancel'])
 
 // 方法
-const confirm = () => emit('confirm')
-const cancel = () => emit('cancel')
+const confirm = () => {
+  emit('confirm')
+}
+const cancel = () => {
+  emit('cancel')
+}
+const handleClose = () => {
+  emit('cancel')
+}
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-button {
-  margin: 10px;
-}
+/* 可以根据需要添加自定义样式，Element-Plus 的样式已经足够美观，通常不需要额外修改 */
 </style>

@@ -2,8 +2,11 @@
     <div class="room-page">
         <h2>游戏房间 {{ joinCode }}</h2>
         <div class="player-list">
-            <div v-for="player in players" :key="player.id" @click="handleKickPlayer(player.id)" class="player">
+            <div v-for="player in players" :key="player.id" @click="handleKickPlayer(player.id)" :class="{ owner: player.id == hostId,player:true }">
+                <div class="avatar-wrapper">
                 <img :src="player.avatar" alt="Player Avatar" class="avatar">
+                <span class="kick-mask" v-show="player.id != hostId">踢出</span>
+                </div>
                 <span>{{ player.name }}</span>
             </div>
         </div>
@@ -14,28 +17,43 @@
         <div :hidden="isHost">
             <button @click="handleExitRoom" class="close-room-button">离开房间</button>
         </div>
+        <el-dialog v-model="showConfirm" title="踢出玩家">
+            确定要踢出这位玩家吗？
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="handleCancelKickPlayer">取消</el-button>
+                    <el-button type="primary" @click="handleKickPlayerConfirmed">确定</el-button>
+                </span>
+            </template>
+        </el-dialog>
+        
+        <el-dialog v-model="showAlert" title="提示">
+            {{ alertMessage }}
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button type="primary" @click="handleAlertConfirmed">确定</el-button>
+                </span>
+            </template>
+        </el-dialog>
     </div>
-    <ConfirmDialog :visible="showConfirm" message="确定要踢出这位玩家吗？" @confirm="handleKickPlayerConfirmed" @cancel="handleCancelKickPlayer" />
-    <AlertDialog :visible="showAlert" :message="alertMessage" @confirm="handleAlertConfirmed"/>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import ConfirmDialog from '@src/views/dialogs/ConfirmDialog.vue';
-import AlertDialog from '@src/views/dialogs/AlertDialog.vue';
 import { invokeGameHub, addGameHubListener, removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
 //import { on } from 'events';
 
 const route = useRoute();
 const router = useRouter();
 
-var roomId = route.params.roomId
+const roomId =  route.params.roomId
 
 const joinCode = ref("")
 const showConfirm = ref(false);
 const selectedPlayerId = ref("");
 const isHost = ref(false);
+const hostId = ref("");
 
 const showAlert = ref(false);
 const alertMessage = ref('');
@@ -63,10 +81,16 @@ var handleKickPlayer =(playerId: string)=>{
     if (!isHost.value) {
         return;
     }
-    console.log(`踢出玩家 ${playerId}`);
     
+    if(playerId == localStorage.getItem('user-id')){
+        console.log('不能踢出自己');
+        return;
+    }
+
     selectedPlayerId.value = playerId;
     showConfirm.value = true;
+
+    console.log(`踢出玩家 ${playerId}`);
 }
 
 var handleStartGame = ()=>{
@@ -104,6 +128,7 @@ var playerJoinedListener = (_: any) => {
 var gameInfoListener = (response: any) => {
     var playerList = response.PlayerList;
     isHost.value = response.CreatorId == localStorage.getItem('user-id');
+    hostId.value = response.CreatorId;
     joinCode.value = response.GameJoinCode;
     players.value = playerList.map((p: any) => {
         return {
@@ -190,11 +215,44 @@ onUnmounted(() => {
     cursor: pointer;
 }
 
+
+.avatar-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
 .avatar {
     width: 80px;
     height: 80px;
     border-radius: 50%;
     margin-bottom: 5px;
+}
+
+.kick-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 50%;
+    font-size: 14px;
+}
+
+.avatar-wrapper:hover .kick-mask {
+    opacity: 1; /* 当鼠标悬停时显示遮罩 */
+}
+
+.owner {
+    border: 2px solid gold; /* 房主的特殊边框 */
+    border-radius: 5px;
 }
 
 .start-game-button,

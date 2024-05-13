@@ -37,3 +37,28 @@
 首先是将页面改为左右排布
 左侧是方格区域,右侧则分为三部分,右侧上部为answer区域,中部为一个展示聊天信息的区域,下部为一个消息输入框
 请适当美化
+
+
+<div v-for="player in players" :key="player.id" @click="handleKickPlayer(player.id)" class="player">
+    <img :src="player.avatar" alt="Player Avatar" class="avatar">
+    <span>{{ player.name }}</span>
+</div>
+
+.player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 5px;
+}
+
+上面这个vue template表示一个玩家列表中的玩家
+现在请为其加入
+1. 鼠标悬停时, 其头像被灰色的"踢出"二字遮罩覆盖, 提示用户可以按下头像踢掉该用户
+2. 如果是房主,则显示一个特殊的边框
