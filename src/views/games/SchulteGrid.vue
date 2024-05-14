@@ -25,7 +25,7 @@
       <!-- 右侧区域 -->
       <div class="right-panel">
         <div class="player-list hide-on-very-low-height">
-          <el-button class="button" @click="handleEndCurrentGame" v-if="isHost && !isGameEnded" >结束<br />游戏</el-button>
+          <el-button class="button" @click="handleEndCurrentGame" v-if="isHost && !isGameEnded">结束<br />游戏</el-button>
           <el-button class="button" @click="handleReturnToHomePage" v-if="!isHost || isGameEnded">退出<br />房间</el-button>
           <div v-for="player in players" :key="player.id" class="player">
             <img :src="player.avatar" alt="Player Avatar" class="avatar">
@@ -62,15 +62,17 @@
             <img src="/amiya.png" class="chat-avatar" />
             <div class="chat-right-container correct">
               <div class="nickname">管理员兔兔</div>
-              <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ?"。":"，未答出的答案如上。"  }}</div>
+              <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ? "。" : "，未答出的答案如上。" }}</div>
             </div>
           </div>
         </div>
         <!-- 消息输入区域 -->
         <div class="message-input">
-          <div class="room-number">
-          <i class="fa-solid fa-house room-number-icon"></i> {{ joinCode }}</div>
-          <el-input type="text" class="message-to-send"v-model="messageToSend" @keyup.enter="handleSendMessage" placeholder="输入一个干员名..." />
+          <div class="room-number" @click="copyToClipboard">
+            <i class="fa-solid fa-house room-number-icon"></i> {{ joinCode }}
+          </div>
+          <el-input type="text" class="message-to-send" v-model="messageToSend" @keyup.enter="handleSendMessage"
+            placeholder="输入一个干员名..." />
           <el-button type="secondary" class="button" @click="handleSendMessage">发送</el-button>
         </div>
 
@@ -84,6 +86,7 @@ import { ref, onMounted, onUnmounted, watchEffect, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getGame } from '@src/api/SchulteGrid';
 import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
+import { ElMessage } from 'element-plus';
 
 const route = useRoute();
 const router = useRouter();
@@ -136,6 +139,18 @@ watchEffect(() => {
   });
 });
 
+var copyToClipboard = () => {
+  const url = "https://minigame.hsyhhssyy.net/regular-home/games/schulte-grid/"+roomId;
+      navigator.clipboard.writeText(url).then(() => {
+        ElMessage({
+          message: '已复制加入链接到剪贴板',
+          type: 'success'
+        });
+      }).catch(err => {
+        console.error('Could not copy text: ', err);
+      });
+    }
+
 var gameInfoListener = (response: any) => {
   isHost.value = response.CreatorId === localStorage.getItem('user-id');
   joinCode.value = response.GameJoinCode;
@@ -151,17 +166,17 @@ var gameInfoListener = (response: any) => {
 
   //检查一下答案
   var answers = response.CurrentStatus.AnswerList
- 
-  answers.forEach((element:any) => {
+
+  answers.forEach((element: any) => {
     for (var point of element.GridPointList) {
-    var loc = point.Y * y.value + point.X
-    var current = expanded_data.value[loc]
-    if(current.fade==false&&current.recent==false){
-      current.fade = true
+      var loc = point.Y * y.value + point.X
+      var current = expanded_data.value[loc]
+      if (current.fade == false && current.recent == false) {
+        current.fade = true
+      }
     }
-  }
   });
-  
+
 }
 
 var receiveMoveListener = (response: any) => {
@@ -183,7 +198,7 @@ var receiveMoveListener = (response: any) => {
 
     content = content + ' - '
 
-    response.Answer.forEach((answer:any) => {
+    response.Answer.forEach((answer: any) => {
       for (var point of answer.GridPointList) {
         var loc = point.Y * y.value + point.X
         dataArray[loc].recent = true
@@ -191,7 +206,7 @@ var receiveMoveListener = (response: any) => {
       }
       content = content + answer.SkillName + ' '
     });
-    
+
     expanded_data.value = dataArray
     console.log(dataArray.length)
 
@@ -213,16 +228,16 @@ var receiveMoveListener = (response: any) => {
   });
 }
 
-var gameClosedListener = (response:any) => {
+var gameClosedListener = (response: any) => {
   console.log('游戏已关闭');
-    isGameEnded.value = true;
-    remainingAnswers.value = []
-    const answers = response.RemainingAnswers
-    for (var i = 0; i < answers.length; i++) {
-      remainingAnswers.value.push(answers[i].CharacterName + ' - ' + answers[i].SkillName)
-    }
+  isGameEnded.value = true;
+  remainingAnswers.value = []
+  const answers = response.RemainingAnswers
+  for (var i = 0; i < answers.length; i++) {
+    remainingAnswers.value.push(answers[i].CharacterName + ' - ' + answers[i].SkillName)
+  }
 
-    
+
   nextTick(() => {
     const container = document.querySelector('.chat-display');
     if (container) {
@@ -244,7 +259,7 @@ var handleReturnToHomePage = () => {
 
 var handleSendMessage = () => {
   console.log('发送消息' + messageToSend.value);
-  if(messageToSend.value.trim() === ''){
+  if (messageToSend.value.trim() === '') {
     return;
   }
 
@@ -254,7 +269,7 @@ var handleSendMessage = () => {
   messageToSend.value = '';
 }
 
-var getGameInterval:NodeJS.Timeout
+var getGameInterval: NodeJS.Timeout
 
 onMounted(() => {
   addGameHubListener('ReceiveMove', receiveMoveListener);
@@ -335,7 +350,7 @@ onUnmounted(() => {
   padding: 10px;
 }
 
-.answer-container{
+.answer-container {
   margin-bottom: 20px;
 }
 
@@ -569,12 +584,15 @@ onUnmounted(() => {
   margin-bottom: 10px;
 }
 
-.room-number{
+.room-number {
   display: flex;
-  align-items: center; /* 垂直居中 */
-  justify-content: center; /* 水平居中 */
+  align-items: center;
+  /* 垂直居中 */
+  justify-content: center;
+  /* 水平居中 */
   font-size: 20px;
   margin-right: 10px;
+  cursor: pointer;
 }
 
 .player {
@@ -634,9 +652,8 @@ onUnmounted(() => {
     flex-direction: column-reverse;
   }
 
-  .message-input{
+  .message-input {
     margin-bottom: 10px;
   }
 }
-
 </style>
