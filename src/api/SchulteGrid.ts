@@ -14,3 +14,16 @@ export const getGame = async (gameId:string) => {
         return null;
     }
 };
+
+export const listGame = async () => {
+    try {
+        const response = await axios.get(rootUrl + '/api/schulteGridGame/', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('jwt-token')}`,
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        return null;
+    }
+};
