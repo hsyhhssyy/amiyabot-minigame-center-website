@@ -14,6 +14,7 @@ import { ref ,onMounted,onUnmounted} from 'vue';
 import { useRouter } from 'vue-router';
 import {ElMessage} from 'element-plus';
 import { invokeGameHub,addGameHubListener,removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
+import { getGame } from '@src/api/SchulteGrid';
 
 const router = useRouter();
 
@@ -56,9 +57,16 @@ var alertListner = (response:any) => {
     });
 }
 
-onMounted(() => {
+onMounted(async () => {
     addGameHubListener('PlayerJoined', gameJoinListener);
     addGameHubListener('Alert', alertListner);
+
+    if(localStorage.getItem('current-game-id')&&localStorage.getItem('current-game-id')!==""){
+    const gameId = localStorage.getItem('current-game-id')??"";
+    const game = await getGame( gameId );
+    roomNumber.value=game.joinCode;
+    invokeGameHub('JoinGame', roomNumber.value);
+}
 });
 
 onUnmounted(() => {
