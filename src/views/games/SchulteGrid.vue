@@ -62,7 +62,7 @@
             <img src="/amiya.png" class="chat-avatar" />
             <div class="chat-right-container correct">
               <div class="nickname">管理员兔兔</div>
-              <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ? "。" : "，未答出的答案如上。" }}</div>
+              <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。" }}</div>
             </div>
           </div>
         </div>
@@ -111,7 +111,7 @@ const players = ref([
   { id: '', name: '', avatar: '', score: 0 },
 ]);
 const isGameEnded = ref(false);
-const remainingAnswers = ref(['']);
+const remainingAnswers = ref([]);
 
 
 

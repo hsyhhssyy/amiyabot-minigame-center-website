@@ -22,6 +22,14 @@
             </el-form>
             <div class="footer">
                 <p>本网站不是鹰角网络官方网站，而是由爱好者自行开发的工具网站。</p>
+                <a class="github-link" href="https://github.com/hsyhhssyy/amiyabot-minigame-center-website" target="_blank">
+                    <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Logo" width="32" height="32">
+                    GitHub Repository
+                </a>
+                <a class="beian-link" href="https://beian.miit.gov.cn/" target="_blank">
+                    <img src="https://img.alicdn.com/tfs/TB1..50QpXXXXX7XpXXXXXXXXXX-40-40.png" alt="Beian Logo" width="32" height="32">
+                    京ICP备2022033983号
+                </a>
             </div>
         </el-card>
     </div>

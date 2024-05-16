@@ -55,6 +55,11 @@ var connect=async ()=>{
       const gameId = localStorage.getItem('current-game-id')??"";
       const game = await getGame( gameId );
 
+      if(game.isClosed){
+        localStorage.removeItem('current-game-id');
+        return;
+      }
+
       const playerList = game.playerList;
       const player = Object.keys(playerList).find(key=>key==localStorage.getItem('user-id'));
       
