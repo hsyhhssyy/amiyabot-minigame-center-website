@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amiyabot-minigame-website
+  namespace: amiya-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amiyabot-minigame-website
+  template:
+    metadata:
+      labels:
+        app: amiyabot-minigame-website
+    spec:
+      # 仅允许在位于阿里云的节点执行，保证对外IP不变
+      affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: location
+                  operator: In
+                  values:
+                  - aliyun
+      containers:
+        - command:
+            - nginx
+            - '-g'
+            - 'daemon off;'
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          image: harbor.hsyhhssyy.net/home-esxi/amiyabot-minigame-center-website:release-1
+          imagePullPolicy: Always
+          name: amiyabot-minigame-center-website
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      imagePullSecrets:
+        - name: harbor.hsyhhssyy.net

@@ -24,6 +24,9 @@ const email = ref(localStorage.getItem('email') || '');
 const nickname = ref(localStorage.getItem('nickname') || '');
 const defaultGravatar = "/ceobe.jpeg"
 
+//https://web.hycdn.cn/arknights/game/assets/char_skin/avatar/char_2015_dusk%232.png
+//https://web.hycdn.cn/arknights/game/assets/char_skin/avatar/char_293_thorns@it%231.png
+
 onMounted(async () => {
     
 });

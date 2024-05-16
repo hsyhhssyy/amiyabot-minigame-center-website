@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amiyabot-minigame-api
+  namespace: amiya-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amiyabot-minigame-api
+  template:
+    metadata:
+      labels:
+        app: amiyabot-minigame-api
+    spec:
+      # 仅允许在位于阿里云的节点执行，保证对外IP不变
+      affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: location
+                  operator: In
+                  values:
+                  - aliyun
+      containers:
+        - command:
+            - dotnet
+            - AmiyaBotPlayerRatingServer.dll
+          env:
+            - name: DOTNET_RUNNING_IN_CONTAINER
+              value: 'true'
+            - name: DOTNET_USE_POLLING_FILE_WATCHER
+              value: 'true'
+            - name: NUGET_XMLDOC_MODE
+              value: skip
+            - name: POWERSHELL_DISTRIBUTION_CHANNEL
+              value: PSDocker-DotnetSDK-Debian-10
+            - name: TZ
+              value: Asia/Shanghai
+          image: harbor.hsyhhssyy.net/home-esxi/amiya-bot-player-rating-server:release-1
+          imagePullPolicy: Always
+          name: amiya-bot-player-rating-server
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: Blank
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      imagePullSecrets:
+        - name: harbor.hsyhhssyy.net

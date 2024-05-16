@@ -1,7 +1,8 @@
 import * as signalR from '@microsoft/signalr';
 
 
-var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
+//var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
+var rootUrl = window._env_.VUE_APP_API_URL;
 
 var connection: signalR.HubConnection | null = null;
 var lastToken: string | null = null;

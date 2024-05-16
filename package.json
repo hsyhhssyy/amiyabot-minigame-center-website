@@ -3,10 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://minigame.anonymous-test.top",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
@@ -24,6 +25,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^20.8.10",
     "@vitejs/plugin-vue": "^4.2.3",
+    "gh-pages": "^6.1.1",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
     "vue-tsc": "^1.8.5"

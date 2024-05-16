@@ -5,7 +5,8 @@ interface LoginResult {
     error?: string; // 错误信息是可选的，因为如果登录成功，将没有错误信息。
 }
 
-var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
+//var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
+var rootUrl = window._env_.VUE_APP_API_URL;
 
 export const loginAPI = async (email: string, password: string): Promise<LoginResult> => {
     try {

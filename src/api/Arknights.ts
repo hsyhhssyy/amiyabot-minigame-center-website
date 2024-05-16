@@ -3,9 +3,9 @@ import axios from 'axios';
 //var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
 var rootUrl = window._env_.VUE_APP_API_URL;
 
-export const getGame = async (gameId:string) => {
+export const getCharacterTable = async () => {
     try {
-        const response = await axios.get(rootUrl + '/api/schulteGridGame/'+gameId, {
+        const response = await axios.get(rootUrl + '/api/characterMap', {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('jwt-token')}`,
             },
@@ -16,9 +16,9 @@ export const getGame = async (gameId:string) => {
     }
 };
 
-export const listGame = async () => {
+export const getCharacterIds = async () => {
     try {
-        const response = await axios.get(rootUrl + '/api/schulteGridGame/', {
+        const response = await axios.get(rootUrl + '/api/characterMap/operator-ids', {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('jwt-token')}`,
             },

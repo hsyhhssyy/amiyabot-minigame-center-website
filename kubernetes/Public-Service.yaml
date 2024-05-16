@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: amiyabot-minigame-api-service
+  namespace: amiya-bot
+spec:
+  selector:
+    app: amiyabot-minigame-api
+  ports:
+  - name: port-80
+    protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: amiyabot-minigame-website-service
+  namespace: amiya-bot
+spec:
+  selector:
+    app: amiyabot-minigame-website
+  ports:
+  - name: port-80
+    protocol: TCP
+    port: 80
+    targetPort: 80
