@@ -1,14 +1,10 @@
 import axios from 'axios';
-
-interface LoginResult {
-    success: boolean;
-    error?: string; // 错误信息是可选的，因为如果登录成功，将没有错误信息。
-}
+import { toast } from './toast';
 
 //var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
 var rootUrl = window._env_.VUE_APP_API_URL;
 
-export const loginAPI = async (email: string, password: string): Promise<LoginResult> => {
+export const loginAPI = async (email: string, password: string) => {
     try {
         const response = await axios.post(rootUrl + '/api/account/login', {
             email,
@@ -16,40 +12,16 @@ export const loginAPI = async (email: string, password: string): Promise<LoginRe
         });
 
         if (response.data.token) {
-            return quickLoginAPI(response.data.token,email);
+            return quickLoginAPI(response.data.token, email);
         }
-        return { success: false, error: "登录失败" };
+        return false;
     } catch (error: any) {
-        // 初始化一个默认的错误消息
-        let message = '';
-
-        // 检查error对象是否有符合预期结构的属性
-        // error.response.data可能是数组，如果是数组，需要显示多个toast
-        if (error.response &&
-            error.response.data &&
-            Array.isArray(error.response.data) &&
-            error.response.data[0] &&
-            error.response.data[0].description) {
-            for (const item of error.response.data) {
-                message += '\n' + item.description;
-            }
-        }
-
-        if (error.response &&
-            error.response.data &&
-            error.response.data.message) {
-                message += '\n' + error.response.data.message;
-        }
-
-        if(message === '') {
-            message = error.message || "未知错误";
-        }
-
-        return { success: false, error: message };
+        toast(error, "登录失败")
+        return false;
     }
 };
 
-export const quickLoginAPI = async (token: string,email:string): Promise<LoginResult> => {
+export const quickLoginAPI = async (token: string, email: string) => {
     try {
         if (token) {
             localStorage.setItem('jwt-token', token);
@@ -58,7 +30,7 @@ export const quickLoginAPI = async (token: string,email:string): Promise<LoginRe
             const user = await describeAPI();
             if (user) {
                 const userRole = user.roles ? user.roles[0] : null;
-                if (userRole){
+                if (userRole) {
                     localStorage.setItem('user-role', userRole);
                 }
                 const nickname = user.nickname;
@@ -73,10 +45,43 @@ export const quickLoginAPI = async (token: string,email:string): Promise<LoginRe
 
             return { success: true };
         }
-        return { success: false, error: "登录失败" };
+        return false
     } catch (error: any) {
-        return { success: false, error: error.message || "未知错误" };
+        toast(error, "登录失败")
+        return false
     }
+}
+
+export const registerAPI = async (email: string, password: string, nickname: string, claimedRole: string) => {
+    try {
+        const registerModel = {
+            Email: email,
+            Password: password,
+            Nickname: nickname,
+            ClaimedRole: claimedRole,
+        };
+
+        const response = await axios.post(rootUrl +'/api/account/register', registerModel);
+        return response.data;
+    } catch (error: any) {
+
+        toast(error, "注册失败")
+        
+        return null;
+    }
+}
+
+export const quickRegisterAPI = async (nickname: string) => {
+    try {
+        const response = await axios.post(rootUrl +'/api/account/quickRegister', {
+            Nickname: nickname
+        });
+        return response.data;
+    } catch (error: any) {
+        toast(error, "快速注册失败")
+        return null;
+    }
+
 }
 
 export const describeAPI = async () => {
@@ -84,6 +89,7 @@ export const describeAPI = async () => {
         const response = await axios.get(rootUrl + '/api/account/describe');
         return response.data; //.roles ? response.data.roles[0] : null;
     } catch (error: any) {
+        toast(error, "获取用户信息失败")
         return null;
     }
 };

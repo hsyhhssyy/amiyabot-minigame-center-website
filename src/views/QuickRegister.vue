@@ -16,10 +16,9 @@
   
 <script setup lang="ts">
 import { ref } from 'vue';
-import axios from 'axios'; // 导入axios库
 import { useRouter } from 'vue-router'; // 导入useRouter
 import { ElMessage } from 'element-plus'; // 导入Toast组件
-import { quickLoginAPI } from '../api/Account';
+import { quickLoginAPI,quickRegisterAPI } from '../api/Account';
 
 const router = useRouter(); // 获取router实例
 const nickname = ref(''); // 用于存储用户输入的昵称
@@ -29,7 +28,6 @@ var backToLogin = () => {
 }
 
 const register = async () => {
-    try {
 
         if(nickname.value === '') {
             ElMessage({
@@ -39,50 +37,13 @@ const register = async () => {
             return;
         }
 
-        const registerModel = {
-            Nickname: nickname.value
-        };
-
-        const response = await axios.post('/api/account/quickRegister', registerModel);
-        if (response.data.token) {            
-            const { success, error } = await quickLoginAPI(response.data.token,response.data.email);
+        const response = await quickRegisterAPI(nickname.value);
+        if (response&&response.token) {            
+            const success = await quickLoginAPI(response.token,response.email);
             if (success) {
                 router.push('/');
-            } else {
-                ElMessage.error(error || '快速注册登录失败');
             }
         }
-    } catch (error: any) {
-        // 初始化一个默认的错误消息
-        let message = '快速注册失败';
-
-        // 检查error对象是否有符合预期结构的属性
-        // error.response.data可能是数组，如果是数组，需要显示多个toast
-        if (error.response &&
-            error.response.data &&
-            Array.isArray(error.response.data) &&
-            error.response.data[0] &&
-            error.response.data[0].description) {
-            for (const item of error.response.data) {
-                message += '\n' + item.description;
-            }
-        }
-
-        if (error.response &&
-            error.response.data &&
-            error.response.data.message) {
-                message += '\n' + error.response.data.message;
-        }
-
-        // 显示红色的toast
-        ElMessage({
-            message: message,
-            type: 'error',
-        });
-
-
-        console.error('注册失败:', error);
-    }
 };
 </script>
 

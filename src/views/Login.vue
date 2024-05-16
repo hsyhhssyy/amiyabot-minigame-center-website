@@ -29,7 +29,6 @@
   
 <script lang="ts">
 import { ref } from 'vue';
-import {ElMessage} from 'element-plus';
 import { useRouter } from 'vue-router';
 import { loginAPI } from '../api/Account';
 
@@ -40,11 +39,9 @@ export default {
         const password = ref('');
 
         const login = async () => {
-            const { success, error } = await loginAPI(email.value, password.value);
+            const success = await loginAPI(email.value, password.value);
             if (success) {
                 router.push('/');
-            } else {
-                ElMessage.error(error || '登录失败');
             }
         };
 
