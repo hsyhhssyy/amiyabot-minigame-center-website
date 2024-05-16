@@ -24,7 +24,7 @@ const router = useRouter();
 
 // 示例游戏数据，应从后端或其他数据源获取
 const games = ref([
-    { id: 2, image: '/SchulteGrid.jpg' , name: '技能方格'},
+    { id: 2, image: '/SchulteGrid.png' , name: '技能方格'},
     // 添加更多游戏
 ]);
 
@@ -86,18 +86,18 @@ function goBack() {
 }
 
 .game-button {
-    width: 200px;
-    height: 200px;
+    border: none;
+    background-color: #ffffff;
+}
+
+.game-image {
+    width: 100px;
+    height: 100px;
     border: none;
     background-color: #f0f0f0;
     border-radius: 10px;
     overflow: hidden;
     position: relative;
-}
-
-.game-image {
-    width: 80%;
-    height: 80%;
     object-fit: cover;
 }
 

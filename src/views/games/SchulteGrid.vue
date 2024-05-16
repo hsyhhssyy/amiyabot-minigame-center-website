@@ -140,7 +140,7 @@ watchEffect(() => {
 });
 
 var copyToClipboard = () => {
-  const url = "https://minigame.hsyhhssyy.net/regular-home/games/schulte-grid/"+roomId;
+  const url = "https://game.anonymous-test.top/#/regular-home/games/schulte-grid/"+roomId+"?joinCode="+joinCode.value;
       navigator.clipboard.writeText(url).then(() => {
         ElMessage({
           message: '已复制加入链接到剪贴板',

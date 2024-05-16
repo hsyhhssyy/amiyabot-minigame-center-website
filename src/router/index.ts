@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter,createWebHashHistory } from 'vue-router';
 import Login from '../views/Login.vue';
 import RegularHome from '../views/homes/RegularHome.vue';
 import CreateRoom from '../views/homes/CreateRoom.vue';
@@ -60,33 +60,28 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
 });
 
 router.beforeEach((to, _from, next) => {
-  if (to.path !== '/' && to.path !== '/developer-home' && to.path !== '/regular-home' && to.path !== '/admin-home') {
+  if (to.path !== '/' && to.path !== '/regular-home') {
     next();
+    return;
+  }
+
+  if(to.path==='/'){
+    next('/regular-home');
     return;
   }
 
   // 检查是否有 token
   const token = localStorage.getItem('jwt-token');
 
-  if (token) {
-    const role = localStorage.getItem('user-role');
-    if ( (role === "开发者账户"||role === "演示开发者账户") && to.path !== '/developer-home') {
-      next('/developer-home');
-    } else if (role === "管理员账户" && to.path !== '/admin-home') {
-      next('/admin-home');
-    } else if (role !== "开发者账户" && role !== "管理员账户" && role !== "演示开发者账户" && to.path !== '/regular-home') {
-      next('/regular-home');
-    } else {
-      next();
-    }
-  } else {
-    // 如果没有 token，重定向到登录页
+  if (!token) {
     next('/login');
+  }else{
+    next();
   }
 });
 

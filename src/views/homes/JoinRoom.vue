@@ -2,7 +2,8 @@
     <div class="join-room-page">
         <h2>加入房间</h2>
         <div class="input-group">
-            <input v-model="roomNumber" type="text" placeholder="请输入房间号" />
+            <input v-model="roomNumber" type="text" placeholder="请输入房间号或邀请链接" 
+                @input="handleInput"/>
         </div>
         <button @click="joinRoom" class="join-room-button">加入房间</button>
         <button @click="goBack" class="back-button">返回首页</button>
@@ -29,6 +30,16 @@ var check_connection = () => {
 }
 
 check_connection()
+
+function handleInput(event:any) {
+    const pastedText = event.target.value;
+    const urlPattern = /\/#\/regular-home\/games\/.*\/.*\?joinCode=(\d+)/;
+    const match = pastedText.match(urlPattern);
+    if (match && match[1]) {
+        // 提取 joinCode 的值并将输入框内容改写为该值
+        roomNumber.value = match[1];
+      }
+}
 
 function joinRoom() {
     console.log(`加入房间号为 ${roomNumber.value} 的房间`);
