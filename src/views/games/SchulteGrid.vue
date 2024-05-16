@@ -111,7 +111,7 @@ const players = ref([
   { id: '', name: '', avatar: '', score: 0 },
 ]);
 const isGameEnded = ref(false);
-const remainingAnswers = ref([]);
+const remainingAnswers = ref<string[]>([]);
 
 
 
