@@ -6,16 +6,16 @@
       <div v-for="col in expanded_data" class="cell">
         <div class="text_div">
           <div v-if="col.fade == false && col.recent == false && col.placeholder == false" class="text"
-            :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
+            >
             {{ col.char }}
           </div>
           <img v-if="col.placeholder == true" class="img" src="/amiya.png" />
           <div v-if="col.fade == true" class="text_fade"
-            :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
+            >
             {{ col.char }}
           </div>
           <div v-if="col.recent == true" class="text_fade_recent"
-            :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
+            >
             {{ col.char }}
           </div>
         </div>
@@ -163,7 +163,7 @@ var gameInfoListener = (response: any) => {
   //   }
   // });
   players.value = playerList.flatMap((p: any) => {
-    const repeatedPlayer = Array(6).fill({
+    const repeatedPlayer = Array(16).fill({
         id: p.UserId,
         name: p.UserName,
         avatar: "/ceobe.jpeg", // p.UserAvatar,
@@ -399,6 +399,7 @@ onUnmounted(() => {
   background-color: #fbf8cd;
   border-radius: 4px;
   position: relative;
+  font-size: calc(1em);
 }
 
 .text_div {
@@ -624,6 +625,12 @@ onUnmounted(() => {
   font-size: 16px;
 }
 
+@media (min-width: 1000px) {
+  .cell {
+    font-size: calc(1em + 1vw);
+  }
+}
+
 /* 添加响应式设计 */
 @media (max-width: 768px) {
   .template {
@@ -655,6 +662,10 @@ onUnmounted(() => {
 
   .message-input {
     margin-bottom: 10px;
+  }
+
+  .cell{
+    font-size: 7vw;
   }
 }
 </style>
