@@ -1,82 +1,89 @@
 <template>
-  <div class="template">
-    <!-- 左侧格子显示区域 -->
-    <div class="grid-container">
-    <div class="grid">
-      <div v-for="col in expanded_data" class="cell">
-        <div class="text_div">
-          <div v-if="col.fade == false && col.recent == false && col.placeholder == false" class="text"
-            >
-            {{ col.char }}
-          </div>
-          <img v-if="col.placeholder == true" class="img" src="/amiya.png" />
-          <div v-if="col.fade == true" class="text_fade"
-            >
-            {{ col.char }}
-          </div>
-          <div v-if="col.recent == true" class="text_fade_recent"
-            >
-            {{ col.char }}
-          </div>
-        </div>
-      </div>
-    </div></div>
-    <!-- 右侧区域 -->
-    <div class="right-panel">
-      <div class="player-list">
-        <el-button class="button" @click="handleEndCurrentGame" v-if="isHost && !isGameEnded">结束<br />游戏</el-button>
-        <el-button class="button" @click="handleReturnToHomePage" v-if="!isHost || isGameEnded">退出<br />房间</el-button>
-        <div class="player-icon-list">
-          <div v-for="player in players" :key="player.id" class="player">
-            <img :src="player.avatar" alt="Player Avatar" class="avatar">
-            <span class="player-name">{{ player.name }}</span>
-            <span class="player-score">
-              <i class="fa-solid fa-star"></i>
-              {{ player.score }}
-            </span>
-          </div>
-        </div>
-      </div>
-      <!-- 聊天信息显示区域 -->
-      <div class="chat-display">
-        <div class="chat-message" v-for="message in messages">
-          <img :src="message.avatar" class="chat-avatar" />
-          <div
-            :class="{ 'chat-right-container': true, 'correct': message.result === 'Correct', 'wrong': message.result !== 'Correct' }">
-            <div class="nickname">{{ message.nickname }}</div>
-            <div class="chat-bubble">{{ message.content }}
+  <div class="schulte-grid">
+    <div class="template">
+      <!-- 左侧格子显示区域 -->
+      <div class="grid-container">
+        <div class="grid">
+          <div v-for="col in expanded_data" class="cell">
+            <div class="text_div">
+              <div v-if="col.fade == false && col.recent == false && col.placeholder == false" class="text">
+                {{ col.char }}
+              </div>
+              <img v-if="col.placeholder == true" class="img" src="/amiya.png" />
+              <div v-if="col.fade == true" class="text_fade">
+                {{ col.char }}
+              </div>
+              <div v-if="col.recent == true" class="text_fade_recent">
+                {{ col.char }}
+              </div>
             </div>
           </div>
-
-          <span class="chat-icon" v-if="message.result === 'Correct'"><i class="fas fa-check"></i></span>
-          <span class="chat-icon" v-if="message.result === 'Wrong'"><i class="fas fa-times"></i></span>
-          <span class="chat-icon" v-if="message.result === 'Answered'"><i class="fas fa-poop"></i></span>
-        </div>
-        <div class="chat-message" v-for="message in remainingAnswers" v-if="isGameEnded">
-          <img src="/amiya.png" class="chat-avatar" />
-          <div class="chat-right-container correct">
-            <div class="nickname">管理员兔兔</div>
-            <div class="chat-bubble">{{ message }}.</div>
-          </div>
-        </div>
-        <div class="chat-message" v-if="isGameEnded">
-          <img src="/amiya.png" class="chat-avatar" />
-          <div class="chat-right-container correct">
-            <div class="nickname">管理员兔兔</div>
-            <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。" }}</div>
-          </div>
         </div>
       </div>
-      <!-- 消息输入区域 -->
-      <div class="message-input">
-        <div class="room-number" @click="copyToClipboard">
-          <i class="fa-solid fa-house room-number-icon"></i> {{ joinCode }}
+      <!-- 右侧区域 -->
+      <div class="right-panel">
+        <div class="player-list">
+          <div class="operate-zone">
+            <div class="button-group">
+              <el-button class="button" @click="handleEndCurrentGame"
+                v-if="isHost && !isGameEnded">结束<br />游戏</el-button>
+              <el-button class="button" @click="handleReturnToHomePage"
+                v-if="!isHost || isGameEnded">退出<br />房间</el-button>
+            </div>
+            <div class="timer">{{ elapsedMinutes }}:{{ elapsedSeconds }}</div>
+          </div>
+          <div class="player-icon-list">
+            <div v-for="player in players" :key="player.id" class="player">
+              <img :src="player.avatar" alt="Player Avatar" class="avatar">
+              <span class="player-name">{{ player.name }}</span>
+              <span class="player-score">
+                <i class="fa-solid fa-star"></i>
+                {{ player.score }}
+              </span>
+            </div>
+          </div>
         </div>
-        <el-input type="text" class="message-to-send" v-model="messageToSend" @keyup.enter="handleSendMessage"
-          placeholder="输入一个干员名..." />
-        <el-button type="secondary" class="button" @click="handleSendMessage">发送</el-button>
-      </div>
+        <!-- 聊天信息显示区域 -->
+        <div class="chat-display">
+          <div class="chat-message" v-for="message in messages">
+            <img :src="message.avatar" class="chat-avatar" />
+            <div
+              :class="{ 'chat-right-container': true, 'correct': message.result === 'Correct', 'wrong': message.result !== 'Correct' }">
+              <div class="nickname">{{ message.nickname }}</div>
+              <div class="chat-bubble">{{ message.content }}
+              </div>
+            </div>
 
+            <span class="chat-icon" v-if="message.result === 'Correct'"><i class="fas fa-check"></i></span>
+            <span class="chat-icon" v-if="message.result === 'Wrong'"><i class="fas fa-times"></i></span>
+            <span class="chat-icon" v-if="message.result === 'Answered'"><i class="fas fa-poop"></i></span>
+          </div>
+          <div class="chat-message" v-for="message in remainingAnswers" v-if="isGameEnded">
+            <img src="/amiya.png" class="chat-avatar" />
+            <div class="chat-right-container correct">
+              <div class="nickname">管理员兔兔</div>
+              <div class="chat-bubble">{{ message }}.</div>
+            </div>
+          </div>
+          <div class="chat-message" v-if="isGameEnded">
+            <img src="/amiya.png" class="chat-avatar" />
+            <div class="chat-right-container correct">
+              <div class="nickname">管理员兔兔</div>
+              <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。" }}</div>
+            </div>
+          </div>
+        </div>
+        <!-- 消息输入区域 -->
+        <div class="message-input">
+          <div class="room-number" @click="copyToClipboard">
+            <i class="fa-solid fa-house room-number-icon"></i> {{ joinCode }}
+          </div>
+          <el-input type="text" class="message-to-send" v-model="messageToSend" @keyup.enter="handleSendMessage"
+            placeholder="输入一个干员名..." />
+          <el-button type="primary" class="button" @click="handleSendMessage">发送</el-button>
+        </div>
+
+      </div>
     </div>
   </div>
 </template>
@@ -106,10 +113,14 @@ const messages = ref([
 ]);
 const messageToSend = ref('');
 const isHost = ref(false);
+const startTime = ref<number | null>(null);
+const elapsedMinutes = ref("00");
+const elapsedSeconds = ref("00");
 const players = ref([
   { id: '', name: '', avatar: '', score: 0 },
 ]);
 const isGameEnded = ref(false);
+const gameEndTime = ref<number | null>(null);
 const remainingAnswers = ref<string[]>([]);
 
 
@@ -139,38 +150,64 @@ watchEffect(() => {
 });
 
 var copyToClipboard = () => {
-  const url = "https://game.anonymous-test.top/#/regular-home/games/schulte-grid/"+roomId+"?joinCode="+joinCode.value;
-      navigator.clipboard.writeText(url).then(() => {
-        ElMessage({
-          message: '已复制加入链接到剪贴板',
-          type: 'success'
-        });
-      }).catch(err => {
-        console.error('Could not copy text: ', err);
-      });
+  const url = "https://game.anonymous-test.top/#/regular-home/games/schulte-grid/" + roomId + "?joinCode=" + joinCode.value;
+  navigator.clipboard.writeText(url).then(() => {
+    ElMessage({
+      message: '已复制加入链接到剪贴板',
+      type: 'success'
+    });
+  }).catch(err => {
+    console.error('Could not copy text: ', err);
+  });
+}
+
+const updateElapsedTime = () => {
+  if (startTime.value !== null) {
+    var elapsed = 0;
+    if(isGameEnded.value==true&&gameEndTime.value!== null){
+      elapsed = Math.floor((gameEndTime.value! - startTime.value) / 1000);
+    }else{
+      const now = Date.now();
+      elapsed = Math.floor((now - startTime.value) / 1000);
     }
+    const formatNumber = (num: number) => {
+      return num < 10 ? `0${num}` : `${num}`;
+    };
+    elapsedMinutes.value = formatNumber(Math.floor(elapsed / 60));
+    elapsedSeconds.value = formatNumber(elapsed % 60);
+  }
+};
 
 var gameInfoListener = (response: any) => {
   isHost.value = response.CreatorId === localStorage.getItem('user-id');
   joinCode.value = response.GameJoinCode;
   var playerList = response.PlayerList;
-  // players.value = playerList.map((p: any) => {
-  //   return {
-  //     id: p.UserId,
-  //     name: p.UserName,
-  //     avatar: "/ceobe.jpeg",//p.UserAvatar,
-  //     score: p.Score
-  //   }
+
+  isGameEnded.value = response.GameCompleted;
+  const utcTimeStart = new Date(response.GameStartTime);
+  startTime.value = utcTimeStart.getTime();
+  const utcTimeComplete = new Date(response.GameCompleteTime);
+  gameEndTime.value = utcTimeComplete.getTime();
+  console.log('gameStartTime',response.GameStartTime)
+  console.log('gameEndTime',response.GameCompleteTime)
+
+  players.value = playerList.map((p: any) => {
+    return {
+      id: p.UserId,
+      name: p.UserName,
+      avatar: "/ceobe.jpeg",//p.UserAvatar,
+      score: p.Score
+    }
+  });
+  //   players.value = playerList.flatMap((p: any) => {
+  //     const repeatedPlayer = Array(16).fill({
+  //         id: p.UserId,
+  //         name: p.UserName,
+  //         avatar: "/ceobe.jpeg", // p.UserAvatar,
+  //         score: p.Score
+  //     });
+  //     return repeatedPlayer;
   // });
-  players.value = playerList.flatMap((p: any) => {
-    const repeatedPlayer = Array(16).fill({
-        id: p.UserId,
-        name: p.UserName,
-        avatar: "/ceobe.jpeg", // p.UserAvatar,
-        score: p.Score
-    });
-    return repeatedPlayer;
-});
 
   //检查一下答案
   var answers = response.CurrentStatus.AnswerList
@@ -278,6 +315,7 @@ var handleSendMessage = () => {
 }
 
 var getGameInterval: NodeJS.Timeout
+var countTimer: NodeJS.Timeout
 
 onMounted(() => {
   addGameHubListener('ReceiveMove', receiveMoveListener);
@@ -314,6 +352,10 @@ onMounted(() => {
     }
 
   })
+
+  countTimer = setInterval(() => {
+    updateElapsedTime();
+  }, 500);
 });
 
 onUnmounted(() => {
@@ -322,12 +364,17 @@ onUnmounted(() => {
   removeGameHubListener('GameClosed', gameClosedListener);
 
   clearInterval(getGameInterval);
+  clearInterval(countTimer);
 });
 </script>
 
 <style scoped>
+.schulte-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-/* 左右布局样式 */
 .template {
   display: flex;
   width: 50%;
@@ -336,10 +383,10 @@ onUnmounted(() => {
   /* 红色边框方便看到效果 */
 }
 
-.grid-container{
-    display: flex;
-    width: 50%;
-    aspect-ratio: 1 / 1;
+.grid-container {
+  display: flex;
+  width: 50%;
+  aspect-ratio: 1 / 1;
 }
 
 .grid {
@@ -350,7 +397,7 @@ onUnmounted(() => {
   padding: 10px;
   border-radius: 8px;
   width: 100%;
-  
+
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
 }
@@ -385,9 +432,6 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.button {
-  height: auto;
-}
 
 
 
@@ -585,10 +629,32 @@ onUnmounted(() => {
   max-width: 100%;
 }
 
+.operate-zone {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+.button-group {
+  display: flex;
+  height: auto;
+  flex-grow: 1;
+}
+
+.button {
+  height: auto;
+}
+
+.timer {
+  margin-top: 2px;
+  text-align: center;
+}
+
 .player-icon-list {
   display: flex;
-  
-  overflow-x: scroll;
+  width: 100%;
+  overflow-x: auto;
 
 }
 
@@ -651,7 +717,7 @@ onUnmounted(() => {
     width: 100%;
   }
 
-  .grid{
+  .grid {
     grid-gap: 2px;
     padding: 4px;
   }
@@ -664,7 +730,7 @@ onUnmounted(() => {
     margin-bottom: 10px;
   }
 
-  .cell{
+  .cell {
     font-size: 7vw;
   }
 }
