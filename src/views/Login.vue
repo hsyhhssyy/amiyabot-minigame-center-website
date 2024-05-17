@@ -25,12 +25,12 @@
                 <a class="github-link friendly-link" href="https://github.com/hsyhhssyy/amiyabot-minigame-center-website"
                     target="_blank">
                     <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-                        alt="GitHub Logo" width="32" height="32">
+                        alt="GitHub Logo" width="12" height="12">
                     GitHub Repository
                 </a>
                 <a class="beian-link friendly-link" href="https://beian.miit.gov.cn/" target="_blank">
                     <img src="https://img.alicdn.com/tfs/TB1..50QpXXXXX7XpXXXXXXXXXX-40-40.png" alt="Beian Logo"
-                        width="32" height="32">
+                        width="12" height="12">
                     京ICP备2022033983号
                 </a>
             </div>
@@ -103,6 +103,8 @@ export default {
 .friendly-link{
     text-align: center;
     text-decoration: none;
+    color: gray;
+    font-size: 12px;
 }
 
 .amiyabot-commercial-link {

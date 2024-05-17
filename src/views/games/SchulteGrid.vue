@@ -1,32 +1,32 @@
 <template>
-  <div class="puzzle-container">
-    <div id="template" class="template" :style="{ backgroundColor: backcolor, display: 'flex' }">
-      <!-- 左侧格子显示区域 -->
-      <div class="grid-container" :style="{ 'grid-template-columns': '1fr '.repeat(x) }"
-        v-if="expanded_data.length > 0">
-        <div v-for="col in expanded_data" class="cell">
-          <div class="text_div">
-            <div v-if="col.fade == false && col.recent == false && col.placeholder == false" class="text"
-              :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
-              {{ col.char }}
-            </div>
-            <img v-if="col.placeholder == true" class="img" src="/amiya.png" />
-            <div v-if="col.fade == true" class="text_fade"
-              :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
-              {{ col.char }}
-            </div>
-            <div v-if="col.recent == true" class="text_fade_recent"
-              :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
-              {{ col.char }}
-            </div>
+  <div class="template">
+    <!-- 左侧格子显示区域 -->
+    <div class="grid-container">
+    <div class="grid">
+      <div v-for="col in expanded_data" class="cell">
+        <div class="text_div">
+          <div v-if="col.fade == false && col.recent == false && col.placeholder == false" class="text"
+            :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
+            {{ col.char }}
+          </div>
+          <img v-if="col.placeholder == true" class="img" src="/amiya.png" />
+          <div v-if="col.fade == true" class="text_fade"
+            :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
+            {{ col.char }}
+          </div>
+          <div v-if="col.recent == true" class="text_fade_recent"
+            :style="{ 'font-size': '' + (100 / x * font_factor) + 'px' }">
+            {{ col.char }}
           </div>
         </div>
       </div>
-      <!-- 右侧区域 -->
-      <div class="right-panel">
-        <div class="player-list hide-on-very-low-height">
-          <el-button class="button" @click="handleEndCurrentGame" v-if="isHost && !isGameEnded">结束<br />游戏</el-button>
-          <el-button class="button" @click="handleReturnToHomePage" v-if="!isHost || isGameEnded">退出<br />房间</el-button>
+    </div></div>
+    <!-- 右侧区域 -->
+    <div class="right-panel">
+      <div class="player-list">
+        <el-button class="button" @click="handleEndCurrentGame" v-if="isHost && !isGameEnded">结束<br />游戏</el-button>
+        <el-button class="button" @click="handleReturnToHomePage" v-if="!isHost || isGameEnded">退出<br />房间</el-button>
+        <div class="player-icon-list">
           <div v-for="player in players" :key="player.id" class="player">
             <img :src="player.avatar" alt="Player Avatar" class="avatar">
             <span class="player-name">{{ player.name }}</span>
@@ -36,47 +36,47 @@
             </span>
           </div>
         </div>
-        <!-- 聊天信息显示区域 -->
-        <div class="chat-display hide-on-low-height">
-          <div class="chat-message" v-for="message in messages">
-            <img :src="message.avatar" class="chat-avatar" />
-            <div
-              :class="{ 'chat-right-container': true, 'correct': message.result === 'Correct', 'wrong': message.result !== 'Correct' }">
-              <div class="nickname">{{ message.nickname }}</div>
-              <div class="chat-bubble">{{ message.content }}
-              </div>
-            </div>
-
-            <span class="chat-icon" v-if="message.result === 'Correct'"><i class="fas fa-check"></i></span>
-            <span class="chat-icon" v-if="message.result === 'Wrong'"><i class="fas fa-times"></i></span>
-            <span class="chat-icon" v-if="message.result === 'Answered'"><i class="fas fa-poop"></i></span>
-          </div>
-          <div class="chat-message" v-for="message in remainingAnswers" v-if="isGameEnded">
-            <img src="/amiya.png" class="chat-avatar" />
-            <div class="chat-right-container correct">
-              <div class="nickname">管理员兔兔</div>
-              <div class="chat-bubble">{{ message }}.</div>
-            </div>
-          </div>
-          <div class="chat-message" v-if="isGameEnded">
-            <img src="/amiya.png" class="chat-avatar" />
-            <div class="chat-right-container correct">
-              <div class="nickname">管理员兔兔</div>
-              <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。" }}</div>
-            </div>
-          </div>
-        </div>
-        <!-- 消息输入区域 -->
-        <div class="message-input">
-          <div class="room-number" @click="copyToClipboard">
-            <i class="fa-solid fa-house room-number-icon"></i> {{ joinCode }}
-          </div>
-          <el-input type="text" class="message-to-send" v-model="messageToSend" @keyup.enter="handleSendMessage"
-            placeholder="输入一个干员名..." />
-          <el-button type="secondary" class="button" @click="handleSendMessage">发送</el-button>
-        </div>
-
       </div>
+      <!-- 聊天信息显示区域 -->
+      <div class="chat-display">
+        <div class="chat-message" v-for="message in messages">
+          <img :src="message.avatar" class="chat-avatar" />
+          <div
+            :class="{ 'chat-right-container': true, 'correct': message.result === 'Correct', 'wrong': message.result !== 'Correct' }">
+            <div class="nickname">{{ message.nickname }}</div>
+            <div class="chat-bubble">{{ message.content }}
+            </div>
+          </div>
+
+          <span class="chat-icon" v-if="message.result === 'Correct'"><i class="fas fa-check"></i></span>
+          <span class="chat-icon" v-if="message.result === 'Wrong'"><i class="fas fa-times"></i></span>
+          <span class="chat-icon" v-if="message.result === 'Answered'"><i class="fas fa-poop"></i></span>
+        </div>
+        <div class="chat-message" v-for="message in remainingAnswers" v-if="isGameEnded">
+          <img src="/amiya.png" class="chat-avatar" />
+          <div class="chat-right-container correct">
+            <div class="nickname">管理员兔兔</div>
+            <div class="chat-bubble">{{ message }}.</div>
+          </div>
+        </div>
+        <div class="chat-message" v-if="isGameEnded">
+          <img src="/amiya.png" class="chat-avatar" />
+          <div class="chat-right-container correct">
+            <div class="nickname">管理员兔兔</div>
+            <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。" }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- 消息输入区域 -->
+      <div class="message-input">
+        <div class="room-number" @click="copyToClipboard">
+          <i class="fa-solid fa-house room-number-icon"></i> {{ joinCode }}
+        </div>
+        <el-input type="text" class="message-to-send" v-model="messageToSend" @keyup.enter="handleSendMessage"
+          placeholder="输入一个干员名..." />
+        <el-button type="secondary" class="button" @click="handleSendMessage">发送</el-button>
+      </div>
+
     </div>
   </div>
 </template>
@@ -91,7 +91,6 @@ import { ElMessage } from 'element-plus';
 const route = useRoute();
 const router = useRouter();
 
-const backcolor = ref('white');
 const x = ref(2);
 const y = ref(2);
 const font_factor = ref(10);
@@ -155,14 +154,23 @@ var gameInfoListener = (response: any) => {
   isHost.value = response.CreatorId === localStorage.getItem('user-id');
   joinCode.value = response.GameJoinCode;
   var playerList = response.PlayerList;
-  players.value = playerList.map((p: any) => {
-    return {
-      id: p.UserId,
-      name: p.UserName,
-      avatar: "/ceobe.jpeg",//p.UserAvatar,
-      score: p.Score
-    }
-  });
+  // players.value = playerList.map((p: any) => {
+  //   return {
+  //     id: p.UserId,
+  //     name: p.UserName,
+  //     avatar: "/ceobe.jpeg",//p.UserAvatar,
+  //     score: p.Score
+  //   }
+  // });
+  players.value = playerList.flatMap((p: any) => {
+    const repeatedPlayer = Array(6).fill({
+        id: p.UserId,
+        name: p.UserName,
+        avatar: "/ceobe.jpeg", // p.UserAvatar,
+        score: p.Score
+    });
+    return repeatedPlayer;
+});
 
   //检查一下答案
   var answers = response.CurrentStatus.AnswerList
@@ -318,29 +326,33 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.puzzle-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-}
 
 /* 左右布局样式 */
 .template {
   display: flex;
-  width: 100%;
-  width: 1000px;
+  width: 50%;
+  min-width: 768px;
   border: 1px solid red;
   /* 红色边框方便看到效果 */
 }
 
-.grid-container {
-  width: 50%;
+.grid-container{
+    display: flex;
+    width: 50%;
+    aspect-ratio: 1 / 1;
+}
+
+.grid {
+  width: auto;
   display: grid;
-  grid-gap: 5px;
   background-color: #2196F3;
+  grid-gap: 4px;
   padding: 10px;
   border-radius: 8px;
+  width: 100%;
+  
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
 }
 
 .right-panel {
@@ -378,13 +390,7 @@ onUnmounted(() => {
 }
 
 
-.grid-container {
-  display: grid;
-  grid-gap: 5px;
-  background-color: #2196F3;
-  padding: 10px;
-  border-radius: 8px;
-}
+
 
 .cell {
   list-style: none;
@@ -470,21 +476,14 @@ onUnmounted(() => {
 .answer-skill-icon {
   display: table-cell;
   text-align: center;
-  /* 图片居中显示 */
   padding: 10px;
-  /* 添加一些内边距以避免内容挤在一起 */
   vertical-align: middle;
   /* 垂直居中 */
   width: 5vw;
-  /* 图标宽度也基于视口宽度动态调整 */
   height: auto;
-  /* 高度自适应 */
   min-width: 30px;
-  /* 设置图标的最小宽度 */
   max-width: 60px;
-  /* 设置图标的最大宽度 */
   border: 1px solid #ccc;
-  /* 图标添加浅灰色的边框 */
 }
 
 .answer-name,
@@ -582,6 +581,14 @@ onUnmounted(() => {
   justify-content: left;
   gap: 10px;
   margin-bottom: 10px;
+  max-width: 100%;
+}
+
+.player-icon-list {
+  display: flex;
+  
+  overflow-x: scroll;
+
 }
 
 .room-number {
@@ -617,35 +624,29 @@ onUnmounted(() => {
   font-size: 16px;
 }
 
-@media (min-width: 600px) {
+/* 添加响应式设计 */
+@media (max-width: 768px) {
+  .template {
+    flex-direction: column;
+    border: none;
+    align-items: center;
+    min-width: auto;
+    width: 100%;
+  }
 
   .answer-name,
   .answer-skill-name {
     font-size: 12px;
-    /* 视口宽度大于600px时的最小字体大小 */
-  }
-}
-
-@media (max-width: 1200px) {
-
-  .answer-name,
-  .answer-skill-name {
-    font-size: 18px;
-    /* 视口宽度小于1200px时的最大字体大小 */
-  }
-}
-
-/* 添加响应式设计 */
-@media (max-width: 768px) {
-  #template {
-    flex-direction: column;
-    border: none;
-    align-items: center;
   }
 
   .grid-container,
   .right-panel {
     width: 100%;
+  }
+
+  .grid{
+    grid-gap: 2px;
+    padding: 4px;
   }
 
   .right-panel {

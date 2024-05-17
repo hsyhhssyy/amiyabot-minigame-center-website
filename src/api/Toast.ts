@@ -1,6 +1,6 @@
 import { ElMessage } from 'element-plus';
 
-export const toast = async (error: any, defaultMessage: string) => {
+export const toast = async (error: any, defaultMessage: string = "") => {
     try {
         // 初始化一个默认的错误消息
         let message = defaultMessage;
@@ -21,6 +21,11 @@ export const toast = async (error: any, defaultMessage: string) => {
             error.response.data &&
             error.response.data.message) {
             message += '\n' + error.response.data.message;
+        }
+
+        //if error is a string, show it directly
+        if (typeof error === 'string') {
+            message = error;
         }
 
         // 显示红色的toast

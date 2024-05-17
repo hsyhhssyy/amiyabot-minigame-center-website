@@ -63,6 +63,15 @@ var backToLogin = () => {
 }
 
 const register = async () => {
+
+        if(nickname.value === '') {
+            ElMessage({
+                message: '请输入昵称',
+                type: 'error',
+            });
+            return;
+        }
+
         if (confirmPassword.value !== password.value) {
             ElMessage({
                 message: '两次输入的密码不一致',

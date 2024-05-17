@@ -5,9 +5,11 @@
         </header>
         <div class="create-game-page">
             <div class="game-list">
-                <button v-for="game in games" :key="game.id" @click="selectGame(game.id)" class="game-button">
+                <button v-for="game in gameList" :key="game.id" @click="selectGame(game.id)" 
+                class="game-button" :disabled="game.notAvailable">
                     <img :src="game.image" :alt="game.name" class="game-image">
                     <div class="game-name">{{ game.name }}</div>
+                    <div v-if="game.notAvailable">(敬请期待)</div>
                 </button>
             </div>
             <button @click="goBack" class="back-button">返回首页</button>
@@ -18,15 +20,13 @@
 <script lang="ts" setup>
 import { ref,onMounted,onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { games } from '@src/api/GamesData.ts';
 import { invokeGameHub,addGameHubListener,removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
 
 const router = useRouter();
 
 // 示例游戏数据，应从后端或其他数据源获取
-const games = ref([
-    { id: 2, image: '/SchulteGrid.png' , name: '技能方格'},
-    // 添加更多游戏
-]);
+const gameList = ref(games);
 
 var check_connection = () => {
   if (!isConnected()) {
@@ -40,9 +40,14 @@ check_connection()
 
 function selectGame(gameId: number) {
     console.log(`选择游戏 ${gameId}`);
+    const game = gameList.value.find(g => g.id === gameId);
+    if (!game) {
+        console.error(`未找到游戏 ${gameId}`);
+        return;
+    }
     
     // 创建房间并跳转到房间等待页面
-    invokeGameHub('CreateGame', "SchulteGrid","{}");
+    invokeGameHub('CreateGame', game.type,"{}");
 }
 
 var gameCreateListener = (response:any) => {    
@@ -82,6 +87,7 @@ function goBack() {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: flex-start;
     gap: 20px;
 }
 

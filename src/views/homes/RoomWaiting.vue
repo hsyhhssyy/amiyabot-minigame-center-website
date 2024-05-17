@@ -42,7 +42,9 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import {games} from '@src/api/GamesData.ts';
 import { invokeGameHub, addGameHubListener, removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
+import { ElMessage } from 'element-plus';
 //import { on } from 'events';
 
 const route = useRoute();
@@ -55,6 +57,7 @@ const showConfirm = ref(false);
 const selectedPlayerId = ref("");
 const isHost = ref(false);
 const hostId = ref("");
+const gameType = ref("");
 const gameLoaded = ref(false);
 
 const showAlert = ref(false);
@@ -127,6 +130,24 @@ var handleCancelKickPlayer = ()=>{
     showConfirm.value = false;
 }
 
+const startGame = ()=>{
+    var gameData = games.find(g => g.type == gameType.value);
+    if(!gameData){
+        gameData = games.find(g => g.type == "SchulteGrid");
+    }
+
+    if(!gameData){
+        ElMessage({
+            message: '未找到游戏数据，请退出房间重试。',
+            type: 'error'
+        });
+        return
+    }
+
+    router.push(gameData.route + roomId);
+
+}
+
 var playerJoinedListener = (_: any) => {
     invokeGameHub('GetGame', roomId);
 }
@@ -137,6 +158,7 @@ var gameInfoListener = (response: any) => {
     hostId.value = response.CreatorId;
     joinCode.value = response.GameJoinCode;
     gameLoaded.value = true
+    gameType.value = response.GameType;
     players.value = playerList.map((p: any) => {
         return {
             id: p.UserId,
@@ -146,7 +168,7 @@ var gameInfoListener = (response: any) => {
     });
 
     if(response.GameStarted){
-        router.push('/regular-home/games/schulte-grid/' + roomId);
+        startGame()
     }
 }
 
@@ -163,7 +185,7 @@ var playerLeftListener = (response: any) => {
 }
 
 var gameStartedListener = (_: string) => {
-    router.push('/regular-home/games/schulte-grid/' + roomId);
+    startGame()
 }
 
 var gameClosedListener = (_: string) => {

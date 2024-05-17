@@ -1,4 +1,5 @@
 import * as signalR from '@microsoft/signalr';
+import {toast} from '@src/api/Toast.ts';
 
 
 //var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
@@ -102,5 +103,8 @@ export const invokeGameHub = (methodName: string, ...args: any[]) => {
         return;
     }
 
-    connection.invoke(methodName, ...args).catch((err) => console.error(err));
+    connection.invoke(methodName, ...args).catch((err) =>{
+         console.error(err)
+         toast("服务器返回意外错误，请稍后再试。")
+    });
 };
