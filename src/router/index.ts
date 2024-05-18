@@ -5,6 +5,7 @@ import CreateRoom from '../views/homes/CreateRoom.vue';
 import JoinRoom from '../views/homes/JoinRoom.vue';
 import RoomWaiting from '../views/homes/RoomWaiting.vue';
 import SchulteGrid from '../views/games/SchulteGrid.vue';
+import SkinGuess from '../views/games/SkinGuess.vue';
 import Register from '../views/Register.vue';
 import QuickRegister from '../views/QuickRegister.vue';
 import Logout from '../views/Logout.vue';
@@ -45,6 +46,12 @@ const routes = [
     path: '/regular-home/games/schulte-grid/:roomId',
     name: '技能方格',
     component: SchulteGrid,
+    props: true
+  },
+  {
+    path: '/regular-home/games/skin-guess/:roomId',
+    name: '立绘猜干员',
+    component: SkinGuess,
     props: true
   },
   {
