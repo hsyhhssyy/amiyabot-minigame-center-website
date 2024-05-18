@@ -98,7 +98,7 @@ import { ref, onMounted, onUnmounted, watchEffect, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getGame } from '@src/api/SchulteGrid';
 import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
-import { ElMessage } from 'element-plus';
+import { copyInviteLinkToClipboard } from '@src/utils/Clipboard';
 import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
 
 const route = useRoute();
@@ -157,15 +157,7 @@ watchEffect(() => {
 });
 
 var copyToClipboard = () => {
-  const url = "https://game.anonymous-test.top/#/regular-home/games/schulte-grid/" + roomId + "?joinCode=" + joinCode.value;
-  navigator.clipboard.writeText(url).then(() => {
-    ElMessage({
-      message: '已复制加入链接到剪贴板',
-      type: 'success'
-    });
-  }).catch(err => {
-    console.error('Could not copy text: ', err);
-  });
+  copyInviteLinkToClipboard(roomId,joinCode.value)
 }
 
 const updateElapsedTime = () => {

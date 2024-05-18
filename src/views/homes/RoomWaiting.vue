@@ -11,6 +11,14 @@
                 </div>
                 <span>{{ player.name }}</span>
             </div>
+            <div>
+                <div class="avatar-wrapper" @click="handleCopyLink()">
+                    <div class="plus-button">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                </div>
+                <span>等待玩家...</span>
+            </div>
         </div>
         <div style="text-align: center;" v-if="!gameLoaded">该局游戏已经结束，无法重连或加入。</div>
         <div :hidden="!isHost">
@@ -68,6 +76,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { games } from '@src/api/GamesData.ts';
 import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
 import { ElMessage } from 'element-plus';
+import {copyInviteLinkToClipboard} from '@src/utils/Clipboard.ts';
 import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
 
 const route = useRoute();
@@ -109,6 +118,10 @@ check_connection()
 const players = ref([
     { id: "", connection: "", name: '', avatar: '' },
 ]);
+
+var handleCopyLink = ()=>{
+    copyInviteLinkToClipboard(roomId, joinCode.value);
+}
 
 var handleAlertConfirmed = () => {
     showAlert.value = false;
@@ -339,6 +352,17 @@ onUnmounted(() => {
 .avatar-wrapper:hover .kick-mask {
     opacity: 1;
     /* 当鼠标悬停时显示遮罩 */
+}
+
+.plus-button{
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
 }
 
 .owner {
