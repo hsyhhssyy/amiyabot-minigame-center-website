@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="model" title="选择头像" :center="true" :show-close="false">
+  <el-dialog v-model="model" title="选择头像" :center="true" :show-close="false" width="80%">
     <div class="avatar-list-container">
       <div class="avatar-list">
         <div v-for="(avatar, index) in avatars" :key="index" @click="selectAvatar(avatar)"
@@ -91,4 +91,5 @@ onMounted(async () => {
   height: 50px;
   border-radius: 50%;
 }
+
 </style>
