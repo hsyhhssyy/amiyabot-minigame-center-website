@@ -21,6 +21,7 @@
         </div>
       </div>
       <!-- 右侧区域 -->
+      <div> </div>
       <div class="right-panel">
         <div class="player-list">
           <div class="operate-zone">
@@ -30,7 +31,7 @@
               <el-button class="button" @click="handleReturnToHomePage"
                 v-if="!isHost || isGameEnded">退出<br />房间</el-button>
             </div>
-            <div class="timer">{{ elapsedMinutes }}:{{ elapsedSeconds }}</div>
+            <div class="timer">{{ elapsedMinutes }}:{{ elapsedSeconds }}:{{ elapsedTenPrecentSeconds }}</div>
           </div>
           <div class="player-icon-list">
             <div v-for="player in players" :key="player.id" class="player">
@@ -44,35 +45,39 @@
           </div>
         </div>
         <!-- 聊天信息显示区域 -->
-        <div class="chat-display">
-          <div class="chat-message" v-for="message in messages">
-            <img :src="message.avatar" class="chat-avatar" />
-            <div
-              :class="{ 'chat-right-container': true, 'correct': message.result === 'Correct', 'wrong': message.result !== 'Correct' }">
-              <div class="nickname">{{ message.nickname }}</div>
-              <div class="chat-bubble">{{ message.content }}
+        <div class="chat-display-with-notification">
+          <NotificationBanner class="banner" />
+          <div class="chat-display">
+            <div class="chat-message" v-for="message in messages">
+              <img :src="message.avatar" class="chat-avatar" />
+              <div
+                :class="{ 'chat-right-container': true, 'correct': message.result === 'Correct', 'wrong': message.result !== 'Correct' }">
+                <div class="nickname">{{ message.nickname }}</div>
+                <div class="chat-bubble">{{ message.content }}
+                </div>
+              </div>
+
+              <span class="chat-icon" v-if="message.result === 'Correct'"><i class="fas fa-check"></i></span>
+              <span class="chat-icon" v-if="message.result === 'Wrong'"><i class="fas fa-times"></i></span>
+              <span class="chat-icon" v-if="message.result === 'Answered'"><i class="fas fa-poop"></i></span>
+            </div>
+            <div class="chat-message" v-for="message in remainingAnswers" v-if="isGameEnded">
+              <img src="/amiya.png" class="chat-avatar" />
+              <div class="chat-right-container correct">
+                <div class="nickname">管理员兔兔</div>
+                <div class="chat-bubble">{{ message }}.</div>
               </div>
             </div>
-
-            <span class="chat-icon" v-if="message.result === 'Correct'"><i class="fas fa-check"></i></span>
-            <span class="chat-icon" v-if="message.result === 'Wrong'"><i class="fas fa-times"></i></span>
-            <span class="chat-icon" v-if="message.result === 'Answered'"><i class="fas fa-poop"></i></span>
-          </div>
-          <div class="chat-message" v-for="message in remainingAnswers" v-if="isGameEnded">
-            <img src="/amiya.png" class="chat-avatar" />
-            <div class="chat-right-container correct">
-              <div class="nickname">管理员兔兔</div>
-              <div class="chat-bubble">{{ message }}.</div>
-            </div>
-          </div>
-          <div class="chat-message" v-if="isGameEnded">
-            <img src="/amiya.png" class="chat-avatar" />
-            <div class="chat-right-container correct">
-              <div class="nickname">管理员兔兔</div>
-              <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。" }}</div>
+            <div class="chat-message" v-if="isGameEnded">
+              <img src="/amiya.png" class="chat-avatar" />
+              <div class="chat-right-container correct">
+                <div class="nickname">管理员兔兔</div>
+                <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。" }}</div>
+              </div>
             </div>
           </div>
         </div>
+
         <!-- 消息输入区域 -->
         <div class="message-input">
           <div class="room-number" @click="copyToClipboard">
@@ -94,6 +99,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { getGame } from '@src/api/SchulteGrid';
 import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
 import { ElMessage } from 'element-plus';
+import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -116,6 +122,7 @@ const isHost = ref(false);
 const startTime = ref<number | null>(null);
 const elapsedMinutes = ref("00");
 const elapsedSeconds = ref("00");
+const elapsedTenPrecentSeconds = ref("00");
 const players = ref([
   { id: '', name: '', avatar: '', score: 0 },
 ]);
@@ -164,17 +171,22 @@ var copyToClipboard = () => {
 const updateElapsedTime = () => {
   if (startTime.value !== null) {
     var elapsed = 0;
-    if(isGameEnded.value==true&&gameEndTime.value!== null){
-      elapsed = Math.floor((gameEndTime.value! - startTime.value) / 1000);
-    }else{
+    if (isGameEnded.value == true && gameEndTime.value !== null) {
+      elapsed = Math.floor((gameEndTime.value! - startTime.value) / 10);
+    } else {
       const now = Date.now();
-      elapsed = Math.floor((now - startTime.value) / 1000);
+      const serverTimeDiff = Number(localStorage.getItem('server-time-diff'));
+      elapsed = Math.floor((now - startTime.value - serverTimeDiff) / 10);
     }
     const formatNumber = (num: number) => {
+      if (num < 0) {
+        num = 0
+      }
       return num < 10 ? `0${num}` : `${num}`;
     };
-    elapsedMinutes.value = formatNumber(Math.floor(elapsed / 60));
-    elapsedSeconds.value = formatNumber(elapsed % 60);
+    elapsedMinutes.value = formatNumber(Math.floor(elapsed / 6000));
+    elapsedSeconds.value = formatNumber(Math.floor(elapsed % 6000 / 100));
+    elapsedTenPrecentSeconds.value = formatNumber(Math.floor(elapsed % 60));
   }
 };
 
@@ -184,12 +196,16 @@ var gameInfoListener = (response: any) => {
   var playerList = response.PlayerList;
 
   isGameEnded.value = response.GameCompleted;
+  if (isGameEnded.value == true) {
+    const utcTimeComplete = new Date(response.GameCompleteTime);
+    gameEndTime.value = utcTimeComplete.getTime();
+  }
+
+
   const utcTimeStart = new Date(response.GameStartTime);
   startTime.value = utcTimeStart.getTime();
-  const utcTimeComplete = new Date(response.GameCompleteTime);
-  gameEndTime.value = utcTimeComplete.getTime();
-  console.log('gameStartTime',response.GameStartTime)
-  console.log('gameEndTime',response.GameCompleteTime)
+  console.log('gameStartTime', response.GameStartTime)
+  console.log('gameEndTime', response.GameCompleteTime)
 
   players.value = playerList.map((p: any) => {
     return {
@@ -256,6 +272,10 @@ var receiveMoveListener = (response: any) => {
     console.log(dataArray.length)
 
     isGameEnded.value = response.Completed;
+    if (isGameEnded.value == true) {
+      const utcTimeComplete = new Date(response.CompleteTime);
+      gameEndTime.value = utcTimeComplete.getTime();
+    }
   }
 
   messages.value.push({
@@ -274,8 +294,10 @@ var receiveMoveListener = (response: any) => {
 }
 
 var gameClosedListener = (response: any) => {
-  console.log('游戏已关闭');
+  console.log('游戏已关闭')
   isGameEnded.value = true;
+  const utcTimeComplete = new Date(response.CompleteTime);
+  gameEndTime.value = utcTimeComplete.getTime();
   remainingAnswers.value = []
   const answers = response.RemainingAnswers
   for (var i = 0; i < answers.length; i++) {
@@ -329,8 +351,19 @@ onMounted(() => {
     invokeGameHub('GetGame', roomId);
   }, 4000);
 
+
+  countTimer = setInterval(() => {
+    updateElapsedTime();
+  }, 10);
+
   getGame(roomId).then((responseObj) => {
     var grid = responseObj.grid
+
+    isGameEnded.value = responseObj.isCompleted;
+    const utcTimeStart = new Date(responseObj.startTime);
+    startTime.value = utcTimeStart.getTime();
+    const utcTimeComplete = new Date(responseObj.completeTime);
+    gameEndTime.value = utcTimeComplete.getTime();
 
     if (grid.length > 0) {
       expanded_data.value = []
@@ -352,10 +385,6 @@ onMounted(() => {
     }
 
   })
-
-  countTimer = setInterval(() => {
-    updateElapsedTime();
-  }, 500);
 });
 
 onUnmounted(() => {
@@ -432,7 +461,10 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-
+.banner {
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
 
 
 
@@ -555,16 +587,24 @@ onUnmounted(() => {
   /* 如果技能名太长，允许换行 */
 }
 
+.chat-display-with-notification {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.banner {
+  margin-bottom: 5px;
+}
+
 .chat-display {
   flex-grow: 1;
   background-color: #f4f4f4;
   overflow-y: auto;
   padding: 10px;
-  border: 1px solid #ccc;
   height: 100px;
-  /* 示例高度，根据需要调整 */
+  border: 1px solid #ccc;
   overflow-y: auto;
-  /* 添加垂直滚动条 */
   margin-bottom: 20px;
 }
 
@@ -728,6 +768,10 @@ onUnmounted(() => {
 
   .message-input {
     margin-bottom: 10px;
+  }
+
+  .chat-display {
+    height: 100px;
   }
 
   .cell {

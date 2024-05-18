@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { toast } from './Toast';
+import { toast } from '@src/utils/Toast.ts';
 
 //var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
 var rootUrl = window._env_.VUE_APP_API_URL;

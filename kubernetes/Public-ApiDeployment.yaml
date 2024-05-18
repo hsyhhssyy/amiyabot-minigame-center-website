@@ -38,7 +38,7 @@ spec:
               value: PSDocker-DotnetSDK-Debian-10
             - name: TZ
               value: Asia/Shanghai
-          image: harbor.hsyhhssyy.net/home-esxi/amiya-bot-player-rating-server:release-4
+          image: harbor.hsyhhssyy.net/home-esxi/amiya-bot-player-rating-server:release-5
           imagePullPolicy: Always
           name: amiya-bot-player-rating-server
           ports:

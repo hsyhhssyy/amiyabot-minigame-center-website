@@ -1,5 +1,6 @@
 <template>
     <div class="app">
+        <NotificationBanner />
         <header>
             <h1>兔兔小游戏中心 - 创建房间</h1>
         </header>
@@ -22,6 +23,7 @@ import { ref,onMounted,onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { games } from '@src/api/GamesData.ts';
 import { invokeGameHub,addGameHubListener,removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
+import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
 
 const router = useRouter();
 

@@ -31,7 +31,7 @@ spec:
           env:
             - name: TZ
               value: Asia/Shanghai
-          image: harbor.hsyhhssyy.net/home-esxi/amiyabot-minigame-center-website:release-2
+          image: harbor.hsyhhssyy.net/home-esxi/amiyabot-minigame-center-website:release-3
           imagePullPolicy: Always
           name: amiyabot-minigame-center-website
           ports:

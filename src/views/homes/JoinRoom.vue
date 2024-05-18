@@ -1,5 +1,6 @@
 <template>
     <div class="join-room-page">
+        <NotificationBanner/>
         <h2>加入房间</h2>
         <div class="input-group">
             <input v-model="roomNumber" type="text" placeholder="请输入房间号或邀请链接" 
@@ -16,6 +17,7 @@ import { useRouter } from 'vue-router';
 import {ElMessage} from 'element-plus';
 import { invokeGameHub,addGameHubListener,removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
 import { getGame } from '@src/api/SchulteGrid';
+import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
 
 const router = useRouter();
 

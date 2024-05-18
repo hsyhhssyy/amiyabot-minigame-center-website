@@ -1,5 +1,5 @@
 import * as signalR from '@microsoft/signalr';
-import {toast} from '@src/api/Toast.ts';
+import {toast} from '@src/utils/Toast.ts';
 
 
 //var rootUrl = import.meta.env.VITE_BACKEND_BASE_URL
@@ -7,6 +7,8 @@ var rootUrl = window._env_.VUE_APP_API_URL;
 
 var connection: signalR.HubConnection | null = null;
 var lastToken: string | null = null;
+
+var getGameInterval: any;
 
 export const isConnected = () => {
     return connection?.state === signalR.HubConnectionState.Connected;
@@ -17,6 +19,12 @@ export const connectToGameHub = async () =>{
     if (connection) {
         await connection.stop();
         connection = null;
+    }
+
+    if(!getGameInterval){
+        getGameInterval = setInterval(() => {
+            invokeGameHub('GetServerTime');
+      }, 10000);
     }
 
     try {
@@ -65,8 +73,27 @@ const postConnectionSetup = async () => {
         var responseObj = JSON.parse(response);
         localStorage.setItem('connection-id', responseObj.ConnectionId);
     });
+
+    connection.on("ServerTime", (response) => {
+        var responseObj = JSON.parse(response);
+        var utcTime = new Date(responseObj.UtcNow);
+        var localTime = new Date(responseObj.LocalNow);
+        console.log("Server time: ", utcTime, localTime);
+        var timeDiff = new Date().getTime() - utcTime.getTime();
+        console.log("Time difference: ", timeDiff);
+        localStorage.setItem('server-time-diff', timeDiff.toString());
+    });
     
     await connection.invoke("Me");
+
+    // 执行所有的connectCallbacks
+    connectCallbacks.forEach((callback) => {
+        try{
+            callback();
+        }catch(e){
+            console.error(e)
+        }
+    });
 };
 
 var callbacks: { originalCallback: (...args: any[]) => void; jsonCallback: (response: any) => void; }[] = [];
@@ -86,6 +113,25 @@ export const addGameHubListener = (eventName: string, callback: (...args: any[])
 
     connection.on(eventName, jsonParshCallback);
 };
+
+var connectCallbacks: any[] = []
+
+export const addConnectListener = (callback: () => void) => {
+    //记录所有的callback
+    connectCallbacks.push(callback)
+    if(isConnected()){
+        try{
+            callback()
+        }catch(e){
+            console.error(e)
+        }
+    }
+}
+
+export const removeConnectListener = (callback: () => void) => {
+    //移除callback
+    connectCallbacks = connectCallbacks.filter(x => x != callback)
+}
 
 export const removeGameHubListener = (eventName: string, callback: (...args: any[]) => void) => {
     if (!connection) {

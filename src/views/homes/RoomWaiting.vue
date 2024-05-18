@@ -1,11 +1,13 @@
 <template>
     <div class="room-page">
+        <NotificationBanner class="banner" />
         <h2>游戏房间 {{ joinCode }}</h2>
         <div class="player-list">
-            <div v-for="player in players" :key="player.id" @click="handleKickPlayer(player.id)" :class="{ owner: player.id == hostId,player:true }">
+            <div v-for="player in players" :key="player.id" @click="handleKickPlayer(player.id)"
+                :class="{ owner: player.id == hostId, player: true }">
                 <div class="avatar-wrapper">
-                <img :src="player.avatar" alt="Player Avatar" class="avatar">
-                <span class="kick-mask" v-show="player.id != hostId">踢出</span>
+                    <img :src="player.avatar" alt="Player Avatar" class="avatar">
+                    <span class="kick-mask" v-show="player.id != hostId">踢出</span>
                 </div>
                 <span>{{ player.name }}</span>
             </div>
@@ -18,7 +20,28 @@
         <div :hidden="isHost">
             <button @click="handleExitRoom" class="close-room-button">离开房间</button>
         </div>
-        <el-dialog v-model="showConfirm" title="踢出玩家"  center="true" show-close="false">
+
+        <!-- 聊天信息显示区域 -->
+        <div class="chat-display">
+            <div class="chat-message" v-for="message in messages">
+                <img :src="message.avatar" class="chat-avatar" />
+                <div
+                    :class="{ 'chat-right-container': true }">
+                    <div class="nickname">{{ message.nickname }}</div>
+                    <div class="chat-bubble">{{ message.content }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消息输入区域 -->
+        <div class="message-input">
+            <el-input type="text" class="message-to-send" v-model="messageToSend" @keyup.enter="handleSendMessage"
+                placeholder="输入一个干员名..." />
+            <el-button type="primary" class="button" @click="handleSendMessage">发送</el-button>
+        </div>
+
+        <el-dialog v-model="showConfirm" title="踢出玩家" center="true" show-close="false">
             <div style="text-align: center;">确定要踢出这位玩家吗？</div>
             <template #footer>
                 <span class="dialog-footer">
@@ -27,7 +50,7 @@
                 </span>
             </template>
         </el-dialog>
-        
+
         <el-dialog v-model="showAlert" title="提示" center="true" show-close="false">
             <div style="text-align: center;">{{ alertMessage }}</div>
             <template #footer>
@@ -42,15 +65,15 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import {games} from '@src/api/GamesData.ts';
-import { invokeGameHub, addGameHubListener, removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
+import { games } from '@src/api/GamesData.ts';
+import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
 import { ElMessage } from 'element-plus';
-//import { on } from 'events';
+import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
 
 const route = useRoute();
 const router = useRouter();
 
-const roomId =  Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
+const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 
 const joinCode = ref("")
 const showConfirm = ref(false);
@@ -63,14 +86,22 @@ const gameLoaded = ref(false);
 const showAlert = ref(false);
 const alertMessage = ref('');
 
+const messages = ref([
+    { nickname: '玩家1', content: '这是一条消息', avatar: '/ceobe.jpeg' }
+]);
+
+messages.value = []
+
+const messageToSend = ref('');
+
 localStorage.setItem('current-game-id', roomId);
 
 var check_connection = () => {
-  if (!isConnected()) {
-    router.push('/regular-home');
-    return;
-  }
-  setTimeout(check_connection, 500);
+    if (!isConnected()) {
+        router.push('/regular-home');
+        return;
+    }
+    setTimeout(check_connection, 500);
 }
 
 check_connection()
@@ -84,12 +115,12 @@ var handleAlertConfirmed = () => {
     router.push('/regular-home');
 }
 
-var handleKickPlayer =(playerId: string)=>{
+var handleKickPlayer = (playerId: string) => {
     if (!isHost.value) {
         return;
     }
-    
-    if(playerId == localStorage.getItem('user-id')){
+
+    if (playerId == localStorage.getItem('user-id')) {
         console.log('不能踢出自己');
         return;
     }
@@ -100,7 +131,15 @@ var handleKickPlayer =(playerId: string)=>{
     console.log(`踢出玩家 ${playerId}`);
 }
 
-var handleStartGame = ()=>{
+const handleSendMessage = () => {
+    if (messageToSend.value === '') {
+        return;
+    }
+    invokeGameHub('Chat', roomId, messageToSend.value);
+    messageToSend.value = '';
+}
+
+var handleStartGame = () => {
     console.log('开始游戏');
     invokeGameHub('StartGame', roomId);
 }
@@ -126,17 +165,17 @@ var handleKickPlayerConfirmed = () => {
     showConfirm.value = false;
 }
 
-var handleCancelKickPlayer = ()=>{
+var handleCancelKickPlayer = () => {
     showConfirm.value = false;
 }
 
-const startGame = ()=>{
+const startGame = () => {
     var gameData = games.find(g => g.type == gameType.value);
-    if(!gameData){
+    if (!gameData) {
         gameData = games.find(g => g.type == "SchulteGrid");
     }
 
-    if(!gameData){
+    if (!gameData) {
         ElMessage({
             message: '未找到游戏数据，请退出房间重试。',
             type: 'error'
@@ -167,7 +206,7 @@ var gameInfoListener = (response: any) => {
         }
     });
 
-    if(response.GameStarted){
+    if (response.GameStarted) {
         startGame()
     }
 }
@@ -178,7 +217,7 @@ var playerLeftListener = (response: any) => {
     players.value = players.value.filter(p => p.id !== playerId);
 
     //如果是自己被踢，弹出提示并返回首页
-    if (playerId == localStorage.getItem('user-id')&&method == 'Kicked') {
+    if (playerId == localStorage.getItem('user-id') && method == 'Kicked') {
         alertMessage.value = '您已被房主踢出房间';
         showAlert.value = true;
     }
@@ -193,7 +232,19 @@ var gameClosedListener = (_: string) => {
     showAlert.value = true;
 }
 
-var getGameInterval:NodeJS.Timeout
+var chatListener = (response: any) => {
+    const userId = response.UserId;
+    const player = players.value.find(p => p.id === userId);
+    if(player){
+        messages.value.push({
+            nickname: player.name,
+            content: response.Message,
+            avatar: player.avatar
+        });
+    }
+}
+
+var getGameInterval: NodeJS.Timeout
 
 onMounted(() => {
     addGameHubListener('GameInfo', gameInfoListener);
@@ -202,6 +253,7 @@ onMounted(() => {
     addGameHubListener('PlayerKicked', playerLeftListener);
     addGameHubListener('GameClosed', gameClosedListener);
     addGameHubListener('GameStarted', gameStartedListener);
+    addGameHubListener('Chat',chatListener);
 
     invokeGameHub('GetGame', roomId);
 
@@ -225,8 +277,16 @@ onUnmounted(() => {
 
 <style scoped>
 .room-page {
+    display: flex;
+    flex-direction: column;
     text-align: center;
     padding: 20px;
+    align-items: center;
+    width: 100%;
+}
+
+.banner {
+    width: 100%;
 }
 
 .player-list {
@@ -268,7 +328,8 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
     color: white;
-    background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
+    background-color: rgba(0, 0, 0, 0.5);
+    /* 半透明黑色背景 */
     opacity: 0;
     transition: opacity 0.3s;
     border-radius: 50%;
@@ -276,11 +337,13 @@ onUnmounted(() => {
 }
 
 .avatar-wrapper:hover .kick-mask {
-    opacity: 1; /* 当鼠标悬停时显示遮罩 */
+    opacity: 1;
+    /* 当鼠标悬停时显示遮罩 */
 }
 
 .owner {
-    border: 2px solid gold; /* 房主的特殊边框 */
+    border: 2px solid gold;
+    /* 房主的特殊边框 */
     border-radius: 5px;
 }
 
@@ -306,5 +369,85 @@ onUnmounted(() => {
 
 .close-room-button:hover {
     background-color: #C62828;
+}
+
+
+.chat-display {
+    flex-grow: 1;
+    background-color: #f4f4f4;
+    overflow-y: auto;
+    padding: 10px;
+    width: 50%;
+    height: 200px;
+    border: 1px solid #ccc;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.chat-message {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.chat-right-container {
+    width: 100%;
+    border-radius: 5px;
+    padding: 2px;
+    background-color: #4CAF50;
+    padding-left: 5px;
+}
+
+.chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.nickname {
+    display: flex;
+    font-weight: bold;
+}
+
+.chat-bubble {
+    border-radius: 16px;
+    color: white;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-icon {
+    margin-left: 10px;
+    /* 在文字和图标之间添加一些间隔 */
+    font-size: 30px;
+    width: 40px;
+    text-align: center;
+}
+
+.message-input {
+    display: flex;
+    width: 50%;
+}
+
+.message-to-send {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+@media (max-width: 768px) {
+    .chat-display {
+        width: 100%;
+        max-width: 700px;
+    }
+
+    .message-input {
+        width: 100%;
+        max-width: 720px;
+    }
 }
 </style>
