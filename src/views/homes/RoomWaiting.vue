@@ -45,7 +45,7 @@
         <!-- 消息输入区域 -->
         <div class="message-input">
             <el-input type="text" class="message-to-send" v-model="messageToSend" @keyup.enter="handleSendMessage"
-                placeholder="输入一个干员名..." />
+                placeholder="说点什么吧..." />
             <el-button type="primary" class="button" @click="handleSendMessage">发送</el-button>
         </div>
 

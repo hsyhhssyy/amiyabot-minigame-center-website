@@ -35,7 +35,7 @@ check_connection()
 
 function handleInput(event:any) {
     const pastedText = event.target.value;
-    const urlPattern = /\/#\/regular-home\/games\/.*\/.*\?joinCode=(\d+)/;
+    const urlPattern = /\/#\/regular-home\/.*\/.*\?joinCode=(\d+)/;
     const match = pastedText.match(urlPattern);
     if (match && match[1]) {
         // 提取 joinCode 的值并将输入框内容改写为该值
