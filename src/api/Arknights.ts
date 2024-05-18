@@ -28,3 +28,21 @@ export const getCharacterIds = async () => {
         return null;
     }
 };
+
+export const jmesPathQuery = async (file: string, query: string) => {
+    try {
+        const response = await axios.post(rootUrl + '/api/arknights/jmes-path',
+            {
+                File: file,
+                Query: query
+            }
+            , {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('jwt-token')}`,
+                },
+            });
+        return response.data;
+    } catch (error: any) {
+        return null;
+    }
+};

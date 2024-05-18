@@ -212,10 +212,11 @@ var gameInfoListener = (response: any) => {
     gameLoaded.value = true
     gameType.value = response.GameType;
     players.value = playerList.map((p: any) => {
+        var avatar = p.UserAvatar ? p.UserAvatar:"/ceobe.jpeg";
         return {
             id: p.UserId,
             name: p.UserName,
-            avatar: "/ceobe.jpeg"//p.UserAvatar
+            avatar: avatar
         }
     });
 

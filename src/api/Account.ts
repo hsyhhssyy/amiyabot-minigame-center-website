@@ -121,3 +121,16 @@ export const authorizeApi = async (clientId: string, redirectUri: string, state:
         return null;
     }
 };
+
+export const changeUserInfoApi = async (nickname: string, avatar: string, avatarType: string) => {
+    try {
+        const response = await axios.post(`${rootUrl}/api/account/change-user-info`, {
+            Nickname: nickname,
+            Avatar: avatar,
+            AvatarType: avatarType
+        });
+        return response.data;
+    } catch (error: any) {
+        return null;
+    }
+}

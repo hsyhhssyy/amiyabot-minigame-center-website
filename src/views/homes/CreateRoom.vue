@@ -5,7 +5,7 @@
             <h1>兔兔小游戏中心 - 创建房间</h1>
         </header>
         <div class="create-game-page">
-            <div class="game-list">
+            <div class="game-list" :disabled="isGameCreating">
                 <button v-for="game in gameList" :key="game.id" @click="selectGame(game.id)" 
                 class="game-button" :disabled="game.notAvailable">
                     <img :src="game.image" :alt="game.name" class="game-image">
@@ -29,6 +29,7 @@ const router = useRouter();
 
 // 示例游戏数据，应从后端或其他数据源获取
 const gameList = ref(games);
+const isGameCreating = ref(false);
 
 var check_connection = () => {
   if (!isConnected()) {
@@ -50,9 +51,12 @@ function selectGame(gameId: number) {
     
     // 创建房间并跳转到房间等待页面
     invokeGameHub('CreateGame', game.type,"{}");
+    isGameCreating.value=true
 }
 
 var gameCreateListener = (response:any) => {    
+    isGameCreating.value=false
+
     var gameId = response.GameId;
     localStorage.setItem('current-game-id', gameId);
     

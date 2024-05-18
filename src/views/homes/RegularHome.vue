@@ -4,13 +4,16 @@
     <div v-if="isLoading" class="overlay">
       <p>{{ loadingText }}</p>
     </div>
-    <header>
+    <div class="header">
       <h1>兔兔小游戏中心</h1>
-      <img :src="defaultGravatar" alt="Player Avatar" class="avatar">
+      <div @click="handleChooseAvatar" class="avatar-wrapper">
+        <img :src="defaultGravatar" alt="Player Avatar" class="avatar">
+        <span class="kick-mask"><i class="fa-regular fa-pen-to-square"></i></span>
+      </div>
       <div>{{ nickname }}</div>
       <div v-if="!email.endsWith('@amiyabot.com')">{{ email }}</div>
       <div v-if="email.endsWith('@amiyabot.com')">临时账户</div>
-    </header>
+    </div>
     <main>
       <button class="button" @click="createGame">创建游戏</button>
       <button class="button" @click="joinGame">加入游戏</button>
@@ -27,6 +30,7 @@
         </span>
       </template>
     </el-dialog>
+    <ChooseAvatarDialog v-model="isChooseAvatarDialogVisible" @ok="handleAvatarChoose" />
   </div>
 </template>
 
@@ -36,26 +40,33 @@ import { useRouter } from 'vue-router';
 //import CryptoJS from 'crypto-js';
 import { connectToGameHub } from '@src/api/SignalR.ts';
 import { getGame } from '@src/api/SchulteGrid';
-import { describeAPI } from '@src/api/Account.ts';
+import { describeAPI, changeUserInfoApi } from '@src/api/Account.ts';
 import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
+import ChooseAvatarDialog from '@src/components/ChooseAvatarDialog.vue';
 
 const router = useRouter();
 
 const email = ref(localStorage.getItem('email') || '');
 const nickname = ref(localStorage.getItem('nickname') || '');
 const showReconnectDialog = ref(false);
-const defaultGravatar = "/ceobe.jpeg"//'https://www.gravatar.com/avatar/' + CryptoJS.MD5(email.value.trim().toLowerCase()) + '?d=identicon';
+const defaultGravatar = ref("/ceobe.jpeg")
 const reconnectDialogTitle = ref('断线重连');
 const reconnectDialogContent = ref('检测到您有一局正在进行的游戏，是否重新连接？');
 var reconnectAction = "Connect"
 const isLoading = ref(true);
 const loadingText = ref("连接服务器中，请稍候...");
 
+const isChooseAvatarDialogVisible = ref(false);
+
 var connect = async () => {
   const descRet = await describeAPI();
-  if(!descRet){
+  if (!descRet) {
     router.push('/logout');
     return;
+  }
+
+  if (descRet.avatar) {
+    defaultGravatar.value = descRet.avatar;
   }
 
   const ret = await connectToGameHub();
@@ -112,6 +123,11 @@ var connect = async () => {
   }
 }
 
+const handleChooseAvatar = () => {
+  console.log('选择头像');
+  isChooseAvatarDialogVisible.value = true;
+}
+
 var handleCancelReconnect = () => {
   localStorage.removeItem('current-game-id');
   showReconnectDialog.value = false;
@@ -124,6 +140,11 @@ var handleReconnect = () => {
   } else {
     router.push('/regular-home/join-room');
   }
+}
+
+const handleAvatarChoose = async (avatar: string) => {
+  await changeUserInfoApi("", avatar, "");
+  defaultGravatar.value = avatar;
 }
 
 onMounted(async () => {
@@ -155,8 +176,11 @@ function logout() {
   text-align: center;
 }
 
-header {
+.header {
   background-color: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 20px;
   font-size: 20px;
 }
@@ -186,6 +210,33 @@ header {
   background-color: #C62828;
 }
 
+.avatar-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.kick-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 50%;
+    font-size: 18px;
+}
+
+.avatar-wrapper:hover .kick-mask {
+    opacity: 1;
+    /* 当鼠标悬停时显示遮罩 */
+}
 
 .main {
   margin-top: 20px;
