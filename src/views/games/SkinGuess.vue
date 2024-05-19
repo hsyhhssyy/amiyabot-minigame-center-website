@@ -1,6 +1,6 @@
 <template>
     <NotificationBanner />
-    <img :src="currentImage" class="img"/>
+    <canvas id="masked-image"></canvas>
     <div>本题的随机数种子 {{ currentQuestionSeed }}，根据他设计一个算法给图片上遮罩</div>
     <div v-for="item in receivedMoves">
         <div>{{ JSON.stringify(item) }}</div>
@@ -22,7 +22,7 @@ const router = useRouter();
 
 var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 
-const currentQuestionIndex = ref(0);
+const currentQuestionIndex = ref(-1);
 const answerList = ref<any[]>([])
 const answer = ref('');
 const receivedMoves = ref<any[]>([]);
@@ -40,21 +40,78 @@ var check_connection = () => {
 
 check_connection()
 
-const currentImage = computed(() => {
-    if (answerList.value.length <= currentQuestionIndex.value) {
-        return '';
-    }
-    var curentAnswer = answerList.value[currentQuestionIndex.value];
-    return curentAnswer.ImageUrl;
-});
+// const currentImage = computed(() => {
+//     if (answerList.value.length <= currentQuestionIndex.value) {
+//         return '';
+//     }
+//     var curentAnswer = answerList.value[currentQuestionIndex.value];
+//     return curentAnswer.ImageUrl;
+// });
 
 const currentQuestionSeed = computed(() => {
     if (answerList.value.length <= currentQuestionIndex.value) {
         return '';
     }
+    if(currentQuestionIndex.value<0){
+        return '等待题目中...';
+    }
     var curentAnswer = answerList.value[currentQuestionIndex.value];
     return curentAnswer.RandomNumber;
 });
+
+async function fetchImage(url:any) {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const img = new Image();
+    const objectURL = URL.createObjectURL(blob);
+    img.src = objectURL;
+    await new Promise((resolve) => img.onload = resolve);
+    return img;
+}
+
+function getRandomSquare(randomNum:any, imgWidth:any, imgHeight:any) {
+    const maxSize = Math.min(imgWidth, imgHeight) * 0.2;
+    const minSize = Math.min(imgWidth, imgHeight) * 0.1;
+    const size = Math.floor(minSize + (randomNum % (maxSize - minSize)));
+
+    const x = Math.floor((randomNum * 9301 + 49297) % imgWidth);
+    const y = Math.floor((randomNum * 49297 + 9301) % imgHeight);
+
+    return { x: x % (imgWidth - size), y: y % (imgHeight - size), size: size };
+}
+
+function isUniformColor(imageData:any) {
+    const { data, width, height } = imageData;
+    let r = data[0], g = data[1], b = data[2];
+    for (let i = 0; i < width * height * 4; i += 4) {
+        if (data[i] !== r || data[i + 1] !== g || data[i + 2] !== b) {
+            return false;
+        }
+    }
+    return true;
+}
+
+async function generateMaskedImage(url:any, randomNum:any) {
+    const img = await fetchImage(url);
+    const canvas = document.getElementById('masked-image')! as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d')! as CanvasRenderingContext2D;
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    let square, imageData;
+
+    do {
+        square = getRandomSquare(randomNum, img.width, img.height);
+        ctx.drawImage(img, square.x, square.y, square.size, square.size, 0, 0, square.size, square.size);
+        imageData = ctx.getImageData(0, 0, square.size, square.size);
+        randomNum++;
+    } while (isUniformColor(imageData));
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = square.size;
+    canvas.height = square.size;
+    ctx.drawImage(img, square.x, square.y, square.size, square.size, 0, 0, square.size, square.size);
+}
 
 var handleEndCurrentGame = () => {
   console.log('结束游戏');
@@ -74,9 +131,18 @@ const submitAnswer = () => {
 }
 
 const gameInfoListener = (response:any) => {
-    currentQuestionIndex.value = response.CurrentStatus.CurrentQuestionIndex;
     answerList.value = response.CurrentStatus.AnswerList;
-    console.log(response);
+    if(response.CurrentStatus.CurrentQuestionIndex != currentQuestionIndex.value){
+        currentQuestionIndex.value = response.CurrentStatus.CurrentQuestionIndex;
+        const imageUrl = answerList.value[currentQuestionIndex.value].ImageUrl;
+        const randomNum = answerList.value[currentQuestionIndex.value].RandomNumber;
+        generateMaskedImage(imageUrl, randomNum);
+    }
+    console.log(response);   
+}
+
+const receiveMoveListener = (response:any) => {
+    receivedMoves.value.push(response);
 
     if(response.Result=='Correct'){
         currentQuestionIndex.value = response.CurrentStatus.currentQuestionIndex;
@@ -85,10 +151,6 @@ const gameInfoListener = (response:any) => {
     if(response.Completed){
         //赢了!
     }
-}
-
-const receiveMoveListener = (response:any) => {
-    receivedMoves.value.push(response);
 }
 
 var getGameInterval: NodeJS.Timeout
