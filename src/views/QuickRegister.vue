@@ -1,7 +1,7 @@
 <template>
     <div class="container">
         <div class="register-card">
-            <h1>兔兔小游戏中心-快速开玩</h1>
+            <h1>兔兔小游戏中心-输入昵称快速开玩</h1>
             <p></p>
             <el-form @submit.native.prevent="register" label-width="100px">
                 <el-form-item label="昵称：">

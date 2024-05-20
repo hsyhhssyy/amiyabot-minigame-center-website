@@ -10,8 +10,12 @@
         <img :src="defaultGravatar" alt="Player Avatar" class="avatar">
         <span class="kick-mask"><i class="fa-regular fa-pen-to-square"></i></span>
       </div>
+      <div class="nickname-bar">
       <div>{{ nickname }}</div>
+      <el-button type="text" @click="handleChangeNickname"><i class="fa-regular fa-pen-to-square"></i></el-button>
+      </div>
       <div v-if="!email.endsWith('@amiyabot.com')">{{ email }}</div>
+      
       <div v-if="email.endsWith('@amiyabot.com')">临时账户</div>
     </div>
     <main>
@@ -31,6 +35,15 @@
       </template>
     </el-dialog>
     <ChooseAvatarDialog v-model="isChooseAvatarDialogVisible" @ok="handleAvatarChoose" />
+    <el-dialog v-model="isChangeNicknameDialogVisible" title="修改昵称" :center="true" :show-close="false">
+          <el-input v-model="changedNickname" placeholder="请输入新昵称"></el-input>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="secondary" @click="handleCancelChangeNickname">取消</el-button>
+          <el-button type="primary" @click="handleChangeNicknameConfirm">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -47,7 +60,7 @@ import ChooseAvatarDialog from '@src/components/ChooseAvatarDialog.vue';
 const router = useRouter();
 
 const email = ref(localStorage.getItem('email') || '');
-const nickname = ref(localStorage.getItem('nickname') || '');
+const nickname = ref('');
 const showReconnectDialog = ref(false);
 const defaultGravatar = ref("/ceobe.jpeg")
 const reconnectDialogTitle = ref('断线重连');
@@ -57,6 +70,8 @@ const isLoading = ref(true);
 const loadingText = ref("连接服务器中，请稍候...");
 
 const isChooseAvatarDialogVisible = ref(false);
+const isChangeNicknameDialogVisible = ref(false);
+const changedNickname = ref("");
 
 var connect = async () => {
   const descRet = await describeAPI();
@@ -67,6 +82,10 @@ var connect = async () => {
 
   if (descRet.avatar) {
     defaultGravatar.value = descRet.avatar;
+  }
+
+  if(descRet.nickname){
+    nickname.value = descRet.nickname;
   }
 
   const ret = await connectToGameHub();
@@ -126,6 +145,25 @@ var connect = async () => {
 const handleChooseAvatar = () => {
   console.log('选择头像');
   isChooseAvatarDialogVisible.value = true;
+}
+
+const handleChangeNickname = () => {
+  console.log('修改昵称');
+  isChangeNicknameDialogVisible.value = true;
+}
+
+const handleCancelChangeNickname = () => {
+  isChangeNicknameDialogVisible.value = false;
+}
+
+const handleChangeNicknameConfirm = async () => {
+  if (changedNickname.value == "") {
+    return;
+  }
+
+  await changeUserInfoApi(changedNickname.value, "", "");
+  nickname.value = changedNickname.value;
+  isChangeNicknameDialogVisible.value = false;
 }
 
 var handleCancelReconnect = () => {
@@ -214,6 +252,12 @@ function logout() {
     position: relative;
     width: 80px;
     height: 80px;
+}
+
+.nickname-bar{
+  display: flex;
+  align-items: center;
+  flex-direction: row;
 }
 
 .kick-mask {

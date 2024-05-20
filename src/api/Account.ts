@@ -21,6 +21,7 @@ export const loginAPI = async (email: string, password: string) => {
     }
 };
 
+//同时兼具普通登录和快速登录
 export const quickLoginAPI = async (token: string, email: string) => {
     try {
         if (token) {
@@ -32,10 +33,6 @@ export const quickLoginAPI = async (token: string, email: string) => {
                 const userRole = user.roles ? user.roles[0] : null;
                 if (userRole) {
                     localStorage.setItem('user-role', userRole);
-                }
-                const nickname = user.nickname;
-                if (nickname) {
-                    localStorage.setItem('nickname', nickname);
                 }
                 const userId = user.id;
                 if (userId) {

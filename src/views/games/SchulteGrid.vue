@@ -33,56 +33,15 @@
             </div>
             <div class="timer">{{ elapsedMinutes }}:{{ elapsedSeconds }}:{{ elapsedTenPrecentSeconds }}</div>
           </div>
-          <div class="player-icon-list">
-            <div v-for="player in players" :key="player.id" class="player">
-              <img :src="player.avatar" alt="Player Avatar" class="avatar">
-              <span class="player-name">{{ player.name }}</span>
-              <span class="player-score">
-                <i class="fa-solid fa-star"></i>
-                {{ player.score }}
-              </span>
-            </div>
-          </div>
+          <ScoreBar :players="players"/>
         </div>
         <!-- 聊天信息显示区域 -->
         <div class="chat-display-with-notification">
           <NotificationBanner class="banner" />
-          <div class="chat-display">
-            <div class="chat-message" v-for="message in messages">
-              <img :src="message.avatar" class="chat-avatar" />
-              <div
-                :class="{ 'chat-right-container': true, 'correct': message.result === 'Correct', 'wrong': message.result !== 'Correct' }">
-                <div class="nickname">{{ message.nickname }}</div>
-                <div class="chat-bubble">{{ message.content }}
-                </div>
-              </div>
-
-              <span class="chat-icon" v-if="message.result === 'Correct'"><i class="fas fa-check"></i></span>
-              <span class="chat-icon" v-if="message.result === 'Wrong'"><i class="fas fa-times"></i></span>
-              <span class="chat-icon" v-if="message.result === 'Answered'"><i class="fas fa-poop"></i></span>
-            </div>
-            <div class="chat-message" v-for="message in remainingAnswers" v-if="isGameEnded">
-              <img src="/amiya.png" class="chat-avatar" />
-              <div class="chat-right-container correct">
-                <div class="nickname">管理员兔兔</div>
-                <div class="chat-bubble">{{ message }}.</div>
-              </div>
-            </div>
-            <div class="chat-message" v-if="isGameEnded">
-              <img src="/amiya.png" class="chat-avatar" />
-              <div class="chat-right-container correct">
-                <div class="nickname">管理员兔兔</div>
-                <div class="chat-bubble">游戏结束{{ remainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。" }}</div>
-              </div>
-            </div>
-          </div>
+          <ChatArea :messages="messages" />
         </div>
-
-        <!-- 消息输入区域 -->
         <div class="message-input">
-          <div class="room-number" @click="copyToClipboard">
-            <i class="fa-solid fa-house room-number-icon"></i> {{ joinCode }}
-          </div>
+          <RoomNumberDisplay :joinCode="joinCode" :roomId="roomId" />
           <el-input type="text" class="message-to-send" v-model="messageToSend" @keyup.enter="handleSendMessage"
             placeholder="输入一个干员名..." />
           <el-button type="primary" class="button" @click="handleSendMessage">发送</el-button>
@@ -94,12 +53,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, watchEffect, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getGame } from '@src/api/SchulteGrid';
 import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
-import { copyInviteLinkToClipboard } from '@src/utils/Clipboard';
 import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
+import ScoreBar from '@src/components/ScoreBar.vue';
+import ChatArea from '@src/components/ChatArea.vue';
+import RoomNumberDisplay from '@src/components/RoomNumberDisplay.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -115,7 +76,7 @@ const expanded_data = ref([{
   'placeholder': false
 }]);
 const messages = ref([
-  { content: '', result: '', nickname: '', avatar: '' }
+  { content: '', style: '', nickname: '', avatar: '' }
 ]);
 const messageToSend = ref('');
 const isHost = ref(false);
@@ -128,9 +89,6 @@ const players = ref([
 ]);
 const isGameEnded = ref(false);
 const gameEndTime = ref<number | null>(null);
-const remainingAnswers = ref<string[]>([]);
-
-
 
 var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 messages.value = []
@@ -147,18 +105,7 @@ var check_connection = () => {
 
 check_connection()
 
-watchEffect(() => {
-  nextTick(() => {
-    const container = document.querySelector('.chat-display');
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  });
-});
 
-var copyToClipboard = () => {
-  copyInviteLinkToClipboard(roomId,joinCode.value)
-}
 
 const updateElapsedTime = () => {
   if (startTime.value !== null) {
@@ -207,15 +154,6 @@ var gameInfoListener = (response: any) => {
       score: p.Score
     }
   });
-  //   players.value = playerList.flatMap((p: any) => {
-  //     const repeatedPlayer = Array(16).fill({
-  //         id: p.UserId,
-  //         name: p.UserName,
-  //         avatar: "/ceobe.jpeg", // p.UserAvatar,
-  //         score: p.Score
-  //     });
-  //     return repeatedPlayer;
-  // });
 
   //检查一下答案
   var answers = response.CurrentStatus.AnswerList
@@ -272,7 +210,7 @@ var receiveMoveListener = (response: any) => {
 
   messages.value.push({
     content: content,
-    result: result,
+    style: result,
     nickname: player?.name || 'Unknown',
     avatar: player?.avatar || 'path_to_avatar.jpg'
   });
@@ -290,11 +228,23 @@ var gameClosedListener = (response: any) => {
   isGameEnded.value = true;
   const utcTimeComplete = new Date(response.CompleteTime);
   gameEndTime.value = utcTimeComplete.getTime();
-  remainingAnswers.value = []
   const answers = response.RemainingAnswers
   for (var i = 0; i < answers.length; i++) {
-    remainingAnswers.value.push(answers[i].CharacterName + ' - ' + answers[i].SkillName)
+    messages.value.push({
+      content: answers[i].CharacterName + ' - ' + answers[i].SkillName,
+      style: "Correct",
+      nickname: '管理员兔兔',
+      avatar: '/amiya.png'
+    });
   }
+  const endWord = '游戏结束' + 
+    (response.RemainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。" )
+  messages.value.push({
+      content: endWord,
+      style: "Correct",
+      nickname: '管理员兔兔',
+      avatar: '/amiya.png'
+    });
 
 
   nextTick(() => {
@@ -430,9 +380,6 @@ onUnmounted(() => {
   padding: 10px;
 }
 
-.answer-container {
-  margin-bottom: 20px;
-}
 
 .message-input {
   display: flex;
@@ -511,74 +458,6 @@ onUnmounted(() => {
   object-fit: fill;
 }
 
-.answer-container {
-  max-width: 100%;
-  overflow-x: auto;
-  /* 确保表格在小屏幕上也能完整显示 */
-}
-
-.answer-table {
-  display: table;
-  width: 100%;
-  /* 表格宽度占满容器 */
-  border-collapse: collapse;
-  /* 合并边框 */
-  background-color: white;
-  /* 设置表格背景色为白色 */
-}
-
-.answer-table-row {
-  display: flex;
-  justify-content: space-between;
-  border: 1px solid #ccc;
-  /* 每一行添加浅灰色的边框 */
-}
-
-.answer-entry {
-  flex: 1;
-  /* 让每个答案条目平分容器宽度 */
-  margin: 0 10px;
-  /* 添加一些间距 */
-}
-
-.answer-avatar,
-.answer-skill-icon {
-  display: table-cell;
-  text-align: center;
-  padding: 10px;
-  vertical-align: middle;
-  /* 垂直居中 */
-  width: 5vw;
-  height: auto;
-  min-width: 30px;
-  max-width: 60px;
-  border: 1px solid #ccc;
-}
-
-.answer-name,
-.answer-skill-name {
-  display: table-cell;
-  padding: 10px;
-  /* 添加一些内边距 */
-  vertical-align: middle;
-  /* 垂直居中 */
-  text-align: left;
-  /* 文本左对齐 */
-  font-size: 4vw;
-  /* 基于视口宽度的动态字体大小 */
-  color: black;
-  /* 文字颜色设置为黑色 */
-}
-
-.answer-skill-name {
-  font-weight: bold;
-  /* 技能名字加粗 */
-  max-width: 300px;
-  /* 设置技能名字的最大宽度，避免过长 */
-  word-wrap: break-word;
-  /* 如果技能名太长，允许换行 */
-}
-
 .chat-display-with-notification {
   display: flex;
   flex-direction: column;
@@ -587,70 +466,6 @@ onUnmounted(() => {
 
 .banner {
   margin-bottom: 5px;
-}
-
-.chat-display {
-  flex-grow: 1;
-  background-color: #f4f4f4;
-  overflow-y: auto;
-  padding: 10px;
-  height: 100px;
-  border: 1px solid #ccc;
-  overflow-y: auto;
-  margin-bottom: 20px;
-}
-
-.chat-message {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  margin-bottom: 10px;
-  margin-bottom: 20px;
-}
-
-.chat-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 10px;
-}
-
-.chat-right-container {
-  width: 100%;
-  border-radius: 5px;
-  padding: 2px;
-  padding-left: 5px;
-}
-
-.nickname {
-  font-weight: bold;
-}
-
-.chat-bubble {
-  border-radius: 16px;
-  color: white;
-  max-width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.chat-icon {
-  margin-left: 10px;
-  /* 在文字和图标之间添加一些间隔 */
-  font-size: 30px;
-  width: 40px;
-  text-align: center;
-}
-
-.correct {
-  background-color: #4CAF50;
-  /* Green */
-}
-
-.wrong {
-  background-color: #F44336;
-  /* Red */
 }
 
 .player-list {
@@ -683,46 +498,6 @@ onUnmounted(() => {
   text-align: center;
 }
 
-.player-icon-list {
-  display: flex;
-  width: 100%;
-  overflow-x: auto;
-
-}
-
-.room-number {
-  display: flex;
-  align-items: center;
-  /* 垂直居中 */
-  justify-content: center;
-  /* 水平居中 */
-  font-size: 20px;
-  margin-right: 10px;
-  cursor: pointer;
-}
-
-.player {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 60px;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-bottom: 5px;
-}
-
-.player-name {
-  font-size: 12px;
-}
-
-.player-score {
-  font-size: 16px;
-}
-
 @media (min-width: 1000px) {
   .cell {
     font-size: calc(1em + 1vw);
@@ -737,11 +512,6 @@ onUnmounted(() => {
     align-items: center;
     min-width: auto;
     width: 100%;
-  }
-
-  .answer-name,
-  .answer-skill-name {
-    font-size: 12px;
   }
 
   .grid-container,
@@ -760,10 +530,6 @@ onUnmounted(() => {
 
   .message-input {
     margin-bottom: 10px;
-  }
-
-  .chat-display {
-    height: 100px;
   }
 
   .cell {
