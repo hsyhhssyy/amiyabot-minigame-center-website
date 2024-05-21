@@ -30,17 +30,7 @@
         </div>
 
         <!-- 聊天信息显示区域 -->
-        <div class="chat-display">
-            <div class="chat-message" v-for="message in messages">
-                <img :src="message.avatar" class="chat-avatar" />
-                <div
-                    :class="{ 'chat-right-container': true }">
-                    <div class="nickname">{{ message.nickname }}</div>
-                    <div class="chat-bubble">{{ message.content }}
-                    </div>
-                </div>
-            </div>
-        </div>
+        <ChatArea class="chat-area" :messages="messages" />
 
         <!-- 消息输入区域 -->
         <div class="message-input">
@@ -78,6 +68,7 @@ import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected }
 import { ElMessage } from 'element-plus';
 import {copyInviteLinkToClipboard} from '@src/utils/Clipboard.ts';
 import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
+import ChatArea from '@src/components/ChatArea.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -96,7 +87,7 @@ const showAlert = ref(false);
 const alertMessage = ref('');
 
 const messages = ref([
-    { nickname: '玩家1', content: '这是一条消息', avatar: '/ceobe.jpeg' }
+    { nickname: '玩家1', content: '这是一条消息', avatar: '/ceobe.jpeg',style:"" }
 ]);
 
 messages.value = []
@@ -216,7 +207,7 @@ var gameInfoListener = (response: any) => {
         return {
             id: p.UserId,
             name: p.UserName,
-            avatar: avatar
+            avatar: avatar,
         }
     });
 
@@ -253,7 +244,8 @@ var chatListener = (response: any) => {
         messages.value.push({
             nickname: player.name,
             content: response.Message,
-            avatar: player.avatar
+            avatar: player.avatar,
+            style: "Correct"
         });
     }
 }
@@ -396,62 +388,8 @@ onUnmounted(() => {
     background-color: #C62828;
 }
 
-
-.chat-display {
-    flex-grow: 1;
-    background-color: #f4f4f4;
-    overflow-y: auto;
-    padding: 10px;
+.chat-area{
     width: 50%;
-    height: 200px;
-    border: 1px solid #ccc;
-    overflow-y: auto;
-    margin-bottom: 20px;
-}
-
-.chat-message {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    margin-bottom: 10px;
-    margin-bottom: 20px;
-}
-
-.chat-right-container {
-    width: 100%;
-    border-radius: 5px;
-    padding: 2px;
-    background-color: #4CAF50;
-    padding-left: 5px;
-}
-
-.chat-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.nickname {
-    display: flex;
-    font-weight: bold;
-}
-
-.chat-bubble {
-    border-radius: 16px;
-    color: white;
-    max-width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.chat-icon {
-    margin-left: 10px;
-    /* 在文字和图标之间添加一些间隔 */
-    font-size: 30px;
-    width: 40px;
-    text-align: center;
 }
 
 .message-input {
@@ -465,14 +403,13 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
-    .chat-display {
-        width: 100%;
-        max-width: 700px;
-    }
-
     .message-input {
         width: 100%;
         max-width: 720px;
+    }
+
+    .chat-area{
+        width: 100%;
     }
 }
 </style>

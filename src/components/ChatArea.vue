@@ -1,52 +1,56 @@
 <template>
-    <div class="chat-display">
-        <div class="chat-message" v-for="message in messages">
-            <img :src="message.avatar" class="chat-avatar" />
-            <div
-                :class="{ 'chat-right-container': true, 
-                    'correct': message.style === 'Correct', 
-                    'wrong': message.style !== 'Correct' }">
-                <div class="nickname">{{ message.nickname }}</div>
-                <div class="chat-bubble">{{ message.content }}
-                </div>
-            </div>
-
-            <span class="chat-icon" v-if="message.style === 'Correct'"><i class="fas fa-check"></i></span>
-            <span class="chat-icon" v-if="message.style === 'Wrong'"><i class="fas fa-times"></i></span>
-            <span class="chat-icon" v-if="message.style === 'Answered'"><i class="fas fa-poop"></i></span>
+  <div class="chat-display">
+    <div class="chat-message" v-for="message in messages">
+      <img :src="message.avatar" class="chat-avatar" />
+      <div :class="{
+        'chat-right-container': true,
+        'correct': message.style === 'Correct',
+        'wrong': message.style !== 'Correct'
+      }">
+        <div class="nickname">{{ message.nickname }}</div>
+        <div class="chat-bubble">{{ message.content }}
         </div>
+      </div>
+
+      <span class="chat-icon" v-if="message.style === 'Correct'"><i class="fas fa-check"></i></span>
+      <span class="chat-icon" v-if="message.style === 'Wrong'"><i class="fas fa-times"></i></span>
+      <span class="chat-icon" v-if="message.style === 'Answered'"><i class="fas fa-poop"></i></span>
     </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { watchEffect, nextTick } from 'vue';
+import { watch, nextTick } from 'vue';
 
 interface Messages {
-    avatar: string;
-    nickname: string;
-    content: string;
-    style: string;
+  avatar: string;
+  nickname: string;
+  content: string;
+  style: string;
 }
 
 interface Props {
-    messages: Messages[];
+  messages: Messages[];
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
-watchEffect(() => {
-  nextTick(() => {
-    const container = document.querySelector('.chat-display');
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  });
-});
+watch(
+  () => props.messages, 
+  () => {
+    nextTick(() => {
+      const container = document.querySelector('.chat-display');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    });
+  },
+  { immediate: true, deep: true }
+);
 
 </script>
 
 <style scoped>
-
 .chat-display {
   flex-grow: 1;
   background-color: #f4f4f4;
@@ -116,7 +120,8 @@ watchEffect(() => {
 @media (max-width: 768px) {
   .chat-display {
     height: 100px;
+    width: 100%;
+    max-width: 700px;
   }
 }
-
 </style>

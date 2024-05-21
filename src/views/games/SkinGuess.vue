@@ -1,6 +1,6 @@
 <template>
     <NotificationBanner />
-    <canvas id="masked-image"></canvas>
+    <canvas id="masked-image" class="masked-image"></canvas>
     <div>本题的随机数种子 {{ currentQuestionSeed }}，根据他设计一个算法给图片上遮罩</div>
     <div v-for="item in receivedMoves">
         <div>{{ JSON.stringify(item) }}</div>
@@ -174,8 +174,9 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.img{
+.masked-image {
     width: 200px;
     height: 200px;
 }
+
 </style>

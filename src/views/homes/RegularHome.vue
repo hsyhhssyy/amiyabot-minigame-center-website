@@ -21,6 +21,7 @@
     <main>
       <button class="button" @click="createGame">创建游戏</button>
       <button class="button" @click="joinGame">加入游戏</button>
+      <button class="button" @click="handleRoomListClick">游戏大厅</button>
     </main>
     <footer>
       <button @click="logout" class="logout-button">登出</button>
@@ -203,6 +204,10 @@ function joinGame() {
   router.push('/regular-home/join-room');
 }
 
+const handleRoomListClick = () => {
+  console.log('游戏大厅');
+  router.push('/regular-home/room-list');
+}
 
 function logout() {
   router.push('/logout');

@@ -27,11 +27,11 @@
           <div class="operate-zone">
             <div class="button-group">
               <el-button class="button" @click="handleEndCurrentGame"
-                v-if="isHost && !isGameEnded">结束<br />游戏</el-button>
+                v-if="isHost && !isGameCompleted">结束<br />游戏</el-button>
               <el-button class="button" @click="handleReturnToHomePage"
-                v-if="!isHost || isGameEnded">退出<br />房间</el-button>
+                v-if="!isHost || isGameCompleted">退出<br />房间</el-button>
             </div>
-            <div class="timer">{{ elapsedMinutes }}:{{ elapsedSeconds }}:{{ elapsedTenPrecentSeconds }}</div>
+            <GameTimer :startTime="startTime" :endTime="completeTime" />
           </div>
           <ScoreBar :players="players"/>
         </div>
@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getGame } from '@src/api/SchulteGrid';
 import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
@@ -61,6 +61,7 @@ import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
 import ScoreBar from '@src/components/ScoreBar.vue';
 import ChatArea from '@src/components/ChatArea.vue';
 import RoomNumberDisplay from '@src/components/RoomNumberDisplay.vue';
+import GameTimer from '@src/components/GameTimer.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -81,14 +82,11 @@ const messages = ref([
 const messageToSend = ref('');
 const isHost = ref(false);
 const startTime = ref<number | null>(null);
-const elapsedMinutes = ref("00");
-const elapsedSeconds = ref("00");
-const elapsedTenPrecentSeconds = ref("00");
 const players = ref([
   { id: '', name: '', avatar: '', score: 0 },
 ]);
-const isGameEnded = ref(false);
-const gameEndTime = ref<number | null>(null);
+const isGameCompleted = ref(false);
+const completeTime = ref<number | null>(null);
 
 var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 messages.value = []
@@ -105,46 +103,23 @@ var check_connection = () => {
 
 check_connection()
 
-
-
-const updateElapsedTime = () => {
-  if (startTime.value !== null) {
-    var elapsed = 0;
-    if (isGameEnded.value == true && gameEndTime.value !== null) {
-      elapsed = Math.floor((gameEndTime.value! - startTime.value) / 10);
-    } else {
-      const now = Date.now();
-      const serverTimeDiff = Number(localStorage.getItem('server-time-diff'));
-      elapsed = Math.floor((now - startTime.value - serverTimeDiff) / 10);
-    }
-    const formatNumber = (num: number) => {
-      if (num < 0) {
-        num = 0
-      }
-      return num < 10 ? `0${num}` : `${num}`;
-    };
-    elapsedMinutes.value = formatNumber(Math.floor(elapsed / 6000));
-    elapsedSeconds.value = formatNumber(Math.floor(elapsed % 6000 / 100));
-    elapsedTenPrecentSeconds.value = formatNumber(Math.floor(elapsed % 60));
-  }
-};
-
 var gameInfoListener = (response: any) => {
   isHost.value = response.CreatorId === localStorage.getItem('user-id');
   joinCode.value = response.GameJoinCode;
   var playerList = response.PlayerList;
 
-  isGameEnded.value = response.GameCompleted;
-  if (isGameEnded.value == true) {
+  isGameCompleted.value = response.GameCompleted;
+  if (isGameCompleted.value == true) {
     const utcTimeComplete = new Date(response.GameCompleteTime);
-    gameEndTime.value = utcTimeComplete.getTime();
+    completeTime.value = utcTimeComplete.getTime();
+  }else{
+    completeTime.value = null;
   }
 
 
   const utcTimeStart = new Date(response.GameStartTime);
   startTime.value = utcTimeStart.getTime();
-  console.log('gameStartTime', response.GameStartTime)
-  console.log('gameEndTime', response.GameCompleteTime)
+  console.log('游戏开始时间1：' + startTime.value);
 
   players.value = playerList.map((p: any) => {
     return {
@@ -201,10 +176,10 @@ var receiveMoveListener = (response: any) => {
     expanded_data.value = dataArray
     console.log(dataArray.length)
 
-    isGameEnded.value = response.Completed;
-    if (isGameEnded.value == true) {
+    isGameCompleted.value = response.Completed;
+    if (isGameCompleted.value == true) {
       const utcTimeComplete = new Date(response.CompleteTime);
-      gameEndTime.value = utcTimeComplete.getTime();
+      completeTime.value = utcTimeComplete.getTime();
     }
   }
 
@@ -214,20 +189,13 @@ var receiveMoveListener = (response: any) => {
     nickname: player?.name || 'Unknown',
     avatar: player?.avatar || 'path_to_avatar.jpg'
   });
-
-  nextTick(() => {
-    const container = document.querySelector('.chat-display');
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  });
 }
 
 var gameClosedListener = (response: any) => {
   console.log('游戏已关闭')
-  isGameEnded.value = true;
+  isGameCompleted.value = true;
   const utcTimeComplete = new Date(response.CompleteTime);
-  gameEndTime.value = utcTimeComplete.getTime();
+  completeTime.value = utcTimeComplete.getTime();
   const answers = response.RemainingAnswers
   for (var i = 0; i < answers.length; i++) {
     messages.value.push({
@@ -247,12 +215,6 @@ var gameClosedListener = (response: any) => {
     });
 
 
-  nextTick(() => {
-    const container = document.querySelector('.chat-display');
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  });
 }
 
 var handleEndCurrentGame = () => {
@@ -279,7 +241,6 @@ var handleSendMessage = () => {
 }
 
 var getGameInterval: NodeJS.Timeout
-var countTimer: NodeJS.Timeout
 
 onMounted(() => {
   addGameHubListener('ReceiveMove', receiveMoveListener);
@@ -293,19 +254,19 @@ onMounted(() => {
     invokeGameHub('GetGame', roomId);
   }, 4000);
 
-
-  countTimer = setInterval(() => {
-    updateElapsedTime();
-  }, 10);
-
   getGame(roomId).then((responseObj) => {
     var grid = responseObj.grid
 
-    isGameEnded.value = responseObj.isCompleted;
     const utcTimeStart = new Date(responseObj.startTime);
     startTime.value = utcTimeStart.getTime();
-    const utcTimeComplete = new Date(responseObj.completeTime);
-    gameEndTime.value = utcTimeComplete.getTime();
+
+    isGameCompleted.value = responseObj.isCompleted;
+    if(isGameCompleted.value == true){
+      const utcTimeComplete = new Date(responseObj.completeTime);
+      completeTime.value = utcTimeComplete.getTime();
+    }else{
+      completeTime.value = null;
+    }
 
     if (grid.length > 0) {
       expanded_data.value = []
@@ -335,7 +296,6 @@ onUnmounted(() => {
   removeGameHubListener('GameClosed', gameClosedListener);
 
   clearInterval(getGameInterval);
-  clearInterval(countTimer);
 });
 </script>
 
@@ -493,10 +453,10 @@ onUnmounted(() => {
   height: auto;
 }
 
-.timer {
-  margin-top: 2px;
-  text-align: center;
+.message-to-send{
+  margin-right: 10px;
 }
+
 
 @media (min-width: 1000px) {
   .cell {

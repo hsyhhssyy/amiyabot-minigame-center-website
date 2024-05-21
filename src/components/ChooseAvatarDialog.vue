@@ -2,16 +2,18 @@
   <el-dialog v-model="model" title="选择头像" :center="true" :show-close="false" width="80%">
     <div class="avatar-list-container">
       <div class="avatar-list">
-        <div v-for="(avatar, index) in avatars" :key="index" @click="selectAvatar(avatar)"
+        <div v-for="(avatar, index) in avatars" :key="index" @click="handleAvatarClick(avatar)"
           :class="{ 'selected': selectedAvatar === avatar }">
-          <img :src="avatar" alt="Avatar" />
+          <img :src="loadedAvatarImages.includes(avatar.url) ? avatar.url : ''"
+            v-if="loadedAvatarImages.includes(avatar.url)" />
+          <div class="alt-div" v-if="!loadedAvatarImages.includes(avatar.url)">{{ avatar.alt }}</div>
         </div>
       </div>
     </div>
     <template #footer>
       <span class="dialog-footer">
-        <el-button type="secondary" @click="cancelClicked">取消</el-button>
-        <el-button type="primary" @click="okClicked">确定</el-button>
+        <el-button type="secondary" @click="handleCancelClick">取消</el-button>
+        <el-button type="primary" @click="handleOkClick" :disabled="selectedAvatar == null">确定</el-button>
       </span>
     </template>
   </el-dialog>
@@ -29,26 +31,47 @@ const model = defineModel({ type: Boolean })
 
 const emit: Emits = defineEmits();
 
-const avatars = ref([
-  'avatar1.jpg',
-  'avatar2.jpg',
-  'avatar3.jpg',
-  // Add more avatar URLs as needed
-]);
-const selectedAvatar = ref('');
+interface Avatar {
+  url: string;
+  alt: string;
+}
 
-const selectAvatar = (avatar: string) => {
+const avatars = ref<Avatar[]>([]);
+const selectedAvatar = ref<Avatar | null>();
+const loadedAvatarImages = ref<string[]>([])
+const loadIndex = ref(0)
+
+const handleAvatarClick = (avatar: Avatar) => {
   selectedAvatar.value = avatar;
 };
 
-const okClicked = () => {
+const handleOkClick = () => {
   model.value = false;
-  emit('ok', selectedAvatar.value);
+  if (selectedAvatar.value) {
+    emit('ok', selectedAvatar.value.url);
+  }
 };
 
-const cancelClicked = () => {
+const handleCancelClick = () => {
   model.value = false;
 };
+
+const loadImage = (url:string) => {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.src = url;
+    img.onload = () => resolve(url);
+  });
+}
+
+const loadImagesSequentially = async () => {
+  while (loadIndex.value < avatars.value.length) {
+    const url = avatars.value[loadIndex.value].url;
+    await loadImage(url);
+    loadedAvatarImages.value.push(url);
+    loadIndex.value++;
+  }
+}
 
 onMounted(async () => {
   var response = await jmesPathQuery("character_table_full.json", "map(&{\"charId\":@.charId, \"name\":@.name, \"skin\":to_array(@.skins)[0].skinId},values(@))");
@@ -56,8 +79,13 @@ onMounted(async () => {
   avatars.value = response.map((item: any) => {
     // urlencode
     const itemSkinPath = encodeURIComponent(item.skin);
-    return `https://web.hycdn.cn/arknights/game/assets/char_skin/avatar/${itemSkinPath}.png`;
+    return {
+      url: `https://web.hycdn.cn/arknights/game/assets/char_skin/avatar/${itemSkinPath}.png`,
+      alt: item.name
+    }
   });
+
+  await loadImagesSequentially()
 });
 
 </script>
@@ -92,4 +120,17 @@ onMounted(async () => {
   border-radius: 50%;
 }
 
+.alt-div {
+  width: 50px;
+  height: 50px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-sizing: border-box;
+  /* 确保 padding 和 border 包含在宽度和高度内 */
+  word-wrap: break-word;
+  /* 自动换行 */
+}
 </style>

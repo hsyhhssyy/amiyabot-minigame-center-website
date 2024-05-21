@@ -1,14 +1,18 @@
 import { createRouter,createWebHashHistory } from 'vue-router';
+
 import Login from '../views/Login.vue';
+import Register from '../views/Register.vue';
+import QuickRegister from '../views/QuickRegister.vue';
+import Logout from '../views/Logout.vue';
+
 import RegularHome from '../views/homes/RegularHome.vue';
 import CreateRoom from '../views/homes/CreateRoom.vue';
 import JoinRoom from '../views/homes/JoinRoom.vue';
 import RoomWaiting from '../views/homes/RoomWaiting.vue';
+import RoomList from '../views/homes/RoomList.vue';
+
 import SchulteGrid from '../views/games/SchulteGrid.vue';
 import SkinGuess from '../views/games/SkinGuess.vue';
-import Register from '../views/Register.vue';
-import QuickRegister from '../views/QuickRegister.vue';
-import Logout from '../views/Logout.vue';
 
 const routes = [
   {
@@ -35,6 +39,11 @@ const routes = [
     path: '/regular-home/join-room',
     name: '加入房间',
     component: JoinRoom,
+  },
+  {
+    path: '/regular-home/room-list',
+    name: '房间列表',
+    component: RoomList,
   },
   {
     path: '/regular-home/room-waiting/:roomId',

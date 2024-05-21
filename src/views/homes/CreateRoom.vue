@@ -6,23 +6,36 @@
         </header>
         <div class="create-game-page">
             <div class="game-list" :disabled="isGameCreating">
-                <button v-for="game in gameList" :key="game.id" @click="selectGame(game.id)" 
-                class="game-button" :disabled="game.notAvailable">
+                <button v-for="game in gameList" :key="game.id" @click="selectGame(game.id)" class="game-button"
+                    :disabled="game.notAvailable">
                     <img :src="game.image" :alt="game.name" class="game-image">
                     <div class="game-name">{{ game.name }}</div>
                     <div v-if="game.notAvailable">(敬请期待)</div>
                 </button>
             </div>
-            <button @click="goBack" class="back-button">返回首页</button>
+            <div class="operation-group">
+                <div class="private-room-switch-group">
+                    <label for="private-room-switch">私人房间</label>
+                    <el-switch class="private-room-switch" v-model="isPrivateRoom" id="private-room-switch"></el-switch>
+                    <el-tooltip content="私人房间只能通过房间号或邀请链接加入，不能从游戏大厅搜到。" placement="top">
+                        <el-button circle size="small">
+                            <i class="fa-solid fa-question"></i>
+                        </el-button>
+                    </el-tooltip>
+
+                </div>
+
+                <button @click="goBack" class="back-button">返回首页</button>
+            </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref,onMounted,onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { games } from '@src/api/GamesData.ts';
-import { invokeGameHub,addGameHubListener,removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
+import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
 import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
 
 const router = useRouter();
@@ -30,13 +43,14 @@ const router = useRouter();
 // 示例游戏数据，应从后端或其他数据源获取
 const gameList = ref(games);
 const isGameCreating = ref(false);
+const isPrivateRoom = ref(false);
 
 var check_connection = () => {
-  if (!isConnected()) {
-    router.push('/regular-home');
-    return;
-  }
-  setTimeout(check_connection, 500);
+    if (!isConnected()) {
+        router.push('/regular-home');
+        return;
+    }
+    setTimeout(check_connection, 500);
 }
 
 check_connection()
@@ -48,20 +62,20 @@ function selectGame(gameId: number) {
         console.error(`未找到游戏 ${gameId}`);
         return;
     }
-    
+
     // 创建房间并跳转到房间等待页面
-    invokeGameHub('CreateGame', game.type,"{}");
-    isGameCreating.value=true
+    invokeGameHub('CreateGame', game.type, JSON.stringify({ IsPrivate: isPrivateRoom.value }));
+    isGameCreating.value = true
 }
 
-var gameCreateListener = (response:any) => {    
-    isGameCreating.value=false
+var gameCreateListener = (response: any) => {
+    isGameCreating.value = false
 
     var gameId = response.GameId;
     localStorage.setItem('current-game-id', gameId);
-    
+
     // 跳转到房间等待页面
-    router.push('/regular-home/room-waiting/'+gameId);
+    router.push('/regular-home/room-waiting/' + gameId);
 }
 
 onMounted(() => {
@@ -81,7 +95,7 @@ function goBack() {
 
 <style scoped>
 .app {
-  text-align: center;
+    text-align: center;
 }
 
 .create-game-page {
@@ -118,8 +132,30 @@ function goBack() {
     font-weight: bold;
 }
 
-.back-button {
+.operation-group {
     margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.private-room-switch-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-right: 20px;
+}
+
+.private-room-switch-group label {
+    margin-right: 10px;
+}
+
+.private-room-switch {
+    margin-right: 10px;
+}
+
+.back-button {
     padding: 10px 20px;
     background-color: #D32F2F;
     color: white;
