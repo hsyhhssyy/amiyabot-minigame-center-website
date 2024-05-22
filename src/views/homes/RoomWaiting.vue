@@ -197,11 +197,11 @@ var playerJoinedListener = (_: any) => {
 
 var gameInfoListener = (response: any) => {
     var playerList = response.PlayerList;
-    isHost.value = response.CreatorId == localStorage.getItem('user-id');
-    hostId.value = response.CreatorId;
-    joinCode.value = response.GameJoinCode;
+    isHost.value = response.Game.CreatorId == localStorage.getItem('user-id');
+    hostId.value = response.Game.CreatorId;
+    joinCode.value = response.Game.JoinCode;
     gameLoaded.value = true
-    gameType.value = response.GameType;
+    gameType.value = response.Game.GameType;
     players.value = playerList.map((p: any) => {
         var avatar = p.UserAvatar ? p.UserAvatar:"/ceobe.jpeg";
         return {
@@ -211,13 +211,13 @@ var gameInfoListener = (response: any) => {
         }
     });
 
-    if (response.GameStarted) {
+    if (response.Game.IsStarted) {
         startGame()
     }
 }
 
 var playerLeftListener = (response: any) => {
-    var playerId = response.LeavingPlayerId;
+    var playerId = response.LeavingPlayer.Id;
     var method = response.LeavingMethod;
     players.value = players.value.filter(p => p.id !== playerId);
 

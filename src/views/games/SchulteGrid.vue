@@ -2,8 +2,8 @@
   <div class="schulte-grid">
     <div class="template">
       <!-- 左侧格子显示区域 -->
-      <div class="grid-container">
-        <div class="grid">
+      <div class="left-pannel">
+        <div class="grid-container">
           <div v-for="col in expanded_data" class="cell">
             <div class="text_div">
               <div v-if="col.fade == false && col.recent == false && col.placeholder == false" class="text">
@@ -24,26 +24,19 @@
       <div class="right-panel">
         <div class="player-list">
           <div class="operate-zone">
-            <div class="button-group">
-              <el-button class="button" @click="handleEndCurrentGame"
-                v-if="isHost && !isGameCompleted">结束<br />游戏</el-button>
-              <el-button class="button" @click="handleReturnToHomePage"
-                v-if="!isHost || isGameCompleted">退出<br />房间</el-button>
-            </div>
-            <GameTimer :startTime="startTime" :endTime="completeTime" />
+            <GameControlButtonGroup />
+            <GameTimer />
           </div>
-          <ScoreBar/>
+          <ScoreBar />
         </div>
         <!-- 聊天信息显示区域 -->
         <div class="chat-display-with-notification">
-          <NotificationBanner class="banner" />
+          <SystemNotificationCarousel class="banner" />
           <ChatArea :messages="messages" />
         </div>
-        <div class="message-input">
-          <RoomNumberDisplay :joinCode="joinCode" :roomId="roomId" />
-          <el-input type="text" class="message-to-send" v-model="messageToSend" @keyup.enter="handleSendMessage"
-            placeholder="输入一个干员名..." />
-          <el-button type="primary" class="button" @click="handleSendMessage">发送</el-button>
+        <div class="message-input-with-room-number">
+          <RoomNumberDisplay />
+          <MessageInput class="message-input" />
         </div>
 
       </div>
@@ -54,13 +47,14 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getGame } from '@src/api/SchulteGrid';
 import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
-import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
+import SystemNotificationCarousel from '@src/components/SystemNotificationCarousel.vue';
 import ScoreBar from '@src/components/game-room-components/ScoreBar.vue';
-import ChatArea from '@src/components/ChatArea.vue';
+import ChatArea, { Message } from '@src/components/ChatArea.vue';
 import RoomNumberDisplay from '@src/components/game-room-components/RoomNumberDisplay.vue';
 import GameTimer from '@src/components/game-room-components/GameTimer.vue';
+import GameControlButtonGroup from '@src/components/game-room-components/GameControlButtonGroup.vue';
+import MessageInput from '@src/components/MessageInput.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -68,27 +62,23 @@ const router = useRouter();
 const x = ref(2);
 const y = ref(2);
 const font_factor = ref(10);
-const joinCode = ref('');
+
 const expanded_data = ref([{
   'char': 'A',
   'fade': false,
   'recent': false,
   'placeholder': false
 }]);
-const messages = ref([
-  { content: '', style: '', nickname: '', avatar: '' }
-]);
-const messageToSend = ref('');
-const isHost = ref(false);
-const startTime = ref<number | null>(null);
+expanded_data.value = []
+
+const messages = ref<Message[]>([]);
+
 const players = ref([
   { id: '', name: '', avatar: '', score: 0 },
 ]);
-const isGameCompleted = ref(false);
-const completeTime = ref<number | null>(null);
+players.value = []
 
 var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
-messages.value = []
 
 localStorage.setItem('current-game-id', roomId);
 
@@ -103,170 +93,8 @@ var check_connection = () => {
 check_connection()
 
 var gameInfoListener = (response: any) => {
-  isHost.value = response.CreatorId === localStorage.getItem('user-id');
-  joinCode.value = response.GameJoinCode;
-  var playerList = response.PlayerList;
-
-  isGameCompleted.value = response.GameCompleted;
-  if (isGameCompleted.value == true) {
-    const utcTimeComplete = new Date(response.GameCompleteTime);
-    completeTime.value = utcTimeComplete.getTime();
-  }else{
-    completeTime.value = null;
-  }
-
-
-  const utcTimeStart = new Date(response.GameStartTime);
-  startTime.value = utcTimeStart.getTime();
-  console.log('游戏开始时间1：' + startTime.value);
-
-  players.value = playerList.map((p: any) => {
-    return {
-      id: p.UserId,
-      name: p.UserName,
-      avatar: p.UserAvatar ? p.UserAvatar:"/ceobe.jpeg",
-      score: p.Score
-    }
-  });
-
-  //检查一下答案
-  var answers = response.CurrentStatus.AnswerList
-
-  answers.forEach((element: any) => {
-    for (var point of element.GridPointList) {
-      var loc = point.Y * y.value + point.X
-      var current = expanded_data.value[loc]
-      if (current.fade == false && current.recent == false) {
-        current.fade = true
-      }
-    }
-  });
-
-}
-
-var receiveMoveListener = (response: any) => {
-  const player = players.value.find(p => p.id === response.PlayerId);
-  const result = response.Result
-  var content = response.CharacterName;
-
-
-  if (result === 'Correct') {
-    var dataArray = [...expanded_data.value]
-
-    //调整Grid,将Answer中GridPointList的点标记为♣
-    for (let i = 0; i < dataArray.length; i++) {
-      if (dataArray[i].recent) {
-        dataArray[i].fade = true;
-        dataArray[i].recent = false;
-      }
-    }
-
-    content = content + ' - '
-
-    response.Answer.forEach((answer: any) => {
-      for (var point of answer.GridPointList) {
-        var loc = point.Y * y.value + point.X
-        dataArray[loc].recent = true
-        dataArray[loc].fade = false
-      }
-      content = content + answer.SkillName + ' '
-    });
-
-    expanded_data.value = dataArray
-    console.log(dataArray.length)
-
-    isGameCompleted.value = response.Completed;
-    if (isGameCompleted.value == true) {
-      const utcTimeComplete = new Date(response.CompleteTime);
-      completeTime.value = utcTimeComplete.getTime();
-    }
-  }
-
-  messages.value.push({
-    content: content,
-    style: result,
-    nickname: player?.name || 'Unknown',
-    avatar: player?.avatar || 'path_to_avatar.jpg'
-  });
-}
-
-var gameClosedListener = (response: any) => {
-  console.log('游戏已关闭')
-  isGameCompleted.value = true;
-  const utcTimeComplete = new Date(response.CompleteTime);
-  completeTime.value = utcTimeComplete.getTime();
-  const answers = response.RemainingAnswers
-  for (var i = 0; i < answers.length; i++) {
-    messages.value.push({
-      content: answers[i].CharacterName + ' - ' + answers[i].SkillName,
-      style: "Correct",
-      nickname: '管理员兔兔',
-      avatar: '/amiya.png'
-    });
-  }
-  const endWord = '游戏结束' + 
-    (response.RemainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。" )
-  messages.value.push({
-      content: endWord,
-      style: "Correct",
-      nickname: '管理员兔兔',
-      avatar: '/amiya.png'
-    });
-
-
-}
-
-var handleEndCurrentGame = () => {
-  console.log('结束游戏');
-  invokeGameHub('CloseGame', roomId);
-}
-
-var handleReturnToHomePage = () => {
-  console.log('返回首页');
-  localStorage.removeItem('current-game-id');
-  router.push('/regular-home');
-}
-
-var handleSendMessage = () => {
-  console.log('发送消息' + messageToSend.value);
-  if (messageToSend.value.trim() === '') {
-    return;
-  }
-
-  invokeGameHub('SendMove', roomId, JSON.stringify({
-    CharacterName: messageToSend.value
-  }));
-  messageToSend.value = '';
-}
-
-var getGameInterval: NodeJS.Timeout
-
-onMounted(() => {
-  addGameHubListener('ReceiveMove', receiveMoveListener);
-  addGameHubListener('GameInfo', gameInfoListener);
-  addGameHubListener('GameClosed', gameClosedListener);
-
-  invokeGameHub('GetGame', roomId);
-
-  // 间隔一段时间获取一次房间信息
-  getGameInterval = setInterval(() => {
-    invokeGameHub('GetGame', roomId);
-  }, 4000);
-
-  getGame(roomId).then((responseObj) => {
-    var grid = responseObj.grid
-
-    const utcTimeStart = new Date(responseObj.startTime);
-    startTime.value = utcTimeStart.getTime();
-
-    isGameCompleted.value = responseObj.isCompleted;
-    if(isGameCompleted.value == true){
-      const utcTimeComplete = new Date(responseObj.completeTime);
-      completeTime.value = utcTimeComplete.getTime();
-    }else{
-      completeTime.value = null;
-    }
-
+  if (expanded_data.value.length == 0) {
+    const grid = response.Payload.Grid
     if (grid.length > 0) {
       expanded_data.value = []
       for (var i = 0; i < grid.length; i++) {
@@ -285,13 +113,117 @@ onMounted(() => {
       y.value = grid.length;
       x.value = grid[0] ? grid[0].length : 0; // 默认data的每个子数组长度是相同的
     }
+  }
 
-  })
+  var playerList = response.PlayerList;
+
+  players.value = playerList.map((p: any) => {
+    return {
+      id: p.UserId,
+      name: p.UserName,
+      avatar: p.UserAvatar ? p.UserAvatar : "/ceobe.jpeg",
+      score: p.Score
+    }
+  });
+
+  //检查一下答案
+  var answers = response.Payload.AnswerList
+
+  answers.forEach((element: any) => {
+    for (var point of element.GridPointList) {
+      var loc = point.Y * y.value + point.X
+      var current = expanded_data.value[loc]
+      if (current.fade == false && current.recent == false) {
+        current.fade = true
+      }
+    }
+  });
+
+}
+
+var receiveMoveListener = (response: any) => {
+  const player = players.value.find(p => p.id === response.Payload.PlayerId);
+  const result = response.Payload.Result
+  var content = response.Payload.CharacterName;
+
+
+  if (result === 'Correct') {
+    var dataArray = [...expanded_data.value]
+
+    //调整Grid,将Answer中GridPointList的点标记为♣
+    for (let i = 0; i < dataArray.length; i++) {
+      if (dataArray[i].recent) {
+        dataArray[i].fade = true;
+        dataArray[i].recent = false;
+      }
+    }
+
+    content = content + ' - '
+
+    response.Payload.Answer.forEach((answer: any) => {
+      for (var point of answer.GridPointList) {
+        var loc = point.Y * y.value + point.X
+        dataArray[loc].recent = true
+        dataArray[loc].fade = false
+      }
+      content = content + answer.SkillName + ' '
+    });
+
+    expanded_data.value = dataArray
+    console.log(dataArray.length)
+  }
+
+  messages.value.push({
+    content: content,
+    style: result,
+    nickname: player?.name || 'Unknown',
+    avatar: player?.avatar || '/ceobe.jpg'
+  });
+}
+
+var gameClosedListener = (response: any) => {
+
+  const answers = response.Payload.RemainingAnswers
+  for (var i = 0; i < answers.length; i++) {
+    messages.value.push({
+      content: answers[i].CharacterName + ' - ' + answers[i].SkillName,
+      style: "Correct",
+      nickname: '管理员兔兔',
+      avatar: '/amiya.png'
+    });
+  }
+  const endWord = '游戏结束' +
+    (response.Payload.RemainingAnswers.length == 0 ? "，恭喜所有干员全部猜出。" : "，未答出的答案如上。")
+  messages.value.push({
+    content: endWord,
+    style: "Correct",
+    nickname: '管理员兔兔',
+    avatar: '/amiya.png'
+  });
+
+
+}
+
+var getGameInterval: NodeJS.Timeout
+
+onMounted(() => {
+  addGameHubListener('ReceiveMove', receiveMoveListener);
+  addGameHubListener('GameInfo', gameInfoListener);
+  addGameHubListener('GameCompleted', gameClosedListener);
+  addGameHubListener('GameClosed', gameClosedListener);
+
+  invokeGameHub('GetGame', roomId);
+
+  // 间隔一段时间获取一次房间信息
+  getGameInterval = setInterval(() => {
+    invokeGameHub('GetGame', roomId);
+  }, 4000);
 });
 
 onUnmounted(() => {
   removeGameHubListener('ReceiveMove', receiveMoveListener);
   removeGameHubListener('GameInfo', gameInfoListener);
+  removeGameHubListener('GameCompleted', gameClosedListener);
   removeGameHubListener('GameClosed', gameClosedListener);
 
   clearInterval(getGameInterval);
@@ -313,13 +245,13 @@ onUnmounted(() => {
   /* 红色边框方便看到效果 */
 }
 
-.grid-container {
+.left-pannel {
   display: flex;
   width: 50%;
   aspect-ratio: 1 / 1;
 }
 
-.grid {
+.grid-container {
   width: auto;
   display: grid;
   background-color: #2196F3;
@@ -340,23 +272,13 @@ onUnmounted(() => {
 }
 
 
-.message-input {
+.message-input-with-room-number {
   display: flex;
+  flex-direction: row;
 }
 
-.message-input input {
+.message-input {
   flex-grow: 1;
-  padding: 10px;
-  margin-right: 10px;
-  border: 1px solid #ccc;
-}
-
-.message-input button {
-  padding: 10px 20px;
-  background-color: #2196F3;
-  color: white;
-  border: none;
-  cursor: pointer;
 }
 
 .banner {
@@ -442,21 +364,6 @@ onUnmounted(() => {
   align-self: stretch;
 }
 
-.button-group {
-  display: flex;
-  height: auto;
-  flex-grow: 1;
-}
-
-.button {
-  height: auto;
-}
-
-.message-to-send{
-  margin-right: 10px;
-}
-
-
 @media (min-width: 1000px) {
   .cell {
     font-size: calc(1em + 1vw);
@@ -473,12 +380,12 @@ onUnmounted(() => {
     width: 100%;
   }
 
-  .grid-container,
+  .left-pannel,
   .right-panel {
     width: 100%;
   }
 
-  .grid {
+  .grid-container {
     grid-gap: 2px;
     padding: 4px;
   }

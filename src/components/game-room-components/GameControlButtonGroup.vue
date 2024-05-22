@@ -31,11 +31,11 @@ var handleReturnToHomePage = () => {
 }
 
 var gameInfoListener = (response: any) => {  
-  isGameCompleted.value = response.GameCompleted;
-  isHost.value = response.CreatorId === localStorage.getItem('user-id');
+  isGameCompleted.value = response.Game.IsCompleted;
+  isHost.value = response.Game.CreatorId === localStorage.getItem('user-id');
 }
 
-var gameCompletedListener = (response: any) => {
+var gameCompletedListener = (_: any) => {
   isGameCompleted.value = true;
 }
 

@@ -14,9 +14,9 @@ const elapsedSeconds = ref("00")
 const elapsedTenPrecentSeconds = ref("00")
 
 const receiveMoveListener = (response: any) => {
-  if (response.Result === 'Correct') {
-    if (response.Completed == true) {
-      const utcTimeComplete = new Date(response.CompleteTime);
+  if (response.Payload.Result === 'Correct') {
+    if (response.Game.IsCompleted == true) {
+      const utcTimeComplete = new Date(response.Game.CompleteTime);
       completeTime.value = utcTimeComplete.getTime();
     }
   }
@@ -24,15 +24,15 @@ const receiveMoveListener = (response: any) => {
 
 var gameInfoListener = (response: any) => {
 
-  if (response.GameCompleted == true) {
-    const utcTimeComplete = new Date(response.GameCompleteTime);
+  if (response.Game.IsCompleted == true) {
+    const utcTimeComplete = new Date(response.Game.CompleteTime);
     completeTime.value = utcTimeComplete.getTime();
   }else{
     completeTime.value = null;
   }
 
 
-  const utcTimeStart = new Date(response.GameStartTime);
+  const utcTimeStart = new Date(response.Game.StartTime);
   startTime.value = utcTimeStart.getTime();
 
 }
@@ -61,7 +61,7 @@ const updateElapsedTime = () => {
 };
 
 const gameClosedListener = (response: any) => {
-  const utcTimeComplete = new Date(response.CompleteTime);
+  const utcTimeComplete = new Date(response.Game.CompleteTime);
   completeTime.value = utcTimeComplete.getTime();
 }
 

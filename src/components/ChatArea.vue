@@ -22,7 +22,7 @@
 <script lang="ts" setup>
 import { watch, nextTick } from 'vue';
 
-interface Messages {
+export interface Message {
   avatar: string;
   nickname: string;
   content: string;
@@ -30,7 +30,7 @@ interface Messages {
 }
 
 interface Props {
-  messages: Messages[];
+  messages: Message[];
 }
 
 const props = defineProps<Props>();
@@ -59,7 +59,8 @@ watch(
   height: 100px;
   border: 1px solid #ccc;
   overflow-y: auto;
-  margin-bottom: 20px;
+  margin-bottom: 20px;  
+  box-sizing: border-box;
 }
 
 .chat-message {

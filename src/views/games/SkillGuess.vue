@@ -2,8 +2,8 @@
   <div class="outer-grid">
     <div class="template">
       <!-- 左侧格子显示区域 -->
-      <div class="grid-container">
-        <div class="grid">
+      <div class="left-pannel">
+        <div class="grid-container">
           <div class="cell" v-for="(question, index) in questions">
             <div :class="{
             'skill-image-answered': index < currentQuestionIndex,
@@ -19,7 +19,10 @@
       <!-- 右侧区域 -->
       <div class="right-panel">
         <div class="player-list">
-          <GameOperatorZone />
+          <div class="operate-zone">            
+            <GameControlButtonGroup />
+            <GameTimer/>
+          </div>
           <ScoreBar/>
         </div>
         <!-- 聊天信息显示区域 -->
@@ -27,9 +30,9 @@
           <SystemNotificationCarousel class="banner" />
           <ChatArea :messages="messages" />
         </div>
-        <div class="message-input">
+        <div class="message-input-with-room-number">
           <RoomNumberDisplay />
-          <MessageInput />
+          <MessageInput class="message-input"/>
         </div>
 
       </div>
@@ -40,13 +43,14 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
+import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
 import SystemNotificationCarousel from '@src/components/SystemNotificationCarousel.vue';
-import GameOperatorZone from '@src/components/game-room-components/GameOperatorZone.vue';
 import ScoreBar from '@src/components/game-room-components/ScoreBar.vue';
 import RoomNumberDisplay from '@src/components/game-room-components/RoomNumberDisplay.vue';
-import ChatArea from '@src/components/ChatArea.vue';
+import ChatArea,{Message} from '@src/components/ChatArea.vue';
 import MessageInput from '@src/components/MessageInput.vue';
+import GameTimer from '@src/components/game-room-components/GameTimer.vue';
+import GameControlButtonGroup from '@src/components/game-room-components/GameControlButtonGroup.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -54,10 +58,12 @@ const router = useRouter();
 const currentQuestionIndex = ref(0)
 const questions = ref<any[]>([])
 
-const messages = ref([
-  { content: '', style: '', nickname: '', avatar: '' }
+const messages = ref<Message[]>([]);
+
+const players = ref([
+  { id: '', name: '', avatar: '', score: 0 },
 ]);
-messages.value = []
+players.value = []
 
 var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 
@@ -85,12 +91,27 @@ var gameInfoListener = (response: any) => {
       imageUrl: a.ImageUrl
     }
   })
+
+  var playerList = response.PlayerList;
+
+  players.value = playerList.map((p: any) => {
+    return {
+      id: p.UserId,
+      name: p.UserName,
+      avatar: p.UserAvatar ? p.UserAvatar:"/ceobe.jpeg",
+      score: p.Score
+    }
+  });
 }
 
 var receiveMoveListener = (response: any) => {
+  const player = players.value.find(p => p.id === response.PlayerId);
+  var content = response.CharacterName;
+  const result = response.Result
 
   if (response.Result == 'Correct') {
-    currentQuestionIndex.value = response.CurrentQuestionIndex;
+    currentQuestionIndex.value = response.CurrentQuestionIndex;    
+    content = content + ' - ' + response.Answer.SkillName;
   }
 
   if (response.Completed) {
@@ -105,15 +126,25 @@ var receiveMoveListener = (response: any) => {
   });
 }
 
+var getGameInterval: NodeJS.Timeout
+
 onMounted(() => {
   addGameHubListener('ReceiveMove', receiveMoveListener);
   addGameHubListener('GameInfo', gameInfoListener);
 
+  invokeGameHub('GetGame', roomId);
+
+  // 间隔一段时间获取一次房间信息
+  getGameInterval = setInterval(() => {
+    invokeGameHub('GetGame', roomId);
+  }, 4000);
 });
 
 onUnmounted(() => {
   removeGameHubListener('ReceiveMove', receiveMoveListener);
   removeGameHubListener('GameInfo', gameInfoListener);
+
+  clearInterval(getGameInterval);
 });
 </script>
 
@@ -132,30 +163,46 @@ onUnmounted(() => {
   /* 红色边框方便看到效果 */
 }
 
-.grid-container {
+.left-pannel {
   display: flex;
   width: 50%;
   aspect-ratio: 1 / 1;
 }
 
-.grid {
+.grid-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
   gap: 2px;
+  position: relative;
 
   box-sizing: border-box;
   padding: 10px;
   border-radius: 8px;
+/* 
   background-color: rgba(245, 222, 179, 0.2);
+  
   background-image: url('https://media.prts.wiki/archive/4/41/20210120051637%21Logo_%E7%BD%97%E5%BE%B7%E5%B2%9B.png');
   background-repeat: no-repeat;
   background-size: cover;
-  background-position: center center;
+  background-position: center center; */
 
   width: 100%;
   aspect-ratio: 1 / 1;
 
+}
+
+.grid-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://media.prts.wiki/archive/4/41/20210120051637%21Logo_%E7%BD%97%E5%BE%B7%E5%B2%9B.png');
+    background-size: cover; /* 图片大小适应容器 */
+    filter: blur(2px); /* 模糊效果，调整为你想要的程度 */
+    z-index: -1; /* 确保模糊层在底部 */
 }
 
 .cell {
@@ -171,7 +218,8 @@ onUnmounted(() => {
   height: 100%;
   display: flex;
   box-sizing: border-box;
-  border: 4px dashed #000; /* 设置虚线边框，2像素宽度，黑色 */
+  border: 4px dashed gray;
+  filter: blur(2px);
 }
 
 .skill-image-future {
@@ -179,7 +227,7 @@ onUnmounted(() => {
   height: 100%;
   display: flex;
   box-sizing: border-box;
-  border: 4px dashed #000; /* 设置虚线边框，2像素宽度，黑色 */
+  border: 4px dashed gray;
 }
 
 .skill-image-future img {
@@ -233,6 +281,36 @@ onUnmounted(() => {
   padding: 10px;
 }
 
+.player-list {
+  display: flex;
+  justify-content: left;
+  gap: 10px;
+  margin-bottom: 10px;
+  max-width: 100%;
+}
+
+.operate-zone {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+.chat-display-with-notification {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.message-input-with-room-number {
+  display: flex;
+  flex-direction: row;
+}
+
+.message-input {
+  flex-grow: 1;
+}
+
 /* 添加响应式设计 */
 @media (max-width: 768px) {
   .template {
@@ -243,12 +321,12 @@ onUnmounted(() => {
     width: 100%;
   }
 
-  .grid-container
+  .left-pannel,
   .right-panel {
     width: 100%;
   }
 
-  .grid {
+  .grid-container {
     grid-gap: 2px;
     padding: 4px;
   }
@@ -257,7 +335,7 @@ onUnmounted(() => {
     flex-direction: column-reverse;
   }
   
-  .message-input {
+  .message-input-with-room-number {
     margin-bottom: 10px;
   }
 }

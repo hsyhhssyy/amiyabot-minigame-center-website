@@ -50,13 +50,13 @@ function joinRoom() {
 
 var gameJoinListener = (response:any) => {
     
-    var playerJoined = response.UserId;
+    var playerJoined = response.JoinedPlayer.Id;
     if(playerJoined != localStorage.getItem('user-id')){
         //意外收到别人的消息,不处理
         return;
     }
 
-    var gameId = response.GameId;
+    var gameId = response.Game.Id;
     localStorage.setItem('current-game-id', gameId);    
     // 跳转到房间等待页面
     router.push('/regular-home/room-waiting/'+gameId);

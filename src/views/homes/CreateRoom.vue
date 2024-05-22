@@ -71,7 +71,7 @@ function selectGame(gameId: number) {
 var gameCreateListener = (response: any) => {
     isGameCreating.value = false
 
-    var gameId = response.GameId;
+    var gameId = response.Game.Id;
     localStorage.setItem('current-game-id', gameId);
 
     // 跳转到房间等待页面
