@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted,watch } from 'vue';
 import { jmesPathQuery } from '@src/api/Arknights';
 
 interface Emits {
@@ -40,6 +40,13 @@ const avatars = ref<Avatar[]>([]);
 const selectedAvatar = ref<Avatar | null>();
 const loadedAvatarImages = ref<string[]>([])
 const loadIndex = ref(0)
+
+//watch model
+watch(model, (newVal) => {
+  if (newVal==true&&loadIndex.value<=0) {
+    loadImagesSequentially()
+  }
+})
 
 const handleAvatarClick = (avatar: Avatar) => {
   selectedAvatar.value = avatar;
@@ -66,10 +73,11 @@ const loadImage = (url:string) => {
 
 const loadImagesSequentially = async () => {
   while (loadIndex.value < avatars.value.length) {
-    const url = avatars.value[loadIndex.value].url;
+    const index = loadIndex.value 
+    loadIndex.value++;
+    const url = avatars.value[index].url;
     await loadImage(url);
     loadedAvatarImages.value.push(url);
-    loadIndex.value++;
   }
 }
 
@@ -85,7 +93,6 @@ onMounted(async () => {
     }
   });
 
-  await loadImagesSequentially()
 });
 
 </script>

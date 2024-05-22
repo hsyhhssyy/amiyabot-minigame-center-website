@@ -179,13 +179,6 @@ onUnmounted(() => {
   box-sizing: border-box;
   padding: 10px;
   border-radius: 8px;
-/* 
-  background-color: rgba(245, 222, 179, 0.2);
-  
-  background-image: url('https://media.prts.wiki/archive/4/41/20210120051637%21Logo_%E7%BD%97%E5%BE%B7%E5%B2%9B.png');
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center center; */
 
   width: 100%;
   aspect-ratio: 1 / 1;
