@@ -16,7 +16,7 @@ import { ref ,onMounted,onUnmounted} from 'vue';
 import { useRouter } from 'vue-router';
 import {ElMessage} from 'element-plus';
 import { invokeGameHub,addGameHubListener,removeGameHubListener,isConnected } from '@src/api/SignalR.ts';
-import { getGame } from '@src/api/SchulteGrid';
+import { getGame } from '@src/api/Game.ts';
 import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
 
 const router = useRouter();

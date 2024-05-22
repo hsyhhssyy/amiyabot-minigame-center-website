@@ -110,8 +110,8 @@ const players = ref([
     { id: "", connection: "", name: '', avatar: '' },
 ]);
 
-var handleCopyLink = ()=>{
-    copyInviteLinkToClipboard(roomId, joinCode.value);
+var handleCopyLink = async ()=>{
+   await copyInviteLinkToClipboard(roomId);
 }
 
 var handleAlertConfirmed = () => {

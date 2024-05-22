@@ -16,8 +16,8 @@ var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.jo
 
 const joinCode = ref('');
 
-var copyToClipboard = () => {
-  copyInviteLinkToClipboard(roomId, joinCode.value)
+var copyToClipboard = async () => {
+  await copyInviteLinkToClipboard(roomId)
 }
 
 var gameInfoListener = (response: any) => {

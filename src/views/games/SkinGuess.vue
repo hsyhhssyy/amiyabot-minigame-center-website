@@ -37,7 +37,10 @@
                 </div>
                 <div class="message-input-with-room-number">
                     <RoomNumberDisplay />
-                    <MessageInput class="message-input" />
+                    <MessageInput class="message-input" 
+                        :useHint="true" :useGiveUp="true" 
+                        :isHintDisabled="currentHintDisabled"
+                        :isGiveUpDisabled="!isHost"/>
                 </div>
 
             </div>
@@ -46,7 +49,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted,computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
 import SystemNotificationCarousel from '@src/components/SystemNotificationCarousel.vue';
@@ -62,9 +65,12 @@ const router = useRouter();
 
 var roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId;
 
+const isHost = ref(false);
+
 const currentQuestionIndex = ref(-1);
 const questionList = ref<any[]>([])
 const slicedImages = ref<Map<number, HTMLCanvasElement> | null>(null);
+const slicedHintImages = ref<Map<number, HTMLCanvasElement> | null>(null);
 const cachedFullImages = ref<Map<string, HTMLImageElement>>(new Map());
 
 const messages = ref<Message[]>([]);
@@ -75,10 +81,6 @@ const players = ref([
 players.value = []
 
 const visibility = ref(true);
-
-const answeredQuestions = computed(() => {
-    return questionList.value.filter((q) => q.Completed == true);
-});
 
 //记录RoomId是为了在回到主页后能够弹出重连
 localStorage.setItem('current-game-id', roomId);
@@ -97,6 +99,13 @@ const toggleVisibility = () => {
     visibility.value = !visibility.value;
 }
 
+const currentHintDisabled = computed(() => {
+    if(questionList.value.length == 0||currentQuestionIndex.value == -1){
+        return true;
+    }
+    return questionList.value[currentQuestionIndex.value].HintLevel >= 1;
+});
+
 async function fetchImage(url: any) {
     const response = await fetch(url);
     const blob = await response.blob();
@@ -107,7 +116,7 @@ async function fetchImage(url: any) {
     return img;
 }
 
-function getRandomSquare(randomNum: any, imgWidth: any, imgHeight: any) {
+function getRandomSquare(randomNum:any, imgWidth:any, imgHeight:any) {
     const maxSize = Math.min(imgWidth, imgHeight) * 0.2;
     const minSize = Math.min(imgWidth, imgHeight) * 0.1;
     const size = Math.floor(minSize + (randomNum % (maxSize - minSize)));
@@ -115,21 +124,62 @@ function getRandomSquare(randomNum: any, imgWidth: any, imgHeight: any) {
     const x = Math.floor((randomNum * 9301 + 49297) % imgWidth);
     const y = Math.floor((randomNum * 49297 + 9301) % imgHeight);
 
-    return { x: x % (imgWidth - size), y: y % (imgHeight - size), size: size };
+    const rectX = x % (imgWidth - size);
+    const rectY = y % (imgHeight - size);
+
+    const largerSize = size * 2;
+    const largerRectX = Math.max(0, rectX + size / 2 - largerSize / 2);
+    const largerRectY = Math.max(0, rectY + size / 2 - largerSize / 2);
+
+    const adjustedLargerRectX = Math.min(largerRectX, imgWidth - largerSize);
+    const adjustedLargerRectY = Math.min(largerRectY, imgHeight - largerSize);
+
+    return {
+        smallRect: { x: rectX, y: rectY, size: size },
+        largeRect: { x: adjustedLargerRectX, y: adjustedLargerRectY, size: largerSize }
+    };
 }
 
-function isUniformColor(imageData: any) {
+
+function isUniformColor(imageData:any) {
     const { data, width, height } = imageData;
-    let r = data[0], g = data[1], b = data[2];
-    for (let i = 0; i < width * height * 4; i += 4) {
-        if (data[i] !== r || data[i + 1] !== g || data[i + 2] !== b) {
-            return false;
+    const totalPixels = width * height;
+    let whiteCount = 0;
+    let blackCount = 0;
+    let transparentCount = 0;
+
+    for (let i = 0; i < totalPixels * 4; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+
+        if (r === 255 && g === 255 && b === 255) {
+            whiteCount++;
+        } else if (r === 0 && g === 0 && b === 0) {
+            blackCount++;
+        } else if (a === 0) {
+            transparentCount++;
         }
     }
-    return true;
+
+    const whiteRatio = whiteCount / totalPixels;
+    const blackRatio = blackCount / totalPixels;
+    const transparentRatio = transparentCount / totalPixels;
+
+    return whiteRatio <= 0.4 && blackRatio <= 0.4 && transparentRatio <= 0.4;
 }
 
-async function generateMaskedImage(url: any, randomNum: any) {
+
+async function generateMaskedImage(i:number) {
+    
+    if (slicedImages.value == null||slicedHintImages.value ==null) {
+        return;
+    }
+    
+    const url = questionList.value[i].ImageUrl;
+    var randomNum = questionList.value[i].RandomNumber;
+
     const img = await fetchImage(url);
     cachedFullImages.value.set(url, img);
     const canvas = document.createElement('canvas') as HTMLCanvasElement;
@@ -137,21 +187,30 @@ async function generateMaskedImage(url: any, randomNum: any) {
     canvas.width = img.width;
     canvas.height = img.height;
 
-    let square, imageData;
+    let square, largeSquare, imageData;
 
     do {
-        square = getRandomSquare(randomNum, img.width, img.height);
+        const squares = getRandomSquare(randomNum, img.width, img.height);
+        square = squares.smallRect;
+        largeSquare = squares.largeRect;
         ctx.drawImage(img, square.x, square.y, square.size, square.size, 0, 0, square.size, square.size);
         imageData = ctx.getImageData(0, 0, square.size, square.size);
         randomNum++;
-    } while (isUniformColor(imageData));
+    } while (!isUniformColor(imageData));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     canvas.width = square.size;
     canvas.height = square.size;
     ctx.drawImage(img, square.x, square.y, square.size, square.size, 0, 0, square.size, square.size);
 
-    return canvas;
+    slicedImages.value.set(i, canvas);
+
+    const hintCanvas = document.createElement('canvas') as HTMLCanvasElement;
+    const hintCtx = hintCanvas.getContext('2d')! as CanvasRenderingContext2D;
+    hintCanvas.width = largeSquare.size;
+    hintCanvas.height = largeSquare.size;
+    hintCtx.drawImage(img, largeSquare.x, largeSquare.y, largeSquare.size, largeSquare.size, 0, 0, largeSquare.size, largeSquare.size);
+    slicedHintImages.value.set(i, hintCanvas);
 }
 
 async function preprocessImages() {
@@ -161,31 +220,33 @@ async function preprocessImages() {
     }
 
     slicedImages.value = new Map();
+    slicedHintImages.value = new Map();
 
-    const imageUrlCurrent = questionList.value[currentQuestionIndex.value].ImageUrl;
-    const randomNumCurrent = questionList.value[currentQuestionIndex.value].RandomNumber;
-    const canvasCurrent = await generateMaskedImage(imageUrlCurrent, randomNumCurrent);
-    slicedImages.value.set(currentQuestionIndex.value, canvasCurrent);
+    await generateMaskedImage(currentQuestionIndex.value);
     updateImage();
 
     for (let i = 0; i < questionList.value.length; i++) {
         if (slicedImages.value.has(i)) {
             continue;
         }
-        const imageUrl = questionList.value[i].ImageUrl;
-        const randomNum = questionList.value[i].RandomNumber;
-        const canvas = await generateMaskedImage(imageUrl, randomNum);
-        slicedImages.value.set(i, canvas);
+        await generateMaskedImage(i);
         updateImage();
     }
 }
 
 const updateImage = function () {
-    if (slicedImages.value == null) {
+    if (slicedImages.value == null||slicedHintImages.value ==null) {
         return;
     }
 
-    const canvas = slicedImages.value.get(currentQuestionIndex.value);
+    var source;
+    if(questionList.value[currentQuestionIndex.value].HintLevel==0){
+        source=slicedImages.value;
+    }else{
+        source=slicedHintImages.value;
+    }
+
+    const canvas = source.get(currentQuestionIndex.value);
     if (canvas) {
         const refCanvas = document.querySelector(`.masked-image`) as HTMLCanvasElement;
         if (refCanvas) {
@@ -200,6 +261,7 @@ const updateImage = function () {
 }
 
 const gameInfoListener = (response: any) => {
+    isHost.value=response.Game.CreatorId === localStorage.getItem('user-id');
     questionList.value = response.Payload.AnswerList;
 
     if (response.Payload.CurrentQuestionIndex != currentQuestionIndex.value) {
@@ -240,11 +302,34 @@ const receiveMoveListener = (response: any) => {
     });
 }
 
+const hintListener = (response: any) => {
+    questionList.value[response.Payload.CurrentQuestionIndex].HintLevel = response.Payload.HintLevel;
+    updateImage();
+
+    messages.value.push({
+        content: '玩家申请提示',
+        style: 'Correct',
+        nickname: '管理员兔兔',
+        avatar: '/amiya.png'
+    });
+}
+
+const giveUpListener = (response: any) => {
+    messages.value.push({
+        content: '房主选择放弃本题，本题答案为 ' + response.Payload.Question.CharacterName,
+        style: 'Correct',
+        nickname: '管理员兔兔',
+        avatar: '/amiya.png'
+    });
+}
+
 var getGameInterval: NodeJS.Timeout
 
 onMounted(() => {
     addGameHubListener('ReceiveMove', receiveMoveListener);
     addGameHubListener('GameInfo', gameInfoListener);
+    addGameHubListener('Hint', hintListener);
+    addGameHubListener('GiveUp', giveUpListener);
 
     getGameInterval = setInterval(() => {
         invokeGameHub('GetGame', roomId);
@@ -255,6 +340,9 @@ onMounted(() => {
 onUnmounted(() => {
     removeGameHubListener('ReceiveMove', receiveMoveListener);
     removeGameHubListener('GameInfo', gameInfoListener);
+    removeGameHubListener('Hint', hintListener);
+    removeGameHubListener('GiveUp', giveUpListener);
+
     clearInterval(getGameInterval);
 });
 
@@ -306,8 +394,8 @@ onUnmounted(() => {
 }
 
 .masked-image {
-    width: 200px;
-    height: 200px;
+    width: 400px;
+    height: 400px;
 }
 
 .eye-button {
@@ -367,6 +455,7 @@ onUnmounted(() => {
     justify-content: center;
     align-items: center;
     border-radius: 50;
+    background-color: white;
     border: 1px solid black;
 }
 
