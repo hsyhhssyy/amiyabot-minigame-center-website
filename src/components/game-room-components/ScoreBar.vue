@@ -12,19 +12,36 @@
 </template>
 
 <script lang="ts" setup>
+import { onMounted, onUnmounted, ref } from 'vue';
+import { addGameHubListener, removeGameHubListener } from '@src/api/SignalR.ts';
 
-interface GamePlayer {
-    id: string;
-    name: string;
-    avatar: string;
-    score: number;
+const players = ref([
+  { id: '', name: '', avatar: '', score: 0 },
+]);
+
+players.value=[]
+
+var gameInfoListener = (response: any) => {
+  var playerList = response.PlayerList;
+
+  players.value = playerList.map((p: any) => {
+    return {
+      id: p.UserId,
+      name: p.UserName,
+      avatar: p.UserAvatar ? p.UserAvatar:"/ceobe.jpeg",
+      score: p.Score
+    }
+  });
+
 }
 
-interface Props{
-    players: GamePlayer[];
-}
+onMounted(() => {
+  addGameHubListener('GameInfo', gameInfoListener);
+})
 
-defineProps<Props>();
+onUnmounted(() => {
+  removeGameHubListener('GameInfo', gameInfoListener);
+})
 
 </script>
 

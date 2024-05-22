@@ -53,7 +53,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 //import CryptoJS from 'crypto-js';
 import { connectToGameHub } from '@src/api/SignalR.ts';
-import { getGame } from '@src/api/SchulteGrid';
+import { getGame } from '@src/api/Game';
 import { describeAPI, changeUserInfoApi } from '@src/api/Account.ts';
 import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
 import ChooseAvatarDialog from '@src/components/ChooseAvatarDialog.vue';

@@ -21,7 +21,6 @@
         </div>
       </div>
       <!-- 右侧区域 -->
-      <div> </div>
       <div class="right-panel">
         <div class="player-list">
           <div class="operate-zone">
@@ -33,7 +32,7 @@
             </div>
             <GameTimer :startTime="startTime" :endTime="completeTime" />
           </div>
-          <ScoreBar :players="players"/>
+          <ScoreBar/>
         </div>
         <!-- 聊天信息显示区域 -->
         <div class="chat-display-with-notification">
@@ -58,10 +57,10 @@ import { useRoute, useRouter } from 'vue-router';
 import { getGame } from '@src/api/SchulteGrid';
 import { invokeGameHub, addGameHubListener, removeGameHubListener, isConnected } from '@src/api/SignalR.ts';
 import NotificationBanner from '@src/components/SystemNotificationCarousel.vue';
-import ScoreBar from '@src/components/ScoreBar.vue';
+import ScoreBar from '@src/components/game-room-components/ScoreBar.vue';
 import ChatArea from '@src/components/ChatArea.vue';
-import RoomNumberDisplay from '@src/components/RoomNumberDisplay.vue';
-import GameTimer from '@src/components/GameTimer.vue';
+import RoomNumberDisplay from '@src/components/game-room-components/RoomNumberDisplay.vue';
+import GameTimer from '@src/components/game-room-components/GameTimer.vue';
 
 const route = useRoute();
 const router = useRouter();

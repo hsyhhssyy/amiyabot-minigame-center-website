@@ -13,6 +13,7 @@ import RoomList from '../views/homes/RoomList.vue';
 
 import SchulteGrid from '../views/games/SchulteGrid.vue';
 import SkinGuess from '../views/games/SkinGuess.vue';
+import SkillGuess from '../views/games/SkillGuess.vue';
 
 const routes = [
   {
@@ -61,6 +62,12 @@ const routes = [
     path: '/regular-home/games/skin-guess/:roomId',
     name: '立绘猜干员',
     component: SkinGuess,
+    props: true
+  },
+  {
+    path: '/regular-home/games/skill-guess/:roomId',
+    name: '技能图标猜干员',
+    component: SkillGuess,
     props: true
   },
   {
