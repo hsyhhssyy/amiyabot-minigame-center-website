@@ -81,11 +81,11 @@ check_connection()
 
 var gameInfoListener = (response: any) => {
 
-  currentQuestionIndex.value = response.CurrentStatus.CurrentQuestionIndex
-  console.log(response.CurrentStatus.AnswerList.map((a: any) => {
+  currentQuestionIndex.value = response.Payload.CurrentQuestionIndex
+  console.log(response.Payload.AnswerList.map((a: any) => {
     return a.CharacterName
   }))
-  questions.value = response.CurrentStatus.AnswerList.map((a: any) => {
+  questions.value = response.Payload.AnswerList.map((a: any) => {
     return {
       playerId: a.PlayerId,
       imageUrl: a.ImageUrl
@@ -105,16 +105,16 @@ var gameInfoListener = (response: any) => {
 }
 
 var receiveMoveListener = (response: any) => {
-  const player = players.value.find(p => p.id === response.PlayerId);
-  var content = response.CharacterName;
-  const result = response.Result
+  const player = players.value.find(p => p.id === response.Payload.PlayerId);
+  var content = response.Payload.CharacterName;
+  const result = response.Payload.Result
 
-  if (response.Result == 'Correct') {
-    currentQuestionIndex.value = response.CurrentQuestionIndex;    
-    content = content + ' - ' + response.Answer.SkillName;
+  if (response.Payload.Result == 'Correct') {
+    currentQuestionIndex.value = response.Payload.CurrentQuestionIndex;    
+    content = content + ' - ' + response.Payload.Answer.SkillName;
   }
 
-  if (response.Completed) {
+  if (response.Game.IsCompleted) {
     currentQuestionIndex.value = -1
   }
 

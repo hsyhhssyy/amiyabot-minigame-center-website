@@ -21,7 +21,7 @@ var copyToClipboard = () => {
 }
 
 var gameInfoListener = (response: any) => {
-  joinCode.value = response.GameJoinCode;
+  joinCode.value = response.Game.JoinCode;
 }
 
 onMounted(() => {
