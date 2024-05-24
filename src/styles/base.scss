@@ -1,0 +1,97 @@
+/* color palette from <https://github.com/vuejs/theme> */
+:root {
+    --vt-c-white: #ffffff;
+    --vt-c-white-soft: #f8f8f8;
+    --vt-c-white-mute: #f2f2f2;
+
+    --vt-c-black: #181818;
+    --vt-c-black-soft: #222222;
+    --vt-c-black-mute: #282828;
+
+    --vt-c-indigo: #2c3e50;
+
+    --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
+    --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
+    --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
+    --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+
+    --vt-c-text-light-1: var(--vt-c-indigo);
+    --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
+    --vt-c-text-dark-1: var(--vt-c-white);
+    --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+}
+
+/* semantic color variables for this project */
+:root {
+    --main-color: #7b40f2;
+    --main-color-light: #d8c9f7;
+
+    --color-background: var(--vt-c-white);
+    --color-background-soft: var(--vt-c-white-soft);
+    --color-background-mute: var(--vt-c-white-mute);
+
+    --color-border: var(--vt-c-divider-light-2);
+    --color-border-hover: var(--vt-c-divider-light-1);
+
+    --color-heading: var(--vt-c-text-light-1);
+    --color-text: var(--vt-c-text-light-1);
+
+    --section-gap: 160px;
+}
+
+@font-face {
+    font-family: 'Harmony';
+    font-weight: normal;
+    font-style: normal;
+    src: url('@/assets/fonts/HarmonyOS_Sans_SC.ttf');
+}
+
+*,
+*::before,
+*::after {
+    user-select: none;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-overflow: initial !important;
+    text-rendering: optimizeLegibility;
+}
+
+*:not(svg) {
+    font-family: 'Harmony', Helvetica, Arial, sans-serif !important;
+}
+
+$padding-size: 0px;
+
+body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: $padding-size;
+    overflow: hidden;
+    background: transparent;
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+}
+
+.n-icon,
+.i-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.n-modal-mask {
+    left: $padding-size;
+    right: $padding-size;
+    top: $padding-size;
+    bottom: $padding-size;
+    border-radius: 20px;
+}
+
+.n-card__content {
+    height: 100%;
+}
