@@ -94,22 +94,32 @@ const postConnectionSetup = async () => {
             console.error(e)
         }
     });
+
+    //重新关联所有的connection
+    callbacks.forEach((callback) => {
+        connection?.on(callback.eventName, callback.jsonCallback);
+    });
 };
 
-var callbacks: { originalCallback: (...args: any[]) => void; jsonCallback: (response: any) => void; }[] = [];
+var callbacks: { 
+    originalCallback: (...args: any[]) => void; 
+    jsonCallback: (response: any) => void;
+    eventName:string }[] = [];
 
 export const addGameHubListener = (eventName: string, callback: (...args: any[]) => void) => {
-
-    if (!connection) {
-        return;
-    }
 
     var jsonParshCallback = (response: any) => {
         var responseObj = JSON.parse(response);
         callback(responseObj);
     }
 
-    callbacks.push({ "originalCallback": callback, "jsonCallback": jsonParshCallback });
+    if (!connection) {
+        return;
+    }
+
+    callbacks.push({ "originalCallback": callback,
+     "jsonCallback": jsonParshCallback,
+      "eventName":eventName });
 
     connection.on(eventName, jsonParshCallback);
 };
@@ -134,14 +144,20 @@ export const removeConnectListener = (callback: () => void) => {
 }
 
 export const removeGameHubListener = (eventName: string, callback: (...args: any[]) => void) => {
+
+    var callbackObj = callbacks.find(x => x.originalCallback == callback);
+
+    if(callbackObj){
+        callbacks = callbacks.filter(x => x != callbackObj);
+    }
+    
     if (!connection) {
         return;
     }
-
-    var callbackObj = callbacks.find(x => x.originalCallback == callback);
     if (callbackObj) {
         connection.off(eventName, callbackObj.jsonCallback);
     }
+
 };
 
 export const invokeGameHub = (methodName: string, ...args: any[]) => {
