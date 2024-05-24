@@ -132,20 +132,7 @@ const gameTypeMap = ref<GameTypes>({})
 const inputMessage = ref('')
 
 const players = ref<Player[]>([])
-const messages = ref<Message[]>([
-    {
-        userId: '123',
-        nickname: '123123',
-        content: '123123123123',
-        avatar: '/avatar.webp'
-    },
-    {
-        userId: '123',
-        nickname: '123123',
-        content: '123123123123',
-        avatar: '/avatar.webp'
-    }
-])
+const messages = ref<Message[]>([])
 
 let getGameInterval = null
 

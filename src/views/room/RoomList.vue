@@ -13,7 +13,7 @@
             </n-space>
             <div class="room-list-content">
                 <div class="room-item" v-for="(item, index) in currList" :key="index">
-                    <n-card size="small" hoverable>
+                    <n-card size="small" hoverable :class="{ activated: item.isStarted }">
                         <n-space justify="space-between">
                             <n-space>
                                 <img class="game-logo" :src="gameTypeMap[item.gameType].image" alt="" />
@@ -140,6 +140,10 @@ onMounted(async () => {
 
                 .n-card {
                     background: url(../../assets/face/doctor/doctor_asleep.webp) bottom right / 80px no-repeat;
+                }
+
+                .n-card.activated {
+                    background-image: url(../../assets/face/doctor/doctor_10.webp);
                 }
             }
         }

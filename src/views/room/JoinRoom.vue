@@ -36,14 +36,6 @@ export default {
             addGameHubListener('Alert', async (response: SignalrResponse) => {
                 await toast(response.Message, 'error')
             })
-
-            const gameId = getData<string>('current-game-id')
-            if (gameId) {
-                const game = await getGame(gameId)
-                if (game) {
-                    invokeGameHub('JoinGame', game.joinCode)
-                }
-            }
         })
 
         onUnmounted(() => {

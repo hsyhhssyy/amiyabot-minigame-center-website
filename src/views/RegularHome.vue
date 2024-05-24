@@ -106,7 +106,7 @@ async function connect() {
         console.log('RegularHome 连接成功')
 
         //检查已有房间
-        if (getData('current-game-id') && getData('current-game-id') !== '') {
+        if (getData('current-game-id')) {
             // 重连检查
             const gameId = getData<string>('current-game-id') ?? ''
 
