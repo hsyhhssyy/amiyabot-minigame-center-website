@@ -31,7 +31,7 @@
                 <a class="beian-link friendly-link" href="https://beian.miit.gov.cn/" target="_blank">
                     <img src="https://img.alicdn.com/tfs/TB1..50QpXXXXX7XpXXXXXXXXXX-40-40.png" alt="Beian Logo"
                         width="12" height="12">
-                    京ICP备2022033983号
+                    京ICP备2022033983号-2
                 </a>
             </div>
         </el-card>

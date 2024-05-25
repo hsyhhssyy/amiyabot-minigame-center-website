@@ -13,16 +13,6 @@ spec:
       labels:
         app: amiyabot-minigame-website
     spec:
-      # 仅允许在位于阿里云的节点执行，保证对外IP不变
-      affinity:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-              - matchExpressions:
-                - key: location
-                  operator: In
-                  values:
-                  - aliyun
       containers:
         - command:
             - nginx
