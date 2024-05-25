@@ -1,5 +1,5 @@
-import axios, { AxiosError } from 'axios'
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosError } from 'axios'
 import type { NotificationOptions } from 'naive-ui'
 import { formatDate } from '@/utils'
 

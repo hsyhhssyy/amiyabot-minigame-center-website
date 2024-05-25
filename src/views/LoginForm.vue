@@ -41,10 +41,10 @@
 </template>
 
 <script lang="ts" setup>
-import { Mail, KeyOne, Back, Game, DoneAll, User as UserIcon, Login as LoginIcon } from '@icon-park/vue-next'
+import { Back, DoneAll, Game, KeyOne, Login as LoginIcon, Mail, User as UserIcon } from '@icon-park/vue-next'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { quickRegisterAPI, quickLoginAPI } from '@/api/account'
+import { quickLoginAPI, quickRegisterAPI } from '@/api/account'
 import IconButton from '@/components/IconButton.vue'
 import Icon from '@/components/Icon.vue'
 

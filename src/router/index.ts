@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { getData } from '@/utils'
+import EmptyContainer from '@/components/EmptyContainer.vue'
 
 const router = createRouter({
     history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -39,12 +40,24 @@ const router = createRouter({
                     component: () => import('@/views/room/CreateRoom.vue')
                 },
                 {
-                    path: 'room-waiting/:roomId',
-                    name: 'room-waiting',
+                    path: 'waiting-room/:roomId',
+                    name: 'waiting-room',
                     meta: {
                         pageName: '游戏房间'
                     },
                     component: () => import('@/views/room/WaitingRoom.vue')
+                }
+            ]
+        },
+        {
+            path: '/games',
+            name: 'games',
+            component: EmptyContainer,
+            children: [
+                {
+                    path: 'schulte-grid/:roomId',
+                    name: 'schulte-grid',
+                    component: () => import('@/views/game/SchulteGrid.vue')
                 }
             ]
         }

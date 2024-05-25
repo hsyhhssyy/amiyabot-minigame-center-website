@@ -10,7 +10,8 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, CSSProperties } from 'vue'
+import type { CSSProperties } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps<{
     icon: any

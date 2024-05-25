@@ -89,9 +89,9 @@ body {
     right: $padding-size;
     top: $padding-size;
     bottom: $padding-size;
-    border-radius: 20px;
 }
 
 .n-card__content {
     height: 100%;
+    overflow: auto;
 }

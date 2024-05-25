@@ -67,25 +67,26 @@
             </div>
         </div>
     </n-card>
-    <join-room ref="joinComp" />
 </template>
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, Refresh, Back, Peoples, UserBusiness, CalendarThirty, Lightning, KeyOne } from '@icon-park/vue-next'
+import { Back, CalendarThirty, KeyOne, Lightning, Peoples, Refresh, Search, UserBusiness } from '@icon-park/vue-next'
+import type { GameRoom } from '@/api/game'
 import { listGame } from '@/api/game'
 import { formatDate } from '@/utils'
-import { getGameTypeMap } from '@/views/room/Games'
-import type { GameTypes } from '@/views/room/Games'
-import type { GameRoom } from '@/api/game'
+import type { GameTypes } from '@/views/def/Games'
+import { getGameTypeMap } from '@/views/def/Games'
 import IconButton from '@/components/IconButton.vue'
 import Icon from '@/components/Icon.vue'
-import JoinRoom from '@/views/room/JoinRoom.vue'
+
+const emits = defineEmits<{
+    (e: 'onJoin', code: string): void
+}>()
 
 const router = useRouter()
 
-const joinComp = ref()
 const currPage = ref(1)
 const pageSize = ref(8)
 const pageCount = ref(0)
@@ -102,7 +103,7 @@ async function goBack() {
 }
 
 async function join(room: GameRoom) {
-    await joinComp.value.join(room.joinCode)
+    emits('onJoin', room.joinCode)
 }
 
 async function getList() {
@@ -145,22 +146,22 @@ onMounted(async () => {
                 .n-card.activated {
                     background-image: url(../../assets/face/doctor/doctor_10.webp);
                 }
+
+                .game-logo {
+                    width: 50px;
+                    border-radius: 4px;
+                }
+
+                .room-info {
+                    margin-bottom: 20px;
+                }
+
+                .info-item {
+                    display: flex;
+                    align-items: center;
+                }
             }
         }
     }
-}
-
-.game-logo {
-    width: 50px;
-    border-radius: 4px;
-}
-
-.room-info {
-    margin-bottom: 20px;
-}
-
-.info-item {
-    display: flex;
-    align-items: center;
 }
 </style>

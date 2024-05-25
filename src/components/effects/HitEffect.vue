@@ -1,37 +1,31 @@
 <template>
-    <div class="popup hit-effect" :class="{ refuse: isRefuse }" v-if="isShow"></div>
+    <div class="popup hit-effect" :class="type" v-if="show"></div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { ref } from 'vue'
 import { sleep } from '@/utils'
 
-export default {
-    setup() {
-        const isRefuse = ref(false)
-        const isShow = ref(false)
+export type HitType = 'joy' | 'refuse' | 'sweat'
 
-        async function show(refuse = false) {
-            isShow.value = false
-            isRefuse.value = refuse
-            isShow.value = true
-            await sleep(500)
-            isShow.value = false
-        }
+const type = ref<HitType>('joy')
+const show = ref(false)
 
-        return {
-            isRefuse,
-            isShow,
-            show
-        }
-    }
+async function hit(t: HitType = 'joy') {
+    show.value = false
+    type.value = t
+    show.value = true
+    await sleep(1000)
+    show.value = false
 }
+
+defineExpose({ hit })
 </script>
 
 <style lang="scss" scoped>
 .popup {
-    width: 100px;
-    height: 100px;
+    width: 30%;
+    height: 30%;
     background: url(../../assets/face/amiya/amiya_joy.webp) center / 100% no-repeat;
     position: absolute;
     top: 50%;
@@ -44,9 +38,13 @@ export default {
     background-image: url(../../assets/face/amiya/amiya_refuse.webp);
 }
 
+.popup.sweat {
+    background-image: url(../../assets/face/amiya/amiya_sweat.webp);
+}
+
 .popup.hit-effect {
     display: block;
-    animation: fadeInAndOut 0.5s ease-in-out forwards;
+    animation: fadeInAndOut 1s ease-in-out forwards;
 }
 
 @keyframes fadeInAndOut {

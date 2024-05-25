@@ -34,16 +34,18 @@
 </template>
 
 <script lang="ts" setup>
-import { CSSProperties, onMounted, onUnmounted, ref } from 'vue'
+import type { CSSProperties } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useGameHubStore } from '@/stores/gameHub'
 import { setData } from '@/utils'
-import { invokeGameHub, addGameHubListener, removeGameHubListener } from '@/api/signalR'
-import { gameList } from '@/views/room/Games'
-import type { GameItem } from '@/views/room/Games'
+import type { GameItem } from '@/views/def/Games'
+import { gameList } from '@/views/def/Games'
 import { Back } from '@icon-park/vue-next'
 import IconButton from '@/components/IconButton.vue'
 
 const router = useRouter()
+const gameHub = useGameHubStore()
 
 const isGameCreating = ref(false)
 const isPrivateRoom = ref(false)
@@ -68,7 +70,7 @@ function railStyle({ focused, checked }: { focused: boolean; checked: boolean })
 
 async function selectGame(game: GameItem) {
     // 创建房间并跳转到房间等待页面
-    invokeGameHub('CreateGame', game.type, JSON.stringify({ IsPrivate: isPrivateRoom.value }))
+    gameHub.invokeGameHub('CreateGame', game.type, JSON.stringify({ IsPrivate: isPrivateRoom.value }))
     isGameCreating.value = true
 }
 
@@ -85,15 +87,15 @@ function gameCreateListener(response: { GameId: string }) {
     setData('current-game-id', gameId)
 
     // 跳转到房间等待页面
-    router.push('/regular-home/room-waiting/' + gameId)
+    router.push('/regular-home/waiting-room/' + gameId)
 }
 
 onMounted(() => {
-    addGameHubListener('GameCreated', gameCreateListener)
+    gameHub.addGameHubListener('GameCreated', gameCreateListener)
 })
 
 onUnmounted(() => {
-    removeGameHubListener('GameCreated', gameCreateListener)
+    gameHub.removeGameHubListener('GameCreated', gameCreateListener)
 })
 </script>
 

@@ -1,31 +1,18 @@
 <template>
     <div class="waiting-room" v-if="gameRoomData">
-        <div>
-            <n-card class="room-info">
-                <n-space justify="space-between" align="center">
-                    <n-space align="center">
-                        <img class="game-logo" :src="gameTypeMap[gameRoomData.gameType].image" alt="" />
-                        <div>
-                            <div style="font-size: 16px; font-weight: bold">
-                                {{ gameTypeMap[gameRoomData.gameType].name }}
-                            </div>
-                            <div style="font-size: 12px; color: #898989">#{{ gameRoomData.joinCode }}</div>
-                        </div>
-                    </n-space>
-                    <n-space align="center">
-                        <n-tag type="info">等待中</n-tag>
-                        <n-tag type="primary" v-if="gameRoomData.isPrivate">私人房间</n-tag>
-                        <n-tag type="success" v-else>公开房间</n-tag>
-                    </n-space>
-                </n-space>
-                <div class="game-actions" style="margin-top: 20px">
+        <n-space vertical>
+            <game-info-card :room-data="gameRoomData">
+                <template #tags>
+                    <n-tag type="info">等待中</n-tag>
+                </template>
+                <template #buttons>
                     <template v-if="isHost">
                         <icon-button :icon="Play" type="success" @click="startGame">开始游戏</icon-button>
                         <icon-button :icon="Close" type="error" @click="closeRoom">关闭房间</icon-button>
                     </template>
                     <icon-button :icon="Logout" type="warning" @click="leaveRoom">退出房间</icon-button>
-                </div>
-            </n-card>
+                </template>
+            </game-info-card>
             <n-card>
                 <template #header>
                     玩家列表
@@ -56,94 +43,51 @@
                     </n-space>
                 </n-space>
             </n-card>
-        </div>
+        </n-space>
         <div style="height: 100%">
-            <n-card style="height: 100%" title="赛前交流">
-                <n-card class="message-window" embedded :bordered="false">
-                    <n-space
-                        style="margin-bottom: 10px"
-                        v-for="(item, index) in messages"
-                        :key="index"
-                        :size="6"
-                        :justify="userId === item.userId ? 'end' : 'start'"
-                    >
-                        <n-avatar :src="item.avatar" size="large" v-if="userId !== item.userId" />
-                        <n-space vertical :size="0" :align="userId === item.userId ? 'end' : 'start'">
-                            {{ item.nickname }}
-                            <n-card class="message-content" size="small">{{ item.content }}</n-card>
-                        </n-space>
-                        <n-avatar :src="item.avatar" size="large" v-if="userId === item.userId" />
-                    </n-space>
-                </n-card>
-                <n-input-group>
-                    <n-input
-                        placeholder="输入内容，按回车键发送"
-                        v-model:value="inputMessage"
-                        @keydown.enter="sendMessage"
-                    />
-                    <icon-button :icon="SendOne" type="success" @click="sendMessage">发送</icon-button>
-                </n-input-group>
-            </n-card>
+            <chat-board :players="players" />
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Peoples, ShareOne, Play, Close, Logout, SendOne } from '@icon-park/vue-next'
+import { Close, Logout, Peoples, Play, ShareOne } from '@icon-park/vue-next'
+import { useGameHubStore } from '@/stores/gameHub'
 import { getData, removeData, toast } from '@/utils'
-import { GameTypes, getGameTypeMap } from '@/views/room/Games'
-import { getGame, getShortenUrl } from '@/api/game'
+import type { GameTypes } from '@/views/def/Games'
+import { getGameTypeMap } from '@/views/def/Games'
 import type { GameRoom } from '@/api/game'
-import { addGameHubListener, removeGameHubListener, invokeGameHub } from '@/api/signalR'
+import { getGame, getShortenUrl } from '@/api/game'
+import type { Player } from '@/views/def/Players'
 import type { SignalrResponse } from '@/api/signalR'
 import IconButton from '@/components/IconButton.vue'
 import Icon from '@/components/Icon.vue'
-
-interface Player {
-    id: string
-    connection: string
-    name: string
-    avatar: string
-}
-
-interface Message {
-    userId: string
-    nickname: string
-    content: string
-    avatar: string
-}
+import ChatBoard from '@/components/common/ChatBoard.vue'
+import GameInfoCard from '@/components/common/GameInfoCard.vue'
 
 const route = useRoute()
 const router = useRouter()
+const gameHub = useGameHubStore()
 
 const userId = getData<string>('user-id')
 const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 
-const joinCode = ref('')
 const isHost = ref(false)
 const hostId = ref('')
-const gameType = ref('')
-const gameLoaded = ref(false)
 const gameRoomData = ref<GameRoom>()
-const gameTypeMap = ref<GameTypes>({})
-
-const inputMessage = ref('')
+const gameTypeMap = ref<GameTypes>(getGameTypeMap())
 
 const players = ref<Player[]>([])
-const messages = ref<Message[]>([])
 
-let getGameInterval = null
+let getGameInterval: any = null
 
 async function gameInfoListener(response: SignalrResponse) {
     const playerList = response.PlayerList
 
     isHost.value = response.CreatorId == userId
     hostId.value = response.CreatorId
-    joinCode.value = response.GameJoinCode
-    gameLoaded.value = true
-    gameType.value = response.GameType
     players.value = playerList.map((p: SignalrResponse) => {
         const avatar = p.UserAvatar ? p.UserAvatar : '/avatar.webp'
         return {
@@ -159,7 +103,7 @@ async function gameInfoListener(response: SignalrResponse) {
 }
 
 async function playerJoinedListener() {
-    invokeGameHub('GetGame', roomId)
+    gameHub.invokeGameHub('GetGame', roomId)
 }
 
 async function playerLeftListener(response: SignalrResponse) {
@@ -183,39 +127,21 @@ async function gameClosedListener() {
     await router.push('/regular-home')
 }
 
-async function chatListener(response: SignalrResponse) {
-    const player = players.value.find((p) => p.id === response.UserId)
-    if (player) {
-        messages.value.push({
-            userId: response.UserId,
-            nickname: player.name,
-            content: response.Message,
-            avatar: player.avatar
-        })
+async function startGame() {
+    if (gameRoomData.value?.gameType) {
+        const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
+        await router.push(gameData.route + roomId)
     }
 }
 
-async function startGame() {
-    const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
-    await router.push(gameData.route + roomId)
-}
-
 async function closeRoom() {
-    invokeGameHub('CloseGame', roomId)
+    gameHub.invokeGameHub('CloseGame', roomId)
 }
 
 async function leaveRoom() {
     removeData('current-game-id')
-    invokeGameHub('LeaveGame', roomId)
+    gameHub.invokeGameHub('LeaveGame', roomId)
     await router.push('/regular-home')
-}
-
-async function sendMessage() {
-    if (inputMessage.value === '') {
-        return
-    }
-    invokeGameHub('Chat', roomId, inputMessage.value)
-    inputMessage.value = ''
 }
 
 async function shareRoom() {
@@ -225,32 +151,30 @@ async function shareRoom() {
 }
 
 onMounted(async () => {
-    gameTypeMap.value = getGameTypeMap()
     gameRoomData.value = await getGame(roomId)
 
-    addGameHubListener('GameInfo', gameInfoListener)
-    addGameHubListener('PlayerJoined', playerJoinedListener)
-    addGameHubListener('PlayerLeft', playerLeftListener)
-    addGameHubListener('PlayerKicked', playerLeftListener)
-    addGameHubListener('GameClosed', gameClosedListener)
-    addGameHubListener('GameStarted', gameStartedListener)
-    addGameHubListener('Chat', chatListener)
+    gameHub.addGameHubListener('GameInfo', gameInfoListener)
+    gameHub.addGameHubListener('PlayerJoined', playerJoinedListener)
+    gameHub.addGameHubListener('PlayerLeft', playerLeftListener)
+    gameHub.addGameHubListener('PlayerKicked', playerLeftListener)
+    gameHub.addGameHubListener('GameClosed', gameClosedListener)
+    gameHub.addGameHubListener('GameStarted', gameStartedListener)
 
-    invokeGameHub('GetGame', roomId)
+    gameHub.invokeGameHub('GetGame', roomId)
 
     // 间隔一段时间获取一次房间信息
     getGameInterval = setInterval(() => {
-        invokeGameHub('GetGame', roomId)
+        gameHub.invokeGameHub('GetGame', roomId)
     }, 4000)
 })
 
 onUnmounted(async () => {
-    removeGameHubListener('GameInfo', gameInfoListener)
-    removeGameHubListener('PlayerJoined', playerJoinedListener)
-    removeGameHubListener('PlayerLeft', playerLeftListener)
-    removeGameHubListener('PlayerKicked', playerLeftListener)
-    removeGameHubListener('GameClosed', gameClosedListener)
-    removeGameHubListener('GameStarted', gameStartedListener)
+    gameHub.removeGameHubListener('GameInfo', gameInfoListener)
+    gameHub.removeGameHubListener('PlayerJoined', playerJoinedListener)
+    gameHub.removeGameHubListener('PlayerLeft', playerLeftListener)
+    gameHub.removeGameHubListener('PlayerKicked', playerLeftListener)
+    gameHub.removeGameHubListener('GameClosed', gameClosedListener)
+    gameHub.removeGameHubListener('GameStarted', gameStartedListener)
 
     clearInterval(getGameInterval)
 })
@@ -264,37 +188,6 @@ onUnmounted(async () => {
     & > div {
         width: 50%;
         padding: 10px;
-    }
-
-    .room-info {
-        margin-bottom: 10px;
-    }
-}
-
-.game-logo {
-    width: 50px;
-    border-radius: 4px;
-}
-
-.game-actions {
-    display: flex;
-
-    & > button {
-        flex: 2;
-
-        &:not(:last-child) {
-            margin-right: 10px;
-        }
-    }
-}
-
-.message-window {
-    height: calc(100% - 34px - 10px);
-    margin-bottom: 10px;
-    overflow: auto;
-
-    .message-content {
-        box-shadow: var(--n-box-shadow);
     }
 }
 </style>

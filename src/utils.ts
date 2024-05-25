@@ -1,5 +1,3 @@
-import { useNotification } from 'naive-ui'
-
 type NotificationType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
 export function deepCopy<T>(obj: T): T {

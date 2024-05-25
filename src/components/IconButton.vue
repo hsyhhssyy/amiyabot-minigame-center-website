@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Type, Size } from 'naive-ui/lib/button/src/interface'
+import type { Size, Type } from 'naive-ui/lib/button/src/interface'
 import Icon from '@/components/Icon.vue'
 
 const props = defineProps<{
