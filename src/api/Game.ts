@@ -31,7 +31,7 @@ export const listGame = async () => {
 
 export const getShortenUrl = async (gameId:string) => {
     try {
-        const response = await axios.get(rootUrl + '/api/gameHub/shorten/'+gameId+'/url', {
+        const response = await axios.get(rootUrl + '/api/gameHub/'+gameId+'/url', {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('jwt-token')}`,
             },
