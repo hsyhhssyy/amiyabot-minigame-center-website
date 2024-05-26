@@ -12,8 +12,8 @@
                 </div>
                 <div class="current-question" v-show="visibility">
                     <div class="question-display">
-                        <div v-if="!slicedImages?.get(currentQuestionIndex)">正在加载题目....</div>
-                        <canvas id="masked-image" class="masked-image"></canvas>
+                        <div v-if="!rallyReached" v-html="rallyText"></div>
+                        <canvas id="masked-image" class="masked-image" v-show="rallyReached"></canvas>
                     </div>
                 </div>
                 <el-button @click="toggleVisibility" class="eye-button" type="primary">
@@ -74,6 +74,9 @@ const slicedHintImages = ref<Map<number, HTMLCanvasElement> | null>(null);
 const cachedFullImages = ref<Map<string, HTMLImageElement>>(new Map());
 
 const messages = ref<Message[]>([]);
+
+const rallyReached = ref(false);
+const rallyText = ref('正在加载题目....');
 
 const players = ref([
     { id: '', name: '', avatar: '', score: 0 },
@@ -222,6 +225,10 @@ async function preprocessImages() {
     slicedImages.value = new Map();
     slicedHintImages.value = new Map();
 
+    //创建集结点
+    invokeGameHub('RallyPointCreate',roomId, JSON.stringify({ Name: "ImageProcess" }));
+    invokeGameHub('RallyPointStatus',roomId, JSON.stringify({ Name: "ImageProcess" }));
+
     await generateMaskedImage(currentQuestionIndex.value);
     updateImage();
 
@@ -231,6 +238,11 @@ async function preprocessImages() {
         }
         await generateMaskedImage(i);
         updateImage();
+
+        //至少加载了本题和后面的三道题
+        if(i>= questionList.value.length-1||i>=currentQuestionIndex.value+3){
+            invokeGameHub('RallyPointReached',roomId, JSON.stringify({ Name: "ImageProcess" }));
+        }
     }
 }
 
@@ -293,7 +305,6 @@ const receiveMoveListener = (response: any) => {
         updateImage();
     }
 
-
     messages.value.push({
         content: response.Payload.CharacterName,
         style: response.Payload.Result,
@@ -323,6 +334,25 @@ const giveUpListener = (response: any) => {
     });
 }
 
+const rallyPointStatusListener = (response: any) => {
+    if(response.Name == "ImageProcess"){
+        rallyText.value = '正在加载题目....';
+        for (let i = 0; i < players.value.length; i++) {
+            if(response.Players.includes(players.value[i].id)){
+                rallyText.value = rallyText.value + '<br/>'+ players.value[i].name + ': 已加载';
+            }else{
+                rallyText.value = rallyText.value + '<br/>'+ players.value[i].name + ': 加载中...';
+            }
+        }
+    }
+}
+
+const rallyPointReachedListener = (response: any) => {
+    if(response.Name == "ImageProcess"){
+        rallyReached.value = true;
+    }
+}
+
 var getGameInterval: NodeJS.Timeout
 
 onMounted(() => {
@@ -330,9 +360,15 @@ onMounted(() => {
     addGameHubListener('GameInfo', gameInfoListener);
     addGameHubListener('Hint', hintListener);
     addGameHubListener('GiveUp', giveUpListener);
+    addGameHubListener('RallyPointStatus', rallyPointStatusListener);
+    addGameHubListener('RallyPointReached', rallyPointReachedListener);
+
 
     getGameInterval = setInterval(() => {
         invokeGameHub('GetGame', roomId);
+        if(!rallyReached.value){
+            invokeGameHub('RallyPointStatus',roomId, JSON.stringify({ Name: "ImageProcess" }));
+        }
     }, 4000);
 
 });
@@ -342,6 +378,8 @@ onUnmounted(() => {
     removeGameHubListener('GameInfo', gameInfoListener);
     removeGameHubListener('Hint', hintListener);
     removeGameHubListener('GiveUp', giveUpListener);
+    removeGameHubListener('RallyPointStatus', rallyPointStatusListener);
+    removeGameHubListener('RallyPointReached', rallyPointReachedListener);
 
     clearInterval(getGameInterval);
 });
