@@ -195,6 +195,10 @@ async function addBotToGroup() {
             display: flex;
             justify-content: center;
             padding: 20px 0;
+            @media only screen 
+            and (max-width: 768px) { 
+
+            }
         }
     }
 }
