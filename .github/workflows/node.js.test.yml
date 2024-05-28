@@ -32,7 +32,7 @@ jobs:
         cp .github/workflow-artifacts/Dockerfile ./
         ls -ltr
         ls -l ./public
-        echo \"window._env_ = { VUE_APP_API_URL: 'https://amiya-bot-service.hsyhhssyy.net' };\" > ./public/config.js
+        echo "window._env_ = { VUE_APP_API_URL: 'https://amiya-bot-service.hsyhhssyy.net' };" > ./public/config.js
         yarn build
 
     - name: Login to Private Harbor
