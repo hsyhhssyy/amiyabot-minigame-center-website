@@ -29,9 +29,9 @@
 <script lang="ts" setup>
 import { useRoute } from 'vue-router'
 import { onUnmounted, ref } from 'vue'
-import { useGameHubStore } from '@/stores/gameHub'
-import type { SignalrResponse } from '@/api/signalR'
-import type { Player } from '@/views/def/Players'
+import { useGameHubStore } from '@/stores/gamehub'
+import type { SignalrResponse } from '@/api/signalr'
+import type { Player } from '@/views/def/players'
 import GameBase from '@/views/GameBase.vue'
 import type { HitType } from '@/components/effects/HitEffect.vue'
 import HitEffect from '@/components/effects/HitEffect.vue'

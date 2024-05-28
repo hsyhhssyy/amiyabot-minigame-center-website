@@ -29,7 +29,13 @@ export async function listGame() {
 
 export async function getShortenUrl(gameId: string): Promise<string> {
     const res = await serverRequest.get({
-        url: '/api/gameHub/shorten/' + gameId + '/url'
+        url: '/api/gameHub/' + gameId + '/url'
     })
     return res.url
+}
+
+export async function statisticsApi(playerId: string): Promise<any> {
+    return await serverRequest.get({
+        url: '/api/gameHub/player/' + playerId + '/statistics'
+    })
 }

@@ -13,11 +13,11 @@
                             </div>
                         </div>
                         <n-descriptions label-placement="top" :column="3" size="small">
-                            <n-descriptions-item label="总场次">1000</n-descriptions-item>
-                            <n-descriptions-item label="回答命中率" :span="2">100%</n-descriptions-item>
-                            <n-descriptions-item label="冠军">0</n-descriptions-item>
-                            <n-descriptions-item label="亚军">0</n-descriptions-item>
-                            <n-descriptions-item label="季军">0</n-descriptions-item>
+                            <n-descriptions-item label="总场次">{{ totalGamePlayed }}</n-descriptions-item>
+                            <n-descriptions-item label="回答命中率" :span="2">{{ totalAnswerAccuracy }}</n-descriptions-item>
+                            <n-descriptions-item label="冠军">{{totalGameTop1}}</n-descriptions-item>
+                            <n-descriptions-item label="亚军">{{ totalGameTop2 }}</n-descriptions-item>
+                            <n-descriptions-item label="季军">{{ totalGameTop3 }}</n-descriptions-item>
                         </n-descriptions>
                     </n-card>
                     <div class="actions">
@@ -64,8 +64,9 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useGameHubStore } from '@/stores/gameHub'
+import { useGameHubStore } from '@/stores/gamehub'
 import { useUserStore } from '@/stores/user'
+import { statisticsApi } from '@/api/game'
 import { getData } from '@/utils'
 import { Lightning, Logout } from '@icon-park/vue-next'
 import IconButton from '@/components/IconButton.vue'
@@ -83,6 +84,12 @@ const isLoading = ref(true)
 const joinRoomComp = ref()
 const joinRoomCode = ref('')
 const showJoinModal = ref(false)
+
+const totalGamePlayed = ref(0)
+const totalGameTop3 = ref(0)
+const totalGameTop2 = ref(0)
+const totalGameTop1 = ref(0)
+const totalAnswerAccuracy = ref("100%")
 
 async function createGame() {
     await router.push('/regular-home/create-room')
@@ -115,6 +122,17 @@ onMounted(async () => {
     if (!email.value) {
         await router.push('/login')
         return
+    }
+
+    const userId = getData('user-id')
+    const ret = await statisticsApi(userId)
+    if (ret) {
+        const accu=ret.totalAnswersCorrect / ( ret.totalAnswersCorrect + ret.totalAnswersWrong ) * 100
+        totalGamePlayed.value = ret.totalGamesPlayed
+        totalGameTop3.value = ret.totalGamesThirdPlace
+        totalGameTop2.value = ret.totalGamesSecondPlace
+        totalGameTop1.value = ret.totalGamesFirstPlace
+        totalAnswerAccuracy.value = ret.totalAnswersCorrect == 0? '0%' : accu.toFixed(2) + '%'
     }
 })
 </script>

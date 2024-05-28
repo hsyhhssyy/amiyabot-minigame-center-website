@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { UserInfo } from '@/api/account'
-import { describeAPI } from '@/api/account'
+import { describeApi } from '@/api/account'
 import store from '@/stores/index'
 
 export const useUserStore = defineStore('user', () => {
@@ -13,7 +13,7 @@ export const useUserStore = defineStore('user', () => {
     const userAvatar = ref('/avatar.webp')
 
     async function init() {
-        const descRet = await describeAPI()
+        const descRet = await describeApi()
         if (!descRet) {
             await router.push('/logout')
             return

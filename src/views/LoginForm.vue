@@ -11,7 +11,7 @@
         </template>
         <template v-else>
             <n-form-item label="邮箱">
-                <n-input v-model:value="email" type="text" placeholder="请输入邮箱" @keydown.enter="action">
+                <n-input v-model:value="email" type="text" placeholder="请输入邮箱" @keydown.enter="action" autocomplete="username">
                     <template #prefix>
                         <icon :icon="Mail" />
                     </template>
@@ -19,6 +19,13 @@
             </n-form-item>
             <n-form-item label="密码">
                 <n-input v-model:value="password" type="password" placeholder="请输入密码" @keydown.enter="action">
+                    <template #prefix>
+                        <icon :icon="KeyOne" />
+                    </template>
+                </n-input>
+            </n-form-item>
+            <n-form-item label="重复密码" v-if="props.type === 'register'">
+                <n-input v-model:value="repeatPassword" type="password" placeholder="请输入密码" @keydown.enter="action">
                     <template #prefix>
                         <icon :icon="KeyOne" />
                     </template>
@@ -44,9 +51,10 @@
 import { Back, DoneAll, Game, KeyOne, Login as LoginIcon, Mail, User as UserIcon } from '@icon-park/vue-next'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { quickLoginAPI, quickRegisterAPI } from '@/api/account'
+import { verifyTokenApi, quickRegisterApi, loginApi, registerApi } from '@/api/account'
 import IconButton from '@/components/IconButton.vue'
 import Icon from '@/components/Icon.vue'
+import { toast } from '@/utils'
 
 const props = defineProps<{
     type: string
@@ -61,6 +69,7 @@ const router = useRouter()
 const email = ref('')
 const password = ref('')
 const nickname = ref('')
+const repeatPassword = ref('')
 
 async function action() {
     if (props.type === 'user') {
@@ -71,17 +80,43 @@ async function action() {
 }
 
 async function login() {
-    // todo 登录
+    const res = await loginApi(email.value,password.value)
+    if (res && res.token) {
+        if (await verifyTokenApi(res.token)) {
+            await router.push('/')
+        }
+    }
 }
 
 async function register() {
-    // todo 注册
+    if (password.value !== repeatPassword.value) {
+        await toast('两次密码不一致')
+        return
+    }
+    if(email.value === '') {
+        await toast('邮箱不能为空')
+        return
+    }
+    if(password.value === '') {
+        await toast('密码不能为空')
+        return
+    }
+    const nickname = '游客博士#' + Math.floor(Math.random() * 10000)
+    const res = await registerApi(email.value,password.value,nickname)
+    if (res && res.message) {
+        await toast(res.message)
+        await goBack()
+    }
 }
 
 async function quickRegister() {
-    const res = await quickRegisterAPI(nickname.value)
+    if(nickname.value === '') {
+        await toast('昵称不能为空')
+        return
+    }
+    const res = await quickRegisterApi(nickname.value)
     if (res && res.token) {
-        if (await quickLoginAPI(res.token, res.email)) {
+        if (await verifyTokenApi(res.token)) {
             await router.push('/')
         }
     }

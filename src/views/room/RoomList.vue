@@ -76,8 +76,8 @@ import { Back, CalendarThirty, KeyOne, Lightning, Peoples, Refresh, Search, User
 import type { GameRoom } from '@/api/game'
 import { listGame } from '@/api/game'
 import { formatDate } from '@/utils'
-import type { GameTypes } from '@/views/def/Games'
-import { getGameTypeMap } from '@/views/def/Games'
+import type { GameTypes } from '@/views/def/games'
+import { getGameTypeMap } from '@/views/def/games'
 import IconButton from '@/components/IconButton.vue'
 import Icon from '@/components/Icon.vue'
 

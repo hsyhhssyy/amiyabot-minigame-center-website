@@ -7,6 +7,7 @@
                     hoverable
                     embedded
                     size="small"
+                    content-style="overflow:hidden"
                     v-for="(item, index) in gameList"
                     :key="index"
                     @click="selectGame(item)"
@@ -37,10 +38,10 @@
 import type { CSSProperties } from 'vue'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useGameHubStore } from '@/stores/gameHub'
+import { useGameHubStore } from '@/stores/gamehub'
 import { setData } from '@/utils'
-import type { GameItem } from '@/views/def/Games'
-import { gameList } from '@/views/def/Games'
+import type { GameItem } from '@/views/def/games'
+import { gameList } from '@/views/def/games'
 import { Back } from '@icon-park/vue-next'
 import IconButton from '@/components/IconButton.vue'
 

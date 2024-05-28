@@ -4,12 +4,12 @@
 
 <script lang="ts" setup>
 import { computed, onUnmounted, watch } from 'vue'
-import type { SignalrResponse } from '@/api/signalR'
+import type { SignalrResponse } from '@/api/signalr'
 import { getData, removeData, setData, toast } from '@/utils'
 import { useRoute, useRouter } from 'vue-router'
 import { getGame } from '@/api/game'
 import { useDialog } from 'naive-ui'
-import { useGameHubStore } from '@/stores/gameHub'
+import { useGameHubStore } from '@/stores/gamehub'
 
 const route = useRoute()
 const router = useRouter()

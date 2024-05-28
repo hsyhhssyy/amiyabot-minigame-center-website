@@ -1,7 +1,7 @@
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios, { AxiosError } from 'axios'
 import type { NotificationOptions } from 'naive-ui'
-import { formatDate } from '@/utils'
+import { formatDate, toast } from '@/utils'
 
 type RequestPrototype = 'FormData'
 type NotificationType = 'info' | 'error' | 'success' | 'warning'
@@ -130,9 +130,16 @@ export default class HttpRequest<R> {
 
     onResponseError(error: AxiosError) {
         const response = error.response
-
+        const responseData: any = (error?.response?.data as any); 
+        
         let errorMessage: string
-        if (response?.status) {
+        if(responseData?.type==="https://tools.ietf.org/html/rfc9110#section-15.5.1") {
+            //RESTful API Format Error
+            //这种错误不应该发生，除非代码写错了
+            errorMessage = '接口请求失败，请求或返回数据格式错误。'
+        } else if (responseData?.description) {
+            errorMessage = responseData?.description
+        } else if (response?.status) {
             errorMessage = `${response?.config.url}\nCode: ${response?.status} ${response?.statusText}`
         } else {
             errorMessage = '接口请求失败'
@@ -140,6 +147,7 @@ export default class HttpRequest<R> {
 
         RequestControl.closeLoading()
         NotifyEvent.notify(errorMessage, error.code || 'Error', 'error', 10000)
+        toast(errorMessage, 'error')
 
         return error
     }
