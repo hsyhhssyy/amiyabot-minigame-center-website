@@ -22,13 +22,18 @@
                 </n-card>
                 <hit-effect ref="hit"></hit-effect>
             </div>
+            <div class="game-guide">
+                <div class="amiya-face" :style="amiyaFaceStyle"></div>
+                <n-card class="amiya-chat" embedded>{{ amiyaChat }}</n-card>
+            </div>
         </n-card>
     </game-base>
 </template>
 
 <script lang="ts" setup>
+import type { CSSProperties } from 'vue'
+import { onUnmounted, ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { onUnmounted, ref } from 'vue'
 import { useGameHubStore } from '@/stores/gamehub'
 import type { SignalrResponse } from '@/api/signalr'
 import type { Player } from '@/views/def/players'
@@ -68,6 +73,20 @@ const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(','
 const base = ref()
 const hit = ref()
 
+const amiyaFace = ref('smile')
+const amiyaChat = ref(
+    '博士们，欢迎参加本场比赛，我是你们的向导：兔兔！比赛已经开始啦，请博士在上面的表中找到干员的【技能名】，然后在聊天框里发送【干员名】进行竞猜。'
+)
+const amiyaFaceStyle = computed<CSSProperties>(() => {
+    return {
+        backgroundImage: `url(/face/amiya/amiya_${amiyaFace.value}.webp)`
+    }
+})
+
+let timeRecord = 0
+let timeRecordChat = 0
+let timeRecordInterval: any = null
+
 function colors(item: ExpandedDataItem) {
     if (item.fade) {
         return 'tertiary'
@@ -90,39 +109,58 @@ async function sendMove(content: string) {
 function receiveMoveListener(response: SignalrResponse) {
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
     const result = response.Payload.Result
-    let content = response.Payload.CharacterName
+    const characterName = response.Payload.CharacterName
+
+    let content = characterName
 
     const effects: { [key: string]: HitType } = {
         Correct: 'joy',
         Answered: 'sweat',
         Wrong: 'refuse'
     }
-    hit.value.hit(effects[result])
+    if (result in effects) {
+        const face = effects[result]
 
-    if (result === 'Correct') {
-        const dataArray = [...expandedData.value]
+        timeRecord = 0
+        amiyaFace.value = face
+        switch (result) {
+            case 'Correct':
+                const dataArray = [...expandedData.value]
+                const skills = []
 
-        // 调整Grid,将Answer中GridPointList的点标记为♣
-        for (let i = 0; i < dataArray.length; i++) {
-            if (dataArray[i].recent) {
-                dataArray[i].fade = true
-                dataArray[i].recent = false
-            }
+                for (let i = 0; i < dataArray.length; i++) {
+                    if (dataArray[i].recent) {
+                        dataArray[i].fade = true
+                        dataArray[i].recent = false
+                    }
+                }
+
+                for (const answer of response.Payload.Answer) {
+                    for (let point of answer.GridPointList) {
+                        const loc = point.Y * y.value + point.X
+                        dataArray[loc].recent = true
+                        dataArray[loc].fade = false
+                    }
+                    skills.push(answer.SkillName)
+                }
+
+                expandedData.value = dataArray
+
+                amiyaChat.value =
+                    `正确！是干员【${characterName}】的技能【${skills.join('】【')}】！` +
+                    `Dr.${player?.name} 加 200 分！太棒啦！`
+                break
+            case 'Answered':
+                amiyaChat.value = `Dr.${player?.name}，干员【${characterName}】已经猜过啦！`
+                break
+            case 'Wrong':
+                amiyaChat.value = `答案不正确，再仔细看看吧，Dr.${player?.name}~`
+                break
         }
 
-        content = content + ' - '
-
-        for (const answer of response.Payload.Answer) {
-            for (let point of answer.GridPointList) {
-                const loc = point.Y * y.value + point.X
-                dataArray[loc].recent = true
-                dataArray[loc].fade = false
-            }
-            content = content + answer.SkillName + ' '
-        }
-
-        expandedData.value = dataArray
+        hit.value.hit(face)
     }
+    timeRecordChat = 0
 
     base.value.pushMessage({
         userId: response.Payload.PlayerId,
@@ -182,15 +220,51 @@ function load() {
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
 }
 
+onMounted(() => {
+    timeRecordInterval = setInterval(() => {
+        timeRecord += 1
+        timeRecordChat += 1
+
+        let face = ''
+        let chat = ''
+
+        /**
+         * 骚话环节！这里的判断有点多，要在有人说话和有人回答之间做判断（有人说话不一定有人回答）
+         */
+
+        if (timeRecord >= 3) {
+            if (timeRecordChat < timeRecord) {
+                face = 'tea'
+                chat = '博士们在讨论什么呢？有没有想好答案了呀~'
+            } else {
+                face = 'emmm'
+                chat = '博士们在思考吗？怎么没有博士说话了呢？'
+            }
+        }
+        if (timeRecord >= 6) {
+            face = 'nervous'
+            chat = '博士，实在不行，先随便猜一个试试吧……'
+        }
+
+        if (face && chat) {
+            amiyaFace.value = face
+            amiyaChat.value = chat
+        }
+    }, 1000)
+})
+
 onUnmounted(() => {
+    clearInterval(timeRecordInterval)
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
 })
 </script>
 
 <style lang="scss" scoped>
+$guideHeight: 160px;
+
 .game-body {
-    height: 100%;
+    height: calc(100% - $guideHeight);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -205,6 +279,24 @@ onUnmounted(() => {
         &.active {
             color: black;
         }
+    }
+}
+
+.game-guide {
+    height: $guideHeight;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 30px;
+
+    .amiya-face {
+        width: 120px;
+        height: 100%;
+        background: center bottom / 100% no-repeat;
+        margin-right: 10px;
+    }
+
+    .amiya-chat {
+        height: fit-content;
     }
 }
 </style>

@@ -27,7 +27,7 @@
                     <icon-button :icon="ShareOne" type="primary" @click="shareRoom">邀请玩家</icon-button>
                 </template>
                 <n-space :size="20" style="padding-top: 10px">
-                    <n-space v-for="(item, index) in players" :key="index" vertical align="center" :size="0">
+                    <n-space vertical align="center" v-for="(item, index) in players" :key="index" :size="0">
                         <n-popover :trigger="isHost ? 'hover' : 'manual'">
                             <template #trigger>
                                 <n-badge
@@ -45,7 +45,7 @@
             </n-card>
         </n-space>
         <div style="height: 100%">
-            <chat-board :players="players" />
+            <chat-board :players="players" :room-id="roomId" />
         </div>
     </div>
 </template>

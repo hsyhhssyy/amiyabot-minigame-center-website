@@ -126,19 +126,19 @@ async function addBotToGroup() {
                 justify-content: center;
 
                 &.user {
-                    background-image: url(../assets/face/amiya/amiya_ye.webp);
+                    background-image: url(/face/amiya/amiya_ye.webp);
                 }
 
                 &.visitor {
-                    background-image: url(../assets/face/amiya/amiya_tea.webp);
+                    background-image: url(/face/amiya/amiya_tea.webp);
                 }
 
                 &.register {
-                    background-image: url(../assets/face/amiya/amiya_smile.webp);
+                    background-image: url(/face/amiya/amiya_smile.webp);
                 }
 
                 &.bot {
-                    background-image: url(../assets/face/amiya/amiya_emmm.webp);
+                    background-image: url(/face/amiya/amiya_emmm.webp);
                 }
             }
 
