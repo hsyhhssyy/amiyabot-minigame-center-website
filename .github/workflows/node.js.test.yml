@@ -31,7 +31,8 @@ jobs:
         yarn install --frozen-lockfile
         cp .github/workflow-artifacts/Dockerfile ./
         ls -ltr
-        "echo \"window._env_ = { VUE_APP_API_URL: 'https://amiya-bot-service.hsyhhssyy.net' };\" >> ./public/config.js"
+        ls -l ./public
+        echo \"window._env_ = { VUE_APP_API_URL: 'https://amiya-bot-service.hsyhhssyy.net' };\" > ./public/config.js
         yarn build
 
     - name: Login to Private Harbor
