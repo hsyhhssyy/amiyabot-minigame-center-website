@@ -140,11 +140,11 @@ onMounted(async () => {
                 padding: 5px;
 
                 .n-card {
-                    background: url(../../assets/face/doctor/doctor_asleep.webp) bottom right / 80px no-repeat;
+                    background: url(/face/doctor/doctor_asleep.webp) bottom right / 80px no-repeat;
                 }
 
                 .n-card.activated {
-                    background-image: url(../../assets/face/doctor/doctor_10.webp);
+                    background-image: url(/face/doctor/doctor_10.webp);
                 }
 
                 .game-logo {

@@ -14,8 +14,10 @@
                         </div>
                         <n-descriptions label-placement="top" :column="3" size="small">
                             <n-descriptions-item label="总场次">{{ totalGamePlayed }}</n-descriptions-item>
-                            <n-descriptions-item label="回答命中率" :span="2">{{ totalAnswerAccuracy }}</n-descriptions-item>
-                            <n-descriptions-item label="冠军">{{totalGameTop1}}</n-descriptions-item>
+                            <n-descriptions-item label="回答命中率" :span="2">
+                                {{ totalAnswerAccuracy }}
+                            </n-descriptions-item>
+                            <n-descriptions-item label="冠军">{{ totalGameTop1 }}</n-descriptions-item>
                             <n-descriptions-item label="亚军">{{ totalGameTop2 }}</n-descriptions-item>
                             <n-descriptions-item label="季军">{{ totalGameTop3 }}</n-descriptions-item>
                         </n-descriptions>
@@ -41,7 +43,7 @@
             </div>
         </template>
         <div v-else class="loading">
-            <img src="../assets/face/31ebcd457ec04b3b712e417c926a0dba36816755.gif" alt="loading" />
+            <img src="/face/31ebcd457ec04b3b712e417c926a0dba36816755.gif" alt="loading" />
             <div>连接服务器中，请稍候...</div>
             <icon-button :icon="Logout" @click="logout" type="error">退出登录</icon-button>
         </div>
@@ -89,7 +91,7 @@ const totalGamePlayed = ref(0)
 const totalGameTop3 = ref(0)
 const totalGameTop2 = ref(0)
 const totalGameTop1 = ref(0)
-const totalAnswerAccuracy = ref("100%")
+const totalAnswerAccuracy = ref('100%')
 
 async function createGame() {
     await router.push('/regular-home/create-room')
@@ -124,15 +126,17 @@ onMounted(async () => {
         return
     }
 
-    const userId = getData('user-id')
-    const ret = await statisticsApi(userId)
-    if (ret) {
-        const accu=ret.totalAnswersCorrect / ( ret.totalAnswersCorrect + ret.totalAnswersWrong ) * 100
-        totalGamePlayed.value = ret.totalGamesPlayed
-        totalGameTop3.value = ret.totalGamesThirdPlace
-        totalGameTop2.value = ret.totalGamesSecondPlace
-        totalGameTop1.value = ret.totalGamesFirstPlace
-        totalAnswerAccuracy.value = ret.totalAnswersCorrect == 0? '0%' : accu.toFixed(2) + '%'
+    const userId = getData<string>('user-id')
+    if (userId) {
+        const ret = await statisticsApi(userId)
+        if (ret) {
+            const accu = (ret.totalAnswersCorrect / (ret.totalAnswersCorrect + ret.totalAnswersWrong)) * 100
+            totalGamePlayed.value = ret.totalGamesPlayed
+            totalGameTop3.value = ret.totalGamesThirdPlace
+            totalGameTop2.value = ret.totalGamesSecondPlace
+            totalGameTop1.value = ret.totalGamesFirstPlace
+            totalAnswerAccuracy.value = ret.totalAnswersCorrect == 0 ? '0%' : accu.toFixed(2) + '%'
+        }
     }
 })
 </script>
@@ -158,13 +162,13 @@ onMounted(async () => {
         .user-card {
             width: 400px;
             height: 210px;
-            background: url(../assets/face/doctor/doctor_think.webp) right bottom / 50px no-repeat;
+            background: url(/face/doctor/doctor_think.webp) right bottom / 50px no-repeat;
         }
 
         .user-avatar {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
 
             .avatar {
                 width: 60px;
@@ -211,19 +215,19 @@ onMounted(async () => {
                     background: right -5px bottom -5px / 70px no-repeat;
 
                     &.create {
-                        background-image: url(../assets/face/doctor/doctor_haha.webp);
+                        background-image: url(/face/doctor/doctor_haha.webp);
                     }
 
                     &.join {
-                        background-image: url(../assets/face/doctor/doctor_10.webp);
+                        background-image: url(/face/doctor/doctor_10.webp);
                     }
 
                     &.room {
-                        background-image: url(../assets/face/doctor/doctor_eat.webp);
+                        background-image: url(/face/doctor/doctor_eat.webp);
                     }
 
                     &.logout {
-                        background-image: url(../assets/face/doctor/doctor_run.webp);
+                        background-image: url(/face/doctor/doctor_run.webp);
                     }
                 }
 

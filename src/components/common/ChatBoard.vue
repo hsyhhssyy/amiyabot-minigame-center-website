@@ -12,7 +12,10 @@
                     <n-avatar :src="item.avatar" size="large" v-if="userId !== item.userId" />
                     <n-space vertical :size="0" :align="userId === item.userId ? 'end' : 'start'">
                         {{ item.nickname }}
-                        <n-card class="message-content" size="small">{{ item.content }}</n-card>
+                        <n-card class="message-content" size="small">
+                            <component :is="item.content" v-if="item.isComponent" />
+                            <span v-else>{{ item.content }}</span>
+                        </n-card>
                     </n-space>
                     <n-avatar :src="item.avatar" size="large" v-if="userId === item.userId" />
                 </n-space>
@@ -44,6 +47,7 @@ export interface Message {
     content: string
     avatar: string
     style?: string
+    isComponent?: boolean
 }
 
 export interface ChatProps {

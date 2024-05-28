@@ -135,7 +135,7 @@ onUnmounted(() => {
         flex-direction: column;
 
         .chat-area {
-            height: 100%;
+            height: calc(100% - 162px);
             display: flex;
 
             & > div {

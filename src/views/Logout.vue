@@ -33,7 +33,7 @@ onMounted(async () => {
     .icon {
         width: 120px;
         height: 120px;
-        background: url(../assets/face/9c69a5976fd72bd8b404fa1064bec87a36816755.gif) center / 100% no-repeat;
+        background: url(/face/9c69a5976fd72bd8b404fa1064bec87a36816755.gif) center / 100% no-repeat;
     }
 
     .text {

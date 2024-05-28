@@ -130,10 +130,10 @@ export default class HttpRequest<R> {
 
     onResponseError(error: AxiosError) {
         const response = error.response
-        const responseData: any = (error?.response?.data as any); 
-        
+        const responseData: any = error?.response?.data as any
+
         let errorMessage: string
-        if(responseData?.type==="https://tools.ietf.org/html/rfc9110#section-15.5.1") {
+        if (responseData?.type === 'https://tools.ietf.org/html/rfc9110#section-15.5.1') {
             //RESTful API Format Error
             //这种错误不应该发生，除非代码写错了
             errorMessage = '接口请求失败，请求或返回数据格式错误。'
@@ -147,7 +147,7 @@ export default class HttpRequest<R> {
 
         RequestControl.closeLoading()
         NotifyEvent.notify(errorMessage, error.code || 'Error', 'error', 10000)
-        toast(errorMessage, 'error')
+        toast(errorMessage, 'error').then()
 
         return error
     }

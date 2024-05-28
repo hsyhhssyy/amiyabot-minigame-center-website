@@ -3,6 +3,7 @@
         <n-notification-provider>
             <n-message-provider>
                 <n-dialog-provider>
+                    <preload />
                     <message-def />
                     <router-view />
                 </n-dialog-provider>
@@ -14,6 +15,7 @@
 <script setup lang="ts">
 import type { GlobalThemeOverrides } from 'naive-ui'
 import MessageDef from '@/components/MessageDef.vue'
+import Preload from '@/views/Preload.vue'
 
 const themeOverrides: GlobalThemeOverrides = {
     common: {
