@@ -30,6 +30,7 @@ jobs:
       run: |
         yarn install --frozen-lockfile
         cp .github/workflow-artifacts/Dockerfile ./
+        ls -ltr
         "echo \"window._env_ = { VUE_APP_API_URL: 'https://amiya-bot-service.hsyhhssyy.net' };\" >> ./public/config.js"
         yarn build
 
