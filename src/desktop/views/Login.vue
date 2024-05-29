@@ -41,7 +41,7 @@
                                 <icon-button :icon="Back" @click="goBack">返回</icon-button>
                             </n-space>
                         </div>
-                        <img src="../assets/amiyabot-qqgroup.png" alt="amiyabot" style="height: 100%" />
+                        <img src="../../assets/amiyabot-qqgroup.png" alt="amiyabot" style="height: 100%" />
                     </div>
                 </n-tab-pane>
             </n-tabs>
@@ -77,9 +77,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import LoginForm from '@/views/LoginForm.vue'
+import LoginForm from '@/desktop/views/LoginForm.vue'
 import { Back, MessageEmoji } from '@icon-park/vue-next'
-import IconButton from '@/components/IconButton.vue'
+import IconButton from '@/desktop/components/IconButton.vue'
 
 const tab = ref('options')
 
@@ -98,7 +98,7 @@ async function addBotToGroup() {
 .login {
     width: 100%;
     height: 100%;
-    background: url(../assets/bg.svg) center / cover no-repeat;
+    background: url(../../assets/bg.svg) center / cover no-repeat;
     display: flex;
     flex-direction: column;
 

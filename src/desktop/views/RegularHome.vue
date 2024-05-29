@@ -71,8 +71,8 @@ import { useUserStore } from '@/stores/user'
 import { statisticsApi } from '@/api/game'
 import { getData } from '@/utils'
 import { Lightning, Logout } from '@icon-park/vue-next'
-import IconButton from '@/components/IconButton.vue'
-import JoinRoom from '@/views/room/JoinRoom.vue'
+import IconButton from '@/desktop/components/IconButton.vue'
+import JoinRoom from '@/desktop/views/room/JoinRoom.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -145,7 +145,7 @@ onMounted(async () => {
 .home {
     width: 100%;
     height: 100%;
-    background: url(../assets/bg.svg) center / cover no-repeat;
+    background: url(../../assets/bg.svg) center / cover no-repeat;
     display: flex;
     flex-direction: column;
     align-items: center;

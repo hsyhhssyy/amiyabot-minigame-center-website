@@ -36,10 +36,10 @@ import { onUnmounted, ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGameHubStore } from '@/stores/gamehub'
 import type { SignalrResponse } from '@/api/signalr'
-import type { Player } from '@/views/def/players'
-import GameBase from '@/views/GameBase.vue'
-import type { HitType } from '@/components/effects/HitEffect.vue'
-import HitEffect from '@/components/effects/HitEffect.vue'
+import type { Player } from '@/def/players'
+import GameBase from '@/desktop/views/GameBase.vue'
+import type { HitType } from '@/desktop/components/effects/HitEffect.vue'
+import HitEffect from '@/desktop/components/effects/HitEffect.vue'
 
 interface GamePlayer extends Player {
     score: number

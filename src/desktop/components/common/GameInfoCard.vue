@@ -25,8 +25,8 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import type { GameRoom } from '@/api/game'
-import type { GameTypes } from '@/views/def/games'
-import { getGameTypeMap } from '@/views/def/games'
+import type { GameTypes } from '@/def/games'
+import { getGameTypeMap } from '@/def/games'
 
 const props = defineProps<{
     roomData: GameRoom

@@ -37,9 +37,9 @@ import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { SendOne } from '@icon-park/vue-next'
 import { getData } from '@/utils'
 import { useGameHubStore } from '@/stores/gamehub'
-import IconButton from '@/components/IconButton.vue'
+import IconButton from '@/desktop/components/IconButton.vue'
 import type { SignalrResponse } from '@/api/signalr'
-import type { Player } from '@/views/def/players'
+import type { Player } from '@/def/players'
 
 export interface Message {
     userId: string

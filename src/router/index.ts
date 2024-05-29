@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { getData } from '@/utils'
-import EmptyContainer from '@/components/EmptyContainer.vue'
+import EmptyContainer from '@/desktop/components/EmptyContainer.vue'
 
 const router = createRouter({
     history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -8,12 +8,12 @@ const router = createRouter({
         {
             path: '/login',
             name: 'login',
-            component: () => import('@/views/Login.vue')
+            component: () => import('@/desktop/views/Login.vue')
         },
         {
             path: '/logout',
             name: 'logout',
-            component: () => import('@/views/Logout.vue')
+            component: () => import('@/desktop/views/Logout.vue')
         },
         {
             path: '/regular-home',
@@ -21,7 +21,7 @@ const router = createRouter({
             meta: {
                 pageName: '兔兔小游戏中心'
             },
-            component: () => import('@/views/RegularHome.vue'),
+            component: () => import('@/desktop/views/RegularHome.vue'),
             children: [
                 {
                     path: 'room-list',
@@ -29,7 +29,7 @@ const router = createRouter({
                     meta: {
                         pageName: '游戏大厅'
                     },
-                    component: () => import('@/views/room/RoomList.vue')
+                    component: () => import('@/desktop/views/room/RoomList.vue')
                 },
                 {
                     path: 'create-room',
@@ -37,7 +37,7 @@ const router = createRouter({
                     meta: {
                         pageName: '创建游戏'
                     },
-                    component: () => import('@/views/room/CreateRoom.vue')
+                    component: () => import('@/desktop/views/room/CreateRoom.vue')
                 },
                 {
                     path: 'waiting-room/:roomId',
@@ -45,7 +45,7 @@ const router = createRouter({
                     meta: {
                         pageName: '游戏房间'
                     },
-                    component: () => import('@/views/room/WaitingRoom.vue')
+                    component: () => import('@/desktop/views/room/WaitingRoom.vue')
                 }
             ]
         },
@@ -57,7 +57,7 @@ const router = createRouter({
                 {
                     path: 'schulte-grid/:roomId',
                     name: 'schulte-grid',
-                    component: () => import('@/views/game/SchulteGrid.vue')
+                    component: () => import('@/desktop/views/game/SchulteGrid.vue')
                 }
             ]
         }

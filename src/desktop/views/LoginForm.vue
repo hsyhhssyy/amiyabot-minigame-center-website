@@ -52,8 +52,8 @@ import { Back, DoneAll, Game, KeyOne, Login as LoginIcon, Mail, User as UserIcon
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { verifyTokenApi, quickRegisterApi, loginApi, registerApi } from '@/api/account'
-import IconButton from '@/components/IconButton.vue'
-import Icon from '@/components/Icon.vue'
+import IconButton from '@/desktop/components/IconButton.vue'
+import Icon from '@/desktop/components/Icon.vue'
 import { toast } from '@/utils'
 
 const props = defineProps<{
