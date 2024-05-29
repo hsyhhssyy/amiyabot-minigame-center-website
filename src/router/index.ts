@@ -60,12 +60,18 @@ const router = createRouter({
                     component: () => import('@/desktop/views/game/SchulteGrid.vue')
                 }
             ]
-        }
+        },
+        // 移动端Route
+        {
+            path: '/m/login',
+            name: 'login',
+            component: () => import('@/mobile/views/Login.vue')
+        },
     ]
 })
 
 router.beforeEach((to, _from, next) => {
-    if (to.path !== '/' && to.path !== '/regular-home') {
+    if (to.path !== '/' && to.path !== '/regular-home' && to.path !== '/m/' && to.path !== '/m/regular-home'){
         next()
         return
     }
@@ -74,12 +80,21 @@ router.beforeEach((to, _from, next) => {
         next('/regular-home')
         return
     }
+    
+    if (to.path === '/m/') {
+        next('/m/regular-home')
+        return
+    }
 
     // 检查是否有 token
     const token = getData('jwt-token')
 
     if (!token) {
-        next('/login')
+        if(to.path.startsWith('/m/')){
+            next('/m/login')
+        }else{
+            next('/login')
+        }
     } else {
         next()
     }
