@@ -71,7 +71,7 @@ import { useUserStore } from '@/stores/user'
 import { statisticsApi } from '@/api/game'
 import { getData } from '@/utils'
 import { Lightning, Logout } from '@icon-park/vue-next'
-import IconButton from '@/desktop/components/IconButton.vue'
+import IconButton from '@/universal/components/IconButton.vue'
 import JoinRoom from '@/desktop/views/room/JoinRoom.vue'
 
 const route = useRoute()

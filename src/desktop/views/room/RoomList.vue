@@ -78,8 +78,8 @@ import { listGame } from '@/api/game'
 import { formatDate } from '@/utils'
 import type { GameTypes } from '@/def/games'
 import { getGameTypeMap } from '@/def/games'
-import IconButton from '@/desktop/components/IconButton.vue'
-import Icon from '@/desktop/components/Icon.vue'
+import IconButton from '@/universal/components/IconButton.vue'
+import Icon from '@/universal/components/Icon.vue'
 
 const emits = defineEmits<{
     (e: 'onJoin', code: string): void

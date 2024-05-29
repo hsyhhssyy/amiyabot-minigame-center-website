@@ -2,17 +2,17 @@
     <div class="login">
         <div class="main-body">
             <div class="title">兔兔小游戏中心</div>
-            <n-tabs type="line" animated v-model:value="tab" class="tab-container">
+            <n-tabs type="line" animated v-model:value="tab">
                 <n-tab-pane name="options" tab="options">
-                    <n-space class="button-space">
+                    <n-space justify="center" style="align-content: flex-start;">
                         <n-card class="option-item" hoverable embedded size="small" @click="tab = 'user'">
                             <div class="item user">我是注册用户</div>
+                        </n-card>                        
+                        <n-card class="option-item" hoverable embedded size="small" @click="tab = 'visitor'">
+                            <div class="item visitor">我是游客</div>
                         </n-card>
                         <n-card class="option-item" hoverable embedded size="small" @click="tab = 'register'">
                             <div class="item register">我要注册</div>
-                        </n-card>
-                        <n-card class="option-item" hoverable embedded size="small" @click="tab = 'visitor'">
-                            <div class="item visitor">我是游客</div>
                         </n-card>
                         <n-card class="option-item" hoverable embedded size="small" @click="tab = 'bot'">
                             <div class="item bot">在QQ群里玩？</div>
@@ -34,14 +34,15 @@
                             想要在QQ群里和朋友一起玩？<br />
                             点击或扫码添加阿米娅机器人到群聊。<br />
                             还有游戏数据查询等功能哦。<br />
-                            <n-space style="margin-top: 20px">
+                            <n-space style="margin-top: 20px" justify="center">
                                 <icon-button :icon="MessageEmoji" @click="addBotToGroup" type="primary">
                                     添加到群聊
                                 </icon-button>
                                 <icon-button :icon="Back" @click="goBack">返回</icon-button>
                             </n-space>
                         </div>
-                        <img src="../../assets/amiyabot-qqgroup.png" alt="amiyabot" style="height: 100%" />
+                        <div class="bot-qrcode-container">
+                        </div>
                     </div>
                 </n-tab-pane>
             </n-tabs>
@@ -67,6 +68,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Back, MessageEmoji } from '@icon-park/vue-next'
+import IconButton from '@/universal/components/IconButton.vue';
+import LoginForm from '@/mobile/views/LoginForm.vue';
 
 const tab = ref('options')
 
@@ -91,7 +94,8 @@ async function addBotToGroup() {
 
     .main-body {
         display: flex;
-        flex: 2;
+        flex-grow: 1;
+        flex-shrink: 1;
         flex-direction: column;
         align-items: center;
         padding-top: 50px;
@@ -99,13 +103,6 @@ async function addBotToGroup() {
         .title {
             font-size: 34px;
             margin-bottom: 50px;
-        }
-
-        .button-space{
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
         }
 
         .option-item {
@@ -135,11 +132,27 @@ async function addBotToGroup() {
                     background-image: url(/face/amiya/amiya_emmm.webp);
                 }
             }
+        }
 
-            &:hover {
-                .item {
-                    color: var(--main-color);
-                }
+        
+        .commercial {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+
+            .bot-qrcode-container {
+                margin-top: 20px;
+                flex-grow: 1;
+                flex-shrink: 1;
+                display: flex;
+                align-items: center; 
+                justify-content: center;
+                background-image: url(../../assets/amiyabot-qqgroup.png);
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center; 
+                width: 100%;
             }
         }
     }
@@ -171,11 +184,6 @@ async function addBotToGroup() {
         }
     }
 
-    .commercial {
-        height: 330px;
-        display: flex;
-        align-items: center;
-    }
 }
 </style>
 <style lang="scss">
@@ -185,12 +193,22 @@ async function addBotToGroup() {
             display: none;
         }
 
+        .n-tabs{            
+            flex-grow: 1;
+            flex-shrink: 1;
+        }
+
+        .n-tabs .n-tabs-pane-wrapper{            
+            flex-grow: 1;
+            flex-shrink: 1;
+            overflow-y: visible;
+        }
+
         .n-tabs .n-tabs-pane-wrapper .n-tab-pane {
             display: flex;
+            height: 100%;
             justify-content: center;
             padding: 20px 0;
-
-            @media only screen and (max-width: 768px) {}
         }
     }
 }

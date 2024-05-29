@@ -38,7 +38,7 @@ import { getGame } from '@/api/game'
 import type { ChatProps, Message } from '@/desktop/components/common/ChatBoard.vue'
 import ChatBoard from '@/desktop/components/common/ChatBoard.vue'
 import GameInfoCard from '@/desktop/components/common/GameInfoCard.vue'
-import IconButton from '@/desktop/components/IconButton.vue'
+import IconButton from '@/universal/components/IconButton.vue'
 import { removeData } from '@/utils'
 
 interface GameProps extends ChatProps {}

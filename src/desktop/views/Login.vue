@@ -79,7 +79,7 @@
 import { ref } from 'vue'
 import LoginForm from '@/desktop/views/LoginForm.vue'
 import { Back, MessageEmoji } from '@icon-park/vue-next'
-import IconButton from '@/desktop/components/IconButton.vue'
+import IconButton from '@/universal/components/IconButton.vue'
 
 const tab = ref('options')
 
@@ -195,10 +195,6 @@ async function addBotToGroup() {
             display: flex;
             justify-content: center;
             padding: 20px 0;
-            @media only screen 
-            and (max-width: 768px) { 
-
-            }
         }
     }
 }

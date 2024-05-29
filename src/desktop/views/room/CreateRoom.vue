@@ -43,7 +43,7 @@ import { setData } from '@/utils'
 import type { GameItem } from '@/def/games'
 import { gameList } from '@/def/games'
 import { Back } from '@icon-park/vue-next'
-import IconButton from '@/desktop/components/IconButton.vue'
+import IconButton from '@/universal/components/IconButton.vue'
 
 const router = useRouter()
 const gameHub = useGameHubStore()
