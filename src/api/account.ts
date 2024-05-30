@@ -4,6 +4,7 @@ import { setData } from '@/utils'
 interface UserToken {
     email: string
     token: string
+    message: string
 }
 
 export interface UserInfo {
@@ -40,7 +41,7 @@ export async function verifyTokenApi(token: string) {
             setData('user-role', userRole)
         }
         const email = user.email ? user.email : ''
-        if(user.id) {            
+        if (user.id) {
             setData('email', email)
         }
         const userId = user.id
