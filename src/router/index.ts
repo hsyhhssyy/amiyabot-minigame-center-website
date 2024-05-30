@@ -66,17 +66,17 @@ const router = createRouter({
             path: '/m/login',
             name: 'login',
             component: () => import('@/mobile/views/Login.vue')
-        },
+        }
     ]
 })
 
 router.beforeEach((to, _from, next) => {
-    if (to.path !== '/' && to.path !== '/regular-home' && to.path !== '/m/' && to.path !== '/m/regular-home'){
+    if (to.path !== '/' && to.path !== '/regular-home' && to.path !== '/m/' && to.path !== '/m/regular-home') {
         next()
         return
     }
 
-    if(window.innerWidth < 768 && to.path.startsWith('/m/') === false){
+    if (window.innerWidth < 768 && !to.path.startsWith('/m/')) {
         next(`/m${to.path}`)
         return
     }
@@ -85,7 +85,7 @@ router.beforeEach((to, _from, next) => {
         next('/regular-home')
         return
     }
-    
+
     if (to.path === '/m/') {
         next('/m/regular-home')
         return
@@ -95,9 +95,9 @@ router.beforeEach((to, _from, next) => {
     const token = getData('jwt-token')
 
     if (!token) {
-        if(to.path.startsWith('/m/')){
+        if (to.path.startsWith('/m/')) {
             next('/m/login')
-        }else{
+        } else {
             next('/login')
         }
     } else {

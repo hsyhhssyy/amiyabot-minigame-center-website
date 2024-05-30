@@ -4,10 +4,10 @@
             <div class="title">兔兔小游戏中心</div>
             <n-tabs type="line" animated v-model:value="tab">
                 <n-tab-pane name="options" tab="options">
-                    <n-space justify="center" style="align-content: flex-start;">
+                    <n-space justify="center" style="align-content: flex-start">
                         <n-card class="option-item" hoverable embedded size="small" @click="tab = 'user'">
                             <div class="item user">我是注册用户</div>
-                        </n-card>                        
+                        </n-card>
                         <n-card class="option-item" hoverable embedded size="small" @click="tab = 'visitor'">
                             <div class="item visitor">我是游客</div>
                         </n-card>
@@ -41,8 +41,7 @@
                                 <icon-button :icon="Back" @click="goBack">返回</icon-button>
                             </n-space>
                         </div>
-                        <div class="bot-qrcode-container">
-                        </div>
+                        <div class="bot-qrcode-container"></div>
                     </div>
                 </n-tab-pane>
             </n-tabs>
@@ -50,15 +49,26 @@
         <div class="footer">
             <div>本网站不是鹰角网络官方网站，而是由爱好者自行开发的工具网站。</div>
             <div>
-                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Logo"
-                    width="12" height="12" />
-                <a class="friendly-link" href="https://github.com/hsyhhssyy/amiyabot-minigame-center-website"
-                    target="_blank">
+                <img
+                    src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                    alt="GitHub Logo"
+                    width="12"
+                    height="12"
+                />
+                <a
+                    class="friendly-link"
+                    href="https://github.com/hsyhhssyy/amiyabot-minigame-center-website"
+                    target="_blank"
+                >
                     GitHub Repository
                 </a>
                 <n-divider vertical />
-                <img src="https://img.alicdn.com/tfs/TB1..50QpXXXXX7XpXXXXXXXXXX-40-40.png" alt="Beian Logo" width="12"
-                    height="12" />
+                <img
+                    src="https://img.alicdn.com/tfs/TB1..50QpXXXXX7XpXXXXXXXXXX-40-40.png"
+                    alt="Beian Logo"
+                    width="12"
+                    height="12"
+                />
                 <a class="friendly-link" href="https://beian.miit.gov.cn/" target="_blank"> 京ICP备2022033983号 </a>
             </div>
         </div>
@@ -68,8 +78,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Back, MessageEmoji } from '@icon-park/vue-next'
-import IconButton from '@/universal/components/IconButton.vue';
-import LoginForm from '@/mobile/views/LoginForm.vue';
+import IconButton from '@/universal/components/IconButton.vue'
+import LoginForm from '@/mobile/views/LoginForm.vue'
 
 const tab = ref('options')
 
@@ -134,7 +144,6 @@ async function addBotToGroup() {
             }
         }
 
-        
         .commercial {
             display: flex;
             flex-direction: column;
@@ -146,12 +155,12 @@ async function addBotToGroup() {
                 flex-grow: 1;
                 flex-shrink: 1;
                 display: flex;
-                align-items: center; 
+                align-items: center;
                 justify-content: center;
                 background-image: url(../../assets/amiyabot-qqgroup.png);
                 background-size: contain;
                 background-repeat: no-repeat;
-                background-position: center; 
+                background-position: center;
                 width: 100%;
             }
         }
@@ -163,11 +172,11 @@ async function addBotToGroup() {
         color: gray;
         padding-bottom: 10px;
 
-        &>div:first-child {
+        & > div:first-child {
             margin-bottom: 5px;
         }
 
-        &>div:last-child {
+        & > div:last-child {
             display: flex;
             justify-content: center;
             height: 16px;
@@ -183,7 +192,6 @@ async function addBotToGroup() {
             font-size: 12px;
         }
     }
-
 }
 </style>
 <style lang="scss">
@@ -193,12 +201,12 @@ async function addBotToGroup() {
             display: none;
         }
 
-        .n-tabs{            
+        .n-tabs {
             flex-grow: 1;
             flex-shrink: 1;
         }
 
-        .n-tabs .n-tabs-pane-wrapper{            
+        .n-tabs .n-tabs-pane-wrapper {
             flex-grow: 1;
             flex-shrink: 1;
             overflow-y: visible;

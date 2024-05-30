@@ -11,7 +11,13 @@
         </template>
         <template v-else>
             <n-form-item label="邮箱">
-                <n-input v-model:value="email" type="text" placeholder="请输入邮箱" @keydown.enter="action" autocomplete="username">
+                <n-input
+                    v-model:value="email"
+                    type="text"
+                    placeholder="请输入邮箱"
+                    @keydown.enter="action"
+                    autocomplete="username"
+                >
                     <template #prefix>
                         <icon :icon="Mail" />
                     </template>
@@ -25,7 +31,12 @@
                 </n-input>
             </n-form-item>
             <n-form-item label="重复密码" v-if="props.type === 'register'">
-                <n-input v-model:value="repeatPassword" type="password" placeholder="请输入密码" @keydown.enter="action">
+                <n-input
+                    v-model:value="repeatPassword"
+                    type="password"
+                    placeholder="请输入密码"
+                    @keydown.enter="action"
+                >
                     <template #prefix>
                         <icon :icon="KeyOne" />
                     </template>
@@ -51,7 +62,7 @@
 import { Back, DoneAll, Game, KeyOne, Login as LoginIcon, Mail, User as UserIcon } from '@icon-park/vue-next'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { verifyTokenApi, quickRegisterApi, loginApi, registerApi } from '@/api/account'
+import { loginApi, quickRegisterApi, registerApi, verifyTokenApi } from '@/api/account'
 import IconButton from '@/universal/components/IconButton.vue'
 import Icon from '@/universal/components/Icon.vue'
 import { toast } from '@/utils'
@@ -80,7 +91,7 @@ async function action() {
 }
 
 async function login() {
-    const res = await loginApi(email.value,password.value)
+    const res = await loginApi(email.value, password.value)
     if (res && res.token) {
         if (await verifyTokenApi(res.token)) {
             await router.push('/')
@@ -93,16 +104,16 @@ async function register() {
         await toast('两次密码不一致')
         return
     }
-    if(email.value === '') {
+    if (email.value === '') {
         await toast('邮箱不能为空')
         return
     }
-    if(password.value === '') {
+    if (password.value === '') {
         await toast('密码不能为空')
         return
     }
     const nickname = '游客博士#' + Math.floor(Math.random() * 10000)
-    const res = await registerApi(email.value,password.value,nickname)
+    const res = await registerApi(email.value, password.value, nickname)
     if (res && res.message) {
         await toast(res.message)
         await goBack()
@@ -110,7 +121,7 @@ async function register() {
 }
 
 async function quickRegister() {
-    if(nickname.value === '') {
+    if (nickname.value === '') {
         await toast('昵称不能为空')
         return
     }

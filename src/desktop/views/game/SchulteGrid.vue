@@ -32,7 +32,7 @@
 
 <script lang="ts" setup>
 import type { CSSProperties } from 'vue'
-import { onUnmounted, ref, computed, onMounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGameHubStore } from '@/stores/gamehub'
 import type { SignalrResponse } from '@/api/signalr'

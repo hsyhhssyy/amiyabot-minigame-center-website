@@ -1,4 +1,4 @@
-import type { RequestConfig, HttpOptions } from '@/libs/http'
+import type { HttpOptions, RequestConfig } from '@/libs/http'
 import HttpRequest from '@/libs/http'
 import { getData } from '@/utils'
 
