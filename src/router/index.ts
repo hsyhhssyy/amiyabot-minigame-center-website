@@ -64,17 +64,17 @@ const router = createRouter({
         // 移动端Route
         {
             path: '/m/login',
-            name: 'login',
+            name: 'login-mobile',
             component: () => import('@/mobile/views/Login.vue')
         },
         {
             path: '/m/logout',
-            name: 'logout',
+            name: 'logout-mobile',
             component: () => import('@/mobile/views/Logout.vue')
         },
         {
             path: '/m/regular-home',
-            name: 'regular-home',
+            name: 'regular-home-mobile',
             meta: {
                 pageName: '兔兔小游戏中心'
             },
@@ -82,7 +82,7 @@ const router = createRouter({
             children: [
                 {
                     path: 'room-list',
-                    name: 'room-list',
+                    name: 'room-list-mobile',
                     meta: {
                         pageName: '游戏大厅'
                     },
@@ -90,7 +90,7 @@ const router = createRouter({
                 },
                 {
                     path: 'create-room',
-                    name: 'create-room',
+                    name: 'create-room-mobile',
                     meta: {
                         pageName: '创建游戏'
                     },
@@ -98,7 +98,7 @@ const router = createRouter({
                 },
                 {
                     path: 'waiting-room/:roomId',
-                    name: 'waiting-room',
+                    name: 'waiting-room-mobile',
                     meta: {
                         pageName: '游戏房间'
                     },
@@ -108,12 +108,12 @@ const router = createRouter({
         },
         {
             path: '/m/games',
-            name: 'games',
+            name: 'games-mobile',
             component: EmptyContainer,
             children: [
                 {
                     path: 'schulte-grid/:roomId',
-                    name: 'schulte-grid',
+                    name: 'schulte-grid-mobile',
                     component: () => import('@/mobile/views/game/SchulteGrid.vue')
                 }
             ]

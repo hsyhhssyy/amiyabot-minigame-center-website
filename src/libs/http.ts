@@ -139,6 +139,8 @@ export default class HttpRequest<R> {
             errorMessage = '接口请求失败，请求或返回数据格式错误。'
         } else if (responseData?.description) {
             errorMessage = responseData?.description
+        } else if (responseData?.message) {
+            errorMessage = responseData?.message
         } else if (response?.status) {
             errorMessage = `${response?.config.url}\nCode: ${response?.status} ${response?.statusText}`
         } else {

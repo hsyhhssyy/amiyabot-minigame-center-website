@@ -103,8 +103,7 @@ async function register() {
     }
     const nickname = '游客博士#' + Math.floor(Math.random() * 10000)
     const res = await registerApi(email.value,password.value,nickname)
-    if (res && res.message) {
-        await toast(res.message)
+    if (res) {
         await goBack()
     }
 }

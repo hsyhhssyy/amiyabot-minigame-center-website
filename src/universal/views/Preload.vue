@@ -5,7 +5,7 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
 
-const preloadedImages = ref([])
+const preloadedImages = ref<HTMLImageElement[]>([])
 
 function preloadImages() {
     const imageUrls = [

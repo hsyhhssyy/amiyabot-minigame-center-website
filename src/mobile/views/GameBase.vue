@@ -44,8 +44,8 @@ import { removeData } from '@/utils'
 interface GameProps extends ChatProps {}
 
 const emits = defineEmits<{
-    (e: 'onLoaded')
-    (e: 'onGameClosed', response: SignalrResponse)
+    (e: 'onLoaded'): void;
+    (e: 'onGameClosed', response: SignalrResponse): void;
 }>()
 
 const props = defineProps<GameProps>()

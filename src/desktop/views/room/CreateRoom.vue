@@ -3,7 +3,7 @@
         <div class="game-list">
             <n-space>
                 <n-card
-                    class="game-item"
+                    :class="{'game-item':true,'disabled':item.notAvailable}"
                     hoverable
                     embedded
                     size="small"
@@ -14,7 +14,7 @@
                 >
                     <div class="item">
                         <img :src="item.image" :alt="item.name" />
-                        {{ item.name }}
+                        {{ item.notAvailable ? '(暂未开放)' : item.name }}
                     </div>
                 </n-card>
             </n-space>
@@ -128,6 +128,12 @@ onUnmounted(() => {
             width: 100px;
             margin-bottom: 5px;
         }
+    }
+    
+    .disabled {
+        pointer-events: none;
+        opacity: 0.5;
+        background-color: #f5f5f5;
     }
 }
 
