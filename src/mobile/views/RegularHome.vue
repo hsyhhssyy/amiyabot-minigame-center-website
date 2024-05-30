@@ -2,7 +2,7 @@
     <div class="home">
         <div class="title">{{ route.meta.pageName }}</div>
         <template v-if="!isLoading && user.userInfo">
-            <div class="user-panel" v-if="route.name === 'regular-home'">
+            <div class="user-panel" v-if="route.name === 'regular-home-mobile'">
                 <n-card class="user-card" :title="user.userInfo.avatar" size="small">
                     <div class="user-avatar">
                         <img :src="user.userAvatar" alt="avatar" class="avatar" />

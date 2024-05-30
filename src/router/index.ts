@@ -10,12 +10,14 @@ const router = createRouter({
 
 router.beforeEach((to, _from, next) => {
     
-    if (window.innerWidth < 768 && !to.path.startsWith('/m/')) {
+    //移动端强制跳转
+    if(window.innerWidth < 768 && to.path.startsWith('/m/') === false){
         next(`/m${to.path}`)
         return
     }
 
-    if (to.path !== '/' && to.path !== '/regular-home' && to.path !== '/m/' && to.path !== '/m/regular-home') {
+
+    if (to.path !== '/' && to.path !== '/regular-home' && to.path !== '/m/' && to.path !== '/m/regular-home'){
         next()
         return
     }
@@ -24,7 +26,7 @@ router.beforeEach((to, _from, next) => {
         next('/regular-home')
         return
     }
-
+    
     if (to.path === '/m/') {
         next('/m/regular-home')
         return
