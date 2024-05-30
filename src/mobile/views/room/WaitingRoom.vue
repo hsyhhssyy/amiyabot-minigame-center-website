@@ -184,10 +184,10 @@ onUnmounted(async () => {
 .waiting-room {
     height: 100%;
     display: flex;
+    flex-direction: column;
 
     & > div {
-        width: 50%;
-        padding: 10px;
+        margin-bottom: 10px;
     }
 }
 </style>

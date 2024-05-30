@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import type { GlobalThemeOverrides } from 'naive-ui'
 import MessageDef from '@/desktop/components/MessageDef.vue'
-import Preload from '@/desktop/views/Preload.vue'
+import Preload from '@/universal/views/Preload.vue'
 
 const themeOverrides: GlobalThemeOverrides = {
     common: {

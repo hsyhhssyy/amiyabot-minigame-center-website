@@ -117,12 +117,12 @@ onUnmounted(() => {
 .game-base {
     width: 100%;
     height: 100%;
-    padding: 50px;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
 
     & > div {
-        width: calc(50% - 5px);
+        width: calc(100% - 5px);
     }
 
     .game-info {

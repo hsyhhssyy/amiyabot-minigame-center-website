@@ -1,11 +1,30 @@
 <template>
-    <div class="container">
-        <router-view />
-    </div>
+    <n-config-provider class="container" :theme-overrides="themeOverrides">
+        <n-notification-provider>
+            <n-message-provider>
+                <n-dialog-provider>
+                    <preload />
+                    <message-def />
+                    <router-view />
+                </n-dialog-provider>
+            </n-message-provider>
+        </n-notification-provider>
+    </n-config-provider>
 </template>
 
 <script setup lang="ts">
+import type { GlobalThemeOverrides } from 'naive-ui'
+import MessageDef from '@/desktop/components/MessageDef.vue'
+import Preload from '@/universal/views/Preload.vue'
 
+const themeOverrides: GlobalThemeOverrides = {
+    common: {
+        primaryColor: '#7b40f2',
+        primaryColorHover: '#7b40f2',
+        primaryColorPressed: '#6d24ff',
+        primaryColorSuppl: '#d8c9f7'
+    }
+}
 </script>
 
 <style scoped lang="scss">
