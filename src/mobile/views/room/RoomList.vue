@@ -47,7 +47,7 @@
                                 <div class="info-item creator">
                                     <icon :icon="UserBusiness" />
                                     创建人：
-                                    <n-avatar :size="25" :src="item.creatorAvatar || '/avatar.webp'" />
+                                    <n-avatar :size="25" :src="item.creatorAvatar || '/avatar.webp'" :img-props="{ referrerpolicy: 'no-referrer' }"/>
                                     {{ item.creatorNickname }}
                                 </div>
                                 <div class="info-item">

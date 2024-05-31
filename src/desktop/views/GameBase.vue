@@ -18,7 +18,7 @@
                 />
                 <n-card title="玩家列表" size="small" class="player-list">
                     <div class="play-item" v-for="(item, index) in players" :key="index">
-                        <n-avatar round :src="item.avatar"></n-avatar>
+                        <n-avatar round :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
                         <span style="padding-left: 5px">{{ item.name }}</span>
                     </div>
                 </n-card>

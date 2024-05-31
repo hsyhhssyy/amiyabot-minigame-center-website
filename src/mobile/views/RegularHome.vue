@@ -3,9 +3,9 @@
         <div class="title">{{ route.meta.pageName }}</div>
         <template v-if="!isLoading && user.userInfo">
             <div class="user-panel" v-if="route.name === 'regular-home-mobile'">
-                <n-card class="user-card" :title="user.userInfo.avatar" size="small">
+                <n-card class="user-card" size="small">
                     <div class="user-avatar">
-                        <img :src="user.userAvatar" alt="avatar" class="avatar" />
+                        <img :src="user.userAvatar" alt="avatar" class="avatar" referrerpolicy="no-referrer"/>
                         <div class="nickname">
                             <span>{{ user.userName }}</span>
                             <span>通行证ID: {{ user.userInfo?.id }}</span>

@@ -34,7 +34,7 @@
                                     :type="item.id === hostId ? 'error' : 'info'"
                                     :value="item.id === hostId ? '房主' : '玩家'"
                                 >
-                                    <n-avatar size="large" :src="item.avatar" />
+                                    <n-avatar size="large" :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }"/>
                                 </n-badge>
                             </template>
                             <span>I wish they all could be California girls</span>
