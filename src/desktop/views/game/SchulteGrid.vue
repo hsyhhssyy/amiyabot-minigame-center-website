@@ -23,9 +23,15 @@
                                 :key="index"
                                 @click="selectedSkill = item"
                             >
-                                <div class="badge" v-if="item.PlayerId">
-                                    <icon :icon="Check" />
-                                    {{ playersMap[item.PlayerId].name }}
+                                <div class="badge" :class="{ leaved: !playersMap[item.PlayerId] }" v-if="item.PlayerId">
+                                    <template v-if="playersMap[item.PlayerId]">
+                                        <icon :icon="Check" />
+                                        {{ playersMap[item.PlayerId].name }}
+                                    </template>
+                                    <template v-else>
+                                        <icon :icon="Close" />
+                                        已离开
+                                    </template>
                                 </div>
                                 <span>{{ item.CharacterName }} - {{ item.SkillName }}</span>
                             </n-button>
@@ -91,7 +97,7 @@
 import type { CSSProperties } from 'vue'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Check } from '@icon-park/vue-next'
+import { Check, Close } from '@icon-park/vue-next'
 import { useGameHubStore } from '@/stores/gamehub'
 import { listToDict } from '@/utils'
 import type { SignalrResponse } from '@/api/signalr'
@@ -214,7 +220,11 @@ const playersRanking = computed(() => {
 watch(
     computed(() => answersDisplay.value.length),
     () => {
-        nextTick(() => (asd.value.scrollTop = asd.value.scrollHeight))
+        nextTick(() => {
+            if (asd.value) {
+                asd.value.scrollTop = asd.value.scrollHeight
+            }
+        })
     },
     { deep: true }
 )
@@ -482,6 +492,10 @@ $guideHeight: 160px;
                 position: absolute;
                 top: -8px;
                 left: -8px;
+
+                &.leaved {
+                    background-color: #e91e63;
+                }
             }
         }
     }

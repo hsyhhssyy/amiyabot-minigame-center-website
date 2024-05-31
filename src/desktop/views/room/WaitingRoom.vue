@@ -102,7 +102,7 @@ async function gameInfoListener(response: SignalrResponse) {
     })
 
     if (response.GameStarted) {
-        await startGame()
+        await gameStartedListener()
     }
 }
 
