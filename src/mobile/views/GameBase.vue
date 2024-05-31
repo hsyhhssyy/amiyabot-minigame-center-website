@@ -60,6 +60,14 @@ const gameRoomData = ref<GameRoom>()
 const isLoading = ref(true)
 const chat = ref()
 
+if ("virtualKeyboard" in navigator) {
+  (navigator as any).virtualKeyboard.overlaysContent = true;
+
+  (navigator as any).virtualKeyboard.addEventListener("geometrychange", (event:any) => {
+    const { x, y, width, height } = event.target.boundingRect;
+  });
+}
+
 async function gameClosedListener(response: SignalrResponse) {
     emits('onGameClosed', response)
 }
