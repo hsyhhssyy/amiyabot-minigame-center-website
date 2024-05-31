@@ -51,6 +51,8 @@
 *::after {
     user-select: none;
     box-sizing: border-box;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-overflow: initial !important;

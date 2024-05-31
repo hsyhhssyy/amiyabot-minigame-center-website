@@ -7,9 +7,25 @@ import type { CSSProperties } from 'vue'
 import { computed, ref } from 'vue'
 import { sleep } from '@/utils'
 
-export type HitType = 'joy' | 'refuse' | 'sweat'
+export type HitType =
+    | 'angry'
+    | 'doubt'
+    | 'emmm'
+    | 'expectation'
+    | 'grievance'
+    | 'joy'
+    | 'nervous'
+    | 'refuse'
+    | 'shock'
+    | 'shy'
+    | 'smile'
+    | 'sorry'
+    | 'sweat'
+    | 'tea'
+    | 'wuwu'
+    | 'ye'
 
-const type = ref<HitType>('joy')
+const type = ref<HitType>('expectation')
 const show = ref(false)
 
 const style = computed<CSSProperties>(() => {
@@ -18,7 +34,7 @@ const style = computed<CSSProperties>(() => {
     }
 })
 
-async function hit(t: HitType = 'joy') {
+async function hit(t: HitType = 'expectation') {
     show.value = false
     type.value = t
     show.value = true

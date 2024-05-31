@@ -1,3 +1,3 @@
 export interface SignalrResponse {
-    [kek: string]: any
+    [kek: string]: any | SignalrResponse
 }

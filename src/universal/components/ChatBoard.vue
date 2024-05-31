@@ -9,7 +9,12 @@
                     :size="6"
                     :justify="userId === item.userId ? 'end' : 'start'"
                 >
-                    <n-avatar :src="item.avatar" size="large" v-if="userId !== item.userId"  :img-props="{ referrerpolicy: 'no-referrer' }"/>
+                    <n-avatar
+                        :src="item.avatar"
+                        size="large"
+                        v-if="userId !== item.userId"
+                        :img-props="{ referrerpolicy: 'no-referrer' }"
+                    />
                     <n-space vertical :size="0" :align="userId === item.userId ? 'end' : 'start'">
                         {{ item.nickname }}
                         <n-card class="message-content" size="small">
@@ -17,7 +22,12 @@
                             <span v-else>{{ item.content }}</span>
                         </n-card>
                     </n-space>
-                    <n-avatar :src="item.avatar" size="large" v-if="userId === item.userId" :img-props="{ referrerpolicy: 'no-referrer' }"/>
+                    <n-avatar
+                        :src="item.avatar"
+                        size="large"
+                        v-if="userId === item.userId"
+                        :img-props="{ referrerpolicy: 'no-referrer' }"
+                    />
                 </n-space>
             </div>
         </n-card>

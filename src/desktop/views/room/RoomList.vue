@@ -107,7 +107,11 @@ async function join(room: GameRoom) {
 }
 
 async function getList() {
-    roomList.value = await listGame()
+    const rooms = await listGame()
+
+    rooms.sort((a, b) => new Date(b.createTime).getTime() - new Date(a.createTime).getTime())
+
+    roomList.value = rooms
     currPage.value = 1
     pageCount.value = Math.ceil(roomList.value.length / pageSize.value)
 }
@@ -140,7 +144,7 @@ onMounted(async () => {
                 padding: 5px;
 
                 .n-card {
-                    background: url(/face/doctor/doctor_asleep.webp) bottom right / 80px no-repeat;
+                    background: #fff url(/face/doctor/doctor_asleep.webp) bottom right / 80px no-repeat;
                 }
 
                 .n-card.activated {

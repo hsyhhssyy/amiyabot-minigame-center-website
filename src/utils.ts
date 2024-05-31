@@ -89,3 +89,12 @@ export async function toast(content: string, type: NotificationType = 'default')
         })
     }
 }
+
+export function listToDict<T>(list: T[], keyName: string) {
+    const dict: { [key: string]: T } = {}
+    for (const item of list) {
+        // @ts-ignore
+        dict[item[keyName]] = item
+    }
+    return dict
+}

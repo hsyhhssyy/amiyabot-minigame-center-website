@@ -1,5 +1,5 @@
 <template>
-    <div class="game-base" v-if="!isLoading && gameRoomData">
+    <div class="game-base" v-if="!isLoading && gameRoomData" :style="{ minWidth: props.minWidth + 'px' }">
         <div>
             <slot></slot>
         </div>
@@ -17,10 +17,12 @@
                     ref="chat"
                 />
                 <n-card title="玩家列表" size="small" class="player-list">
-                    <div class="play-item" v-for="(item, index) in players" :key="index">
-                        <n-avatar round :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
-                        <span style="padding-left: 5px">{{ item.name }}</span>
-                    </div>
+                    <slot name="players">
+                        <div class="play-item" v-for="(item, index) in players" :key="index">
+                            <n-avatar round :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }" />
+                            <span style="padding-left: 5px">{{ item.name }}</span>
+                        </div>
+                    </slot>
                 </n-card>
             </div>
         </div>
@@ -41,11 +43,15 @@ import GameInfoCard from '@/universal/components/GameInfoCard.vue'
 import IconButton from '@/universal/components/IconButton.vue'
 import { removeData } from '@/utils'
 
-interface GameProps extends ChatProps {}
+interface GameProps extends ChatProps {
+    minWidth: number
+}
 
 const emits = defineEmits<{
-    (e: 'onLoaded'): void;
-    (e: 'onGameClosed', response: SignalrResponse): void;
+    (e: 'onLoaded'): void
+    (e: 'onRoomData', data: GameRoom): void
+    (e: 'onGameClosed', response: SignalrResponse): void
+    (e: 'onGameCompleted', response: SignalrResponse): void
 }>()
 
 const props = defineProps<GameProps>()
@@ -60,14 +66,18 @@ const gameRoomData = ref<GameRoom>()
 const isLoading = ref(true)
 const chat = ref()
 
-async function gameClosedListener(response: SignalrResponse) {
-    emits('onGameClosed', response)
-}
-
 async function leaveRoom() {
     removeData('current-game-id')
     gameHub.invokeGameHub('LeaveGame', roomId)
     await router.push('/regular-home')
+}
+
+function gameClosedListener(response: SignalrResponse) {
+    emits('onGameClosed', response)
+}
+
+function gameCompletedListener(response: SignalrResponse) {
+    emits('onGameCompleted', response)
 }
 
 function pushMessage(msg: Message) {
@@ -85,7 +95,7 @@ watch(
 
         if (value) {
             emits('onLoaded')
-            gameHub.addGameHubListener('GameCompleted', gameClosedListener)
+            gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
             gameHub.addGameHubListener('GameClosed', gameClosedListener)
             gameHub.invokeGameHub('GetGame', roomId)
 
@@ -104,6 +114,7 @@ watch(
 
 onMounted(async () => {
     gameRoomData.value = await getGame(roomId)
+    emits('onRoomData', gameRoomData.value as GameRoom)
 })
 
 onUnmounted(() => {
@@ -114,19 +125,23 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+$gap: 4px;
+
 .game-base {
     width: 100%;
     height: 100%;
     padding: 50px;
+    background-color: rgb(250, 250, 252);
     display: flex;
     justify-content: space-between;
+    overflow: auto;
 
     & > div {
-        width: calc(50% - 5px);
+        width: calc(50% - $gap / 2);
     }
 
     .game-info {
-        margin-bottom: 10px;
+        margin-bottom: $gap;
     }
 
     .player-panel {
@@ -135,7 +150,7 @@ onUnmounted(() => {
         flex-direction: column;
 
         .chat-area {
-            height: calc(100% - 162px);
+            height: calc(100% - 156px);
             display: flex;
 
             & > div {
@@ -143,8 +158,8 @@ onUnmounted(() => {
             }
 
             .player-list {
-                width: 240px;
-                margin-left: 10px;
+                width: 280px;
+                margin-left: $gap;
 
                 .play-item {
                     display: flex;
