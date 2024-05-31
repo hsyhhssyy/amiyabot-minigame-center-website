@@ -29,6 +29,7 @@ jobs:
     - name: Yarn build
       run: |
         cp .github/workflow-artifacts/Dockerfile ./
+        cp .github/workflow-artifacts/nginx-custom.conf ./
         ls -ltr
         ls -l ./public
         echo "window._env_ = { VUE_APP_API_URL: 'https://game-api.anonymous-test.top' };" > ./public/config.js
