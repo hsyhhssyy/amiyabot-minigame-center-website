@@ -4,27 +4,30 @@
             <slot></slot>
         </div>
         <div class="player-panel">
+            <chat-board
+                :room-id="props.roomId"
+                :players="props.players"
+                :input-handler="props.inputHandler"
+                @on-show-player-list="openPlayerList"
+                ref="chat"
+            />
             <game-info-card class="game-info" :room-data="gameRoomData">
                 <template #buttons>
                     <icon-button :icon="Logout" type="error" @click="leaveRoom">退出房间</icon-button>
                 </template>
             </game-info-card>
-            <div class="chat-area">
-                <chat-board
-                    :room-id="props.roomId"
-                    :players="props.players"
-                    :input-handler="props.inputHandler"
-                    ref="chat"
-                />
-                <n-card title="玩家列表" size="small" class="player-list">
-                    <div class="play-item" v-for="(item, index) in players" :key="index">
-                        <n-avatar round :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
-                        <span style="padding-left: 5px">{{ item.name }}</span>
-                    </div>
-                </n-card>
-            </div>
         </div>
-    </div>
+    </div>       
+    <n-modal class="player-list-modal" v-model:show="showPlayerList">
+        <n-card title="玩家列表" size="small" class="player-list" embedded>
+            <slot name="players">
+                <div class="play-item" v-for="(item, index) in players" :key="index">
+                    <n-avatar round :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }" />
+                    <span style="padding-left: 5px">{{ item.name }}</span>
+                </div>
+            </slot>
+        </n-card>
+    </n-modal>
 </template>
 
 <script lang="ts" setup>
@@ -36,7 +39,7 @@ import { useGameHubStore } from '@/stores/gamehub'
 import type { GameRoom } from '@/api/game'
 import { getGame } from '@/api/game'
 import type { ChatProps, Message } from '@/universal/components/ChatBoard.vue'
-import ChatBoard from '@/universal/components/ChatBoard.vue'
+import ChatBoard from '@/mobile/components/ChatBoard.vue'
 import GameInfoCard from '@/universal/components/GameInfoCard.vue'
 import IconButton from '@/universal/components/IconButton.vue'
 import { removeData } from '@/utils'
@@ -59,14 +62,19 @@ const roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.
 const gameRoomData = ref<GameRoom>()
 const isLoading = ref(true)
 const chat = ref()
+const debugDisplay = ref('1111')
+const showPlayerList = ref(false)
 
-if ("virtualKeyboard" in navigator) {
-  (navigator as any).virtualKeyboard.overlaysContent = true;
+// if ("virtualKeyboard" in navigator) {
+//   debugDisplay.value = "virtualKeyboard is supported";
+//   (navigator as any).virtualKeyboard.overlaysContent = true;
 
-  (navigator as any).virtualKeyboard.addEventListener("geometrychange", (event:any) => {
-    const { x, y, width, height } = event.target.boundingRect;
-  });
-}
+//   (navigator as any).virtualKeyboard.addEventListener("geometrychange", (event:any) => {
+//     const { x, y, width, height } = event.target.boundingRect;
+//     debugDisplay.value = `x: ${x}, y: ${y}, width: ${width}, height: ${height}`;
+//   });
+// }
+
 
 async function gameClosedListener(response: SignalrResponse) {
     emits('onGameClosed', response)
@@ -80,6 +88,10 @@ async function leaveRoom() {
 
 function pushMessage(msg: Message) {
     chat.value.pushMessage(msg)
+}
+
+function openPlayerList() {
+    showPlayerList.value = true
 }
 
 defineExpose({ pushMessage })
@@ -110,8 +122,14 @@ watch(
     }
 )
 
+const handleResize = () => {
+    debugDisplay.value = `innerWidth: ${window.innerWidth}, innerHeight: ${window.innerHeight}`
+}
+
 onMounted(async () => {
     gameRoomData.value = await getGame(roomId)
+    
+    window.addEventListener('resize', handleResize)
 })
 
 onUnmounted(() => {
@@ -143,24 +161,24 @@ onUnmounted(() => {
         flex-direction: column;
 
         .chat-area {
-            height: calc(100% - 162px);
             display: flex;
+        }
+        
+        .player-list {
+            width: 280px;
 
-            & > div {
-                height: 100%;
-            }
-
-            .player-list {
-                width: 240px;
-                margin-left: 10px;
-
-                .play-item {
-                    display: flex;
-                    align-items: center;
-                    margin-bottom: 3px;
-                }
+            .play-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 3px;
             }
         }
     }
+
+}
+
+.player-list-modal {
+    width: 80vw;
+    height: 80vh;
 }
 </style>

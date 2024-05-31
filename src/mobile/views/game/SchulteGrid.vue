@@ -22,11 +22,37 @@
                 </n-card>
                 <hit-effect ref="hit"></hit-effect>
             </div>
-            <div class="game-guide">
+            <div class="game-guide" v-if="false">
                 <div class="amiya-face" :style="amiyaFaceStyle"></div>
                 <n-card class="amiya-chat" embedded content-style="padding: 0;">{{ amiyaChat }}</n-card>
             </div>
+            
         </div>
+        <template v-slot:players>
+            <template v-for="(items, name) in playersRanking" :key="name">
+                <template v-if="items.length">
+                    <div class="rank-title">{{ playersRankingNames[name] }}</div>
+                    <div class="play-item" v-for="(item, index) in items" :key="index">
+                        <template v-if="name != 'others'">
+                            <n-avatar
+                                size="large"
+                                round
+                                :src="item.avatar"
+                                :img-props="{ referrerpolicy: 'no-referrer' }"
+                            />
+                            <div style="padding-left: 5px">
+                                <div>{{ item.name }}</div>
+                                <div class="score">得分: {{ item.score }}</div>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <n-avatar round :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }" />
+                            <span style="padding-left: 5px">{{ item.name }}</span>
+                        </template>
+                    </div>
+                </template>
+            </template>
+        </template>
     </game-base>
 </template>
 
@@ -60,6 +86,16 @@ interface ExpandedDataItem {
     placeholder: boolean
 }
 
+type RankNames = 'golden' | 'silver' | 'bronze' | 'others'
+
+const playersRankingNames: { [key in RankNames]: string } = {
+    golden: '🏅 金榜',
+    silver: '🥈 银榜',
+    bronze: '🥉 铜榜',
+    others: '🍉 吃瓜群众'
+}
+
+
 const route = useRoute()
 const gameHub = useGameHubStore()
 
@@ -81,6 +117,40 @@ const amiyaFaceStyle = computed<CSSProperties>(() => {
     return {
         backgroundImage: `url(/face/amiya/amiya_${amiyaFace.value}.webp)`
     }
+})
+
+const playersRanking = computed(() => {
+    const playerList = players.value
+    const sortedData = [...playerList]
+
+    sortedData.sort((a, b) => b.score - a.score)
+
+    const result: { [key in RankNames]: GamePlayer[] } = { golden: [], silver: [], bronze: [], others: [] }
+
+    if (sortedData.length) {
+        let goldScore = sortedData[0].score || -1 // 金榜分数线
+        let silverScore = -1 // 银榜分数线
+
+        for (const item of sortedData) {
+            if (item.score && item.score < goldScore) {
+                silverScore = item.score
+                break
+            }
+        }
+
+        for (const item of playerList) {
+            if (item.score === goldScore) {
+                result.golden.push(item)
+            } else if (item.score === silverScore) {
+                result.silver.push(item)
+            } else if (item.score > 0) {
+                result.bronze.push(item)
+            } else {
+                result.others.push(item)
+            }
+        }
+    }
+    return result
 })
 
 let timeRecord = 0
@@ -232,7 +302,7 @@ onMounted(() => {
          * 骚话环节！这里的判断有点多，要在有人说话和有人回答之间做判断（有人说话不一定有人回答）
          */
 
-        if (timeRecord >= 3) {
+         if (timeRecord >= 20) {
             if (timeRecordChat < timeRecord) {
                 face = 'tea'
                 chat = '博士们在讨论什么呢？有没有想好答案了呀~'
@@ -241,9 +311,9 @@ onMounted(() => {
                 chat = '博士们在思考吗？怎么没有博士说话了呢？'
             }
         }
-        if (timeRecord >= 6) {
+        if (timeRecord >= 60) {
             face = 'nervous'
-            chat = '博士们，欢迎参加本场比赛，我是你们的向导：兔兔！比赛已经开始啦，请博士在上面的表中找到干员的【技能名】，然后在聊天框里发送【干员名】进行竞猜。'
+            chat = '博士，实在不行，先随便猜一个试试吧……'
         }
 
         if (face && chat) {
@@ -261,7 +331,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-$guideHeight: 60px;
+$guideHeight: 0px;
 
 .game-body {
     height: calc(100% - $guideHeight);
@@ -303,6 +373,26 @@ $guideHeight: 60px;
     
     .amiya-chat-content{
         padding: 0px;
+    }
+}
+
+.rank-title {
+    font-size: 16px;
+    margin: 15px 0 10px 0;
+
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+.play-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 3px;
+
+    .score {
+        color: #ff3d00;
+        font-size: 12px;
     }
 }
 </style>

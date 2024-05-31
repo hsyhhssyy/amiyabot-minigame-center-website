@@ -10,7 +10,9 @@
                         <icon-button :icon="Play" type="success" @click="startGame">开始游戏</icon-button>
                         <icon-button :icon="Close" type="error" @click="closeRoom">关闭房间</icon-button>
                     </template>
-                    <icon-button :icon="Logout" type="warning" @click="leaveRoom">退出房间</icon-button>
+                    <template v-else>
+                        <icon-button :icon="Logout" type="warning" @click="leaveRoom">退出房间</icon-button>
+                    </template>
                 </template>
             </game-info-card>
             <n-card>
@@ -185,6 +187,7 @@ onUnmounted(async () => {
     height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: auto;
 
     & > div {
         margin-bottom: 10px;

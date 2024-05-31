@@ -119,8 +119,8 @@ async function addBotToGroup() {
             cursor: pointer;
 
             .item {
-                width: 150px;
-                height: 150px;
+                width: calc(35vw - 10px);
+                height: calc(35vw - 10px);
                 background: center top 0 / 80% no-repeat;
                 display: flex;
                 align-items: flex-end;

@@ -1,13 +1,13 @@
 <template>
-    <n-card class="room-list" >
+    <n-card class="room-list" size="small">
         <div class="room-list-body">
-            <n-space justify="space-evenly" style="padding: 0 5px">
+            <n-space justify="space-evenly" style="padding: 0 0px">
                 <n-space>
                     <icon-button :icon="Refresh" type="info" @click="getList">刷新房间列表</icon-button>
                     <icon-button :icon="Back" @click="goBack" type="error">返回</icon-button>
                 </n-space>
                 <n-input-group>
-                    <n-input placeholder="输入关键字以搜索" />
+                    <n-input placeholder="输入关键字以搜索" style="margin-right: 5px"/>
                     <icon-button :icon="Search" type="primary">搜索房间</icon-button>
                 </n-input-group>
             </n-space>
@@ -38,21 +38,22 @@
                                         </n-space>
                                     </div>
                                 </n-space>
-                                <n-space>
-                                    <n-tag type="warning" v-if="item.isStarted">进行中</n-tag>
-                                    <n-tag type="info" v-else>等待中</n-tag>
+                                <n-space style="margin-top: 10px;">
+                                    <n-tag type="warning" v-if="item.isStarted">
+                                                    <icon :icon="Play" /></n-tag>
+                                    <n-tag type="info" v-else>
+                                                    <icon :icon="Hourglass" /></n-tag>
                                 </n-space>
                             </n-space>
                             <div class="room-info">
                                 <div class="info-item creator">
                                     <icon :icon="UserBusiness" />
-                                    创建人：
                                     <n-avatar :size="25" :src="item.creatorAvatar || '/avatar.webp'" :img-props="{ referrerpolicy: 'no-referrer' }"/>
                                     {{ item.creatorNickname }}
                                 </div>
                                 <div class="info-item">
                                     <icon :icon="CalendarThirty" />
-                                    创建日期：{{ formatDate(item.createTime) }}
+                                    {{ formatDate(item.createTime) }}
                                 </div>
                             </div>
                             <n-space align="center">
@@ -74,7 +75,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Back, CalendarThirty, KeyOne, Lightning, Peoples, Refresh, Search, UserBusiness } from '@icon-park/vue-next'
+import { Back, CalendarThirty, KeyOne, Lightning, Peoples, Refresh, Search, UserBusiness, Hourglass, Play } from '@icon-park/vue-next'
 import type { GameRoom } from '@/api/game'
 import { listGame } from '@/api/game'
 import { formatDate } from '@/utils'
@@ -109,7 +110,11 @@ async function join(room: GameRoom) {
 }
 
 async function getList() {
-    roomList.value = await listGame()
+    const rooms = await listGame()
+
+    rooms.sort((a, b) => new Date(b.createTime).getTime() - new Date(a.createTime).getTime())
+
+    roomList.value = rooms
     currPage.value = 1
     pageCount.value = Math.ceil(roomList.value.length / pageSize.value)
 }

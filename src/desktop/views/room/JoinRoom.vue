@@ -51,7 +51,7 @@ async function initJoinRoom() {
                 return
             }
 
-            if (route.name == 'waiting-room') {
+            if (route.name?.toString().startsWith('waiting-room')) {
                 return
             }
 
