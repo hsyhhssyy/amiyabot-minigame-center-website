@@ -34,10 +34,14 @@
                                     :type="item.id === hostId ? 'error' : 'info'"
                                     :value="item.id === hostId ? '房主' : '玩家'"
                                 >
-                                    <n-avatar size="large" :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }"/>
+                                    <n-avatar
+                                        size="large"
+                                        :src="item.avatar"
+                                        :img-props="{ referrerpolicy: 'no-referrer' }"
+                                    />
                                 </n-badge>
                             </template>
-                            <span>I wish they all could be California girls</span>
+                            <span>要踢我吗？但是这个功能还没实现捏！</span>
                         </n-popover>
                         <span>{{ item.name }}</span>
                     </n-space>
@@ -119,7 +123,10 @@ async function playerLeftListener(response: SignalrResponse) {
 }
 
 async function gameStartedListener() {
-    await startGame()
+    if (gameRoomData.value?.gameType) {
+        const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
+        await router.push(gameData.route + roomId)
+    }
 }
 
 async function gameClosedListener() {
@@ -128,10 +135,7 @@ async function gameClosedListener() {
 }
 
 async function startGame() {
-    if (gameRoomData.value?.gameType) {
-        const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
-        await router.push(gameData.route + roomId)
-    }
+    gameHub.invokeGameHub('StartGame', roomId)
 }
 
 async function closeRoom() {
