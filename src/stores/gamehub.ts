@@ -142,6 +142,15 @@ export const useGameHubStore = defineStore('gameHub', () => {
     }
 
     watch(
+        computed(() => isConnected.value),
+        async () => {
+            if (!isConnected.value) {
+                await connect()
+            }
+        }
+    )
+
+    watch(
         computed(() => user.userName),
         async () => {
             if (!isConnected.value) {

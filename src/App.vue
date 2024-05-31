@@ -11,7 +11,6 @@ import MobileApp from '@/mobile/MobileApp.vue'
 const route = useRoute()
 const router = useRouter()
 const key = ref(0)
-const isMobile = ref(window.innerWidth < 768)
 
 const layoutComponent = computed(() => {
     if (route.path.startsWith('/m/')) {
@@ -22,9 +21,11 @@ const layoutComponent = computed(() => {
 })
 
 const handleResize = () => {
-    isMobile.value = window.innerWidth < 768
-    if (isMobile.value && !route.path.startsWith('/m/')) {
+    if (window.innerWidth < 768 && !route.path.startsWith('/m/')) {
         router.replace(`/m${route.fullPath}`)
+    }
+    if(window.innerWidth >= 768 && route.path.startsWith('/m/')) {
+        router.replace(route.fullPath.replace('/m/','/'))
     }
 }
 

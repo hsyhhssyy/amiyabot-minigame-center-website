@@ -15,6 +15,10 @@ router.beforeEach((to, _from, next) => {
         next(`/m${to.path}`)
         return
     }
+    if(window.innerWidth >= 768 && to.path.startsWith('/m/') === true){
+        next(to.path.replace('/m/','/'))
+        return
+    }
 
 
     if (to.path !== '/' && to.path !== '/regular-home' && to.path !== '/m/' && to.path !== '/m/regular-home'){
