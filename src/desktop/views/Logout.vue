@@ -15,6 +15,8 @@ const router = useRouter()
 onMounted(async () => {
     removeData('jwt-token')
     removeData('user-role')
+    removeData('user-id')
+    removeData('email')
 
     // 给点延迟让大家看看可爱的兔兔！
     setTimeout(async () => await router.push('/login'), 1500)
