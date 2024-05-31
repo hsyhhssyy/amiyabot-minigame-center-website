@@ -378,6 +378,8 @@ function gameInfoListener(response: SignalrResponse) {
         }
     })
 
+    response.Payload.AnswerList.sort((a, b) => new Date(a.AnswerTime).getTime() - new Date(b.AnswerTime).getTime())
+
     answerList.value = response.Payload.AnswerList || []
     remainingAnswerList.value = response.Payload.RemainingAnswers || []
 
