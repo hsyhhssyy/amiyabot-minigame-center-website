@@ -133,6 +133,7 @@ interface Answer {
     SkillName: string
     CharacterName: string
     GridPointList: { X: number; Y: number }[]
+    AnswerTime: string
 }
 
 type RankNames = 'golden' | 'silver' | 'bronze' | 'others'
@@ -377,6 +378,10 @@ function gameInfoListener(response: SignalrResponse) {
             score: p.Score
         }
     })
+
+    response.Payload.AnswerList.sort(
+        (a: Answer, b: Answer) => new Date(a.AnswerTime).getTime() - new Date(b.AnswerTime).getTime()
+    )
 
     answerList.value = response.Payload.AnswerList || []
     remainingAnswerList.value = response.Payload.RemainingAnswers || []
