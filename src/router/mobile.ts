@@ -43,6 +43,14 @@ const mobileRoutes: RouteRecordRaw[] = [
                     pageName: '游戏房间'
                 },
                 component: () => import('@/mobile/views/room/WaitingRoom.vue')
+            },
+            {
+                path: 'edit-profile',
+                name: 'edit-profile-mobile',
+                meta: {
+                    pageName: '编辑个人资料'
+                },
+                component: () => import('@/mobile/views/EditProfile.vue')
             }
         ]
     },

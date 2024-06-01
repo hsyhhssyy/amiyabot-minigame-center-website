@@ -74,3 +74,25 @@ export async function registerApi(email: string, password: string, nickname: str
         }
     })
 }
+
+
+export const changeUserInfoApi = async (nickname: string, avatar: string, avatarType: string) => {
+    return await serverRequest.post<UserToken>({
+        url: '/api/account/change-user-info',
+        data: {
+            nickname: nickname,
+            avatar: avatar,
+            avatarType: avatarType
+        }
+    })
+}
+
+export const changePasswordApi = async (oldPassword:string, newPassword:string) => {
+    return await serverRequest.post<UserToken>({
+        url: '/api/account/change-password',
+        data: {
+            currentPassword: oldPassword,
+            newPassword: newPassword,
+        }
+    })
+}

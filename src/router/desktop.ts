@@ -43,7 +43,15 @@ const desktopRoutes: RouteRecordRaw[] = [
                     pageName: '游戏房间'
                 },
                 component: () => import('@/desktop/views/room/WaitingRoom.vue')
-            }
+            },
+            {
+                path: 'edit-profile',
+                name: 'edit-profile',
+                meta: {
+                    pageName: '编辑个人资料'
+                },
+                component: () => import('@/desktop/views/EditProfile.vue')
+            }        
         ]
     },
     {

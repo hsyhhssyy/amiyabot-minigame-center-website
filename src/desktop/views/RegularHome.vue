@@ -21,6 +21,7 @@
                             <n-descriptions-item label="亚军">{{ totalGameTop2 }}</n-descriptions-item>
                             <n-descriptions-item label="季军">{{ totalGameTop3 }}</n-descriptions-item>
                         </n-descriptions>
+                        <icon-button class="edit-profile" :icon="Editor" @click="editProfile"></icon-button>
                     </n-card>
                     <div class="actions">
                         <n-card class="action-item" hoverable embedded size="small" @click="createGame">
@@ -70,7 +71,7 @@ import { useGameHubStore } from '@/stores/gamehub'
 import { useUserStore } from '@/stores/user'
 import { statisticsApi } from '@/api/game'
 import { getData } from '@/utils'
-import { Lightning, Logout } from '@icon-park/vue-next'
+import { Lightning, Logout, Editor } from '@icon-park/vue-next'
 import IconButton from '@/universal/components/IconButton.vue'
 import JoinRoom from '@/desktop/views/room/JoinRoom.vue'
 
@@ -100,6 +101,10 @@ async function createGame() {
 async function joinGame(code?: string) {
     await joinRoomComp.value.join(code || joinRoomCode.value)
     showJoinModal.value = false
+}
+
+async function editProfile() {
+    await router.push('/regular-home/edit-profile')
 }
 
 async function roomList() {
@@ -237,6 +242,12 @@ onMounted(async () => {
                     }
                 }
             }
+        }
+
+        .edit-profile {
+            position: absolute;
+            right: 10px;
+            top: 10px;
         }
     }
 

@@ -39,3 +39,13 @@ export async function statisticsApi(playerId: string): Promise<any> {
         url: '/api/gameHub/player/' + playerId + '/statistics'
     })
 }
+
+export async function jmesPathQuery(file:string,query:string): Promise<any>{
+    return await serverRequest.post({
+        url: '/api/arknights/jmes-path', 
+        data: {
+            file: file,
+            query: query
+        }
+    })
+}

@@ -5,7 +5,7 @@
             <div class="user-panel" v-if="route.name === 'regular-home-mobile'">
                 <n-card class="user-card" size="small">
                     <div class="user-avatar">
-                        <img :src="user.userAvatar" alt="avatar" class="avatar" referrerpolicy="no-referrer"/>
+                        <img :src="user.userAvatar" alt="avatar" class="avatar" referrerpolicy="no-referrer" />
                         <div class="nickname">
                             <span>{{ user.userName }}</span>
                             <span>通行证ID: {{ user.userInfo?.id }}</span>
@@ -20,6 +20,7 @@
                         <n-descriptions-item label="亚军">{{ totalGameTop2 }}</n-descriptions-item>
                         <n-descriptions-item label="季军">{{ totalGameTop3 }}</n-descriptions-item>
                     </n-descriptions>
+                    <icon-button class="edit-profile" :icon="Editor" @click="editProfile"></icon-button>
                 </n-card>
                 <div class="actions">
                     <n-card class="action-item" hoverable embedded size="small" @click="createGame">
@@ -46,7 +47,7 @@
             <icon-button :icon="Logout" @click="logout" type="error">退出登录</icon-button>
         </div>
     </div>
-    <n-modal class="create-collection" v-model:show="showJoinModal" :mask-closable="false" style="width: 400px">
+    <n-modal class="create-collection" v-model:show="showJoinModal" :mask-closable="false" style="width: 80vw">
         <n-card size="huge" title="加入游戏" role="dialog" aria-modal="true" closable @close="showJoinModal = false">
             <n-form>
                 <n-form-item label="房间号">
@@ -68,7 +69,7 @@ import { useGameHubStore } from '@/stores/gamehub'
 import { useUserStore } from '@/stores/user'
 import { statisticsApi } from '@/api/game'
 import { getData } from '@/utils'
-import { Lightning, Logout } from '@icon-park/vue-next'
+import { Lightning, Logout, Editor } from '@icon-park/vue-next'
 import IconButton from '@/universal/components/IconButton.vue'
 import JoinRoom from '@/desktop/views/room/JoinRoom.vue'
 
@@ -84,6 +85,7 @@ const isLoading = ref(true)
 const joinRoomComp = ref()
 const joinRoomCode = ref('')
 const showJoinModal = ref(false)
+const selectedAvatarId = ref('')
 
 const totalGamePlayed = ref(0)
 const totalGameTop3 = ref(0)
@@ -98,6 +100,10 @@ async function createGame() {
 async function joinGame(code?: string) {
     await joinRoomComp.value.join(code || joinRoomCode.value)
     showJoinModal.value = false
+}
+
+async function editProfile() {
+    await router.push('/m/regular-home/edit-profile')
 }
 
 async function roomList() {
@@ -147,7 +153,7 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-        padding-top: 20px;
+    padding-top: 20px;
 
     .title {
         font-size: 34px;
@@ -202,7 +208,7 @@ onMounted(async () => {
             justify-content: space-between;
 
             .action-item {
-                width: calc( 50% - 10px );
+                width: calc(50% - 10px);
                 height: 100px;
                 margin-bottom: 20px;
                 cursor: pointer;
@@ -237,6 +243,12 @@ onMounted(async () => {
                 }
             }
         }
+
+        .edit-profile {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+        }
     }
 
     .loading {
@@ -244,15 +256,16 @@ onMounted(async () => {
         flex-direction: column;
         align-items: center;
 
-        & > img {
+        &>img {
             width: 100px;
             height: 100px;
         }
 
-        & > div {
+        &>div {
             margin: 10px 0;
         }
     }
+
 }
 
 .view-container {
@@ -260,4 +273,12 @@ onMounted(async () => {
     height: calc(100% - 120px);
     padding: 20px;
 }
+
+
+</style>
+
+<style lang="scss">
+
+
+
 </style>

@@ -28,7 +28,7 @@ export const useUserStore = defineStore('user', () => {
 
     init().then()
 
-    return { userInfo, userName, userAvatar }
+    return { userInfo, userName, userAvatar, init }
 })
 
 export function useUser() {
