@@ -9,9 +9,7 @@
                 <div class="avatar-list">
                     <div v-for="(avatar, index) in avatars.filter(a => a.profession === profession)" :key="index"
                         @click="handleAvatarClick(avatar)" :class="{ 'avatar-cell':true, 'selected': selectedAvatar === avatar }">
-                        <img :src="loadedAvatarImages.includes(avatar.url) ? avatar.url : ''"
-                            v-if="loadedAvatarImages.includes(avatar.url)" />
-                        <div class="alt-div" v-if="!loadedAvatarImages.includes(avatar.url)">{{ avatar.alt }}</div>
+                        <img :src="avatar.url" referrerpolicy="no-referrer" alt="请求过于频繁"/>
                     </div>
                 </div>
             </div>
@@ -50,25 +48,6 @@ const handleAvatarClick = (avatar: Avatar) => {
     model.value = avatar;
 };
 
-const loadImage = (url: string) => {
-    return new Promise(resolve => {
-        const img = new Image();
-        img.referrerPolicy = 'no-referrer';
-        img.src = url;
-        img.onload = () => resolve(url);
-    });
-}
-
-const loadImagesSequentially = async () => {
-    while (loadIndex.value < avatars.value.length) {
-        const index = loadIndex.value
-        loadIndex.value++;
-        const url = avatars.value[index].url;
-        await loadImage(url);
-        loadedAvatarImages.value.push(url);
-    }
-}
-
 onMounted(async () => {
     var response = await jmesPathQuery("character_table_full.json",
         "map(&{\"charId\":@.charId, \"name\":@.name,\"profession\":@.profession, \"skin\":to_array(@.skins)[0].skinId},values(@))");
@@ -83,8 +62,6 @@ onMounted(async () => {
             profession: item.profession
         }
     });
-
-    await loadImagesSequentially();
 });
 
 </script>
