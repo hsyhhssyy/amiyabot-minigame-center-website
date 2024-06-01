@@ -6,7 +6,8 @@
         <div class="player-panel">
             <game-info-card class="game-info" :room-data="gameRoomData">
                 <template #buttons>
-                    <icon-button :icon="Logout" type="error" @click="leaveRoom">退出房间</icon-button>
+                    <icon-button :icon="Sport" type="warning" @click="endGame" v-if="isHost&&!isCompleted">放弃游戏</icon-button>
+                    <icon-button :icon="Logout" type="error" @click="leaveRoom" v-if="!isHost||isCompleted">退出房间</icon-button>
                 </template>
             </game-info-card>
             <div class="chat-area">
@@ -32,9 +33,10 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Logout } from '@icon-park/vue-next'
+import { Logout,Sport } from '@icon-park/vue-next'
 import type { SignalrResponse } from '@/api/signalr'
 import { useGameHubStore } from '@/stores/gamehub'
+import { useUserStore } from '@/stores/user'
 import type { GameRoom } from '@/api/game'
 import { getGame } from '@/api/game'
 import type { ChatProps, Message } from '@/universal/components/ChatBoard.vue'
@@ -59,12 +61,15 @@ const props = defineProps<GameProps>()
 const route = useRoute()
 const router = useRouter()
 const gameHub = useGameHubStore()
+const user = useUserStore()
 
 const roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 
 const gameRoomData = ref<GameRoom>()
 const isLoading = ref(true)
 const chat = ref()
+const isCompleted = ref(false)
+const isHost = computed(() => gameRoomData.value?.creatorId == user.userInfo?.id)
 
 async function leaveRoom() {
     removeData('current-game-id')
@@ -72,11 +77,16 @@ async function leaveRoom() {
     await router.push('/regular-home')
 }
 
+async function endGame(){
+    gameHub.invokeGameHub('CompleteGame', roomId)
+}
+
 function gameClosedListener(response: SignalrResponse) {
     emits('onGameClosed', response)
 }
 
 function gameCompletedListener(response: SignalrResponse) {
+    isCompleted.value = true
     emits('onGameCompleted', response)
 }
 
@@ -114,11 +124,12 @@ watch(
 
 onMounted(async () => {
     gameRoomData.value = await getGame(roomId)
+    isCompleted.value = gameRoomData.value?.isCompleted || false
     emits('onRoomData', gameRoomData.value as GameRoom)
 })
 
 onUnmounted(() => {
-    gameHub.removeGameHubListener('GameCompleted', gameClosedListener)
+    gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
     gameHub.removeGameHubListener('GameClosed', gameClosedListener)
     clearInterval(getGameInterval)
 })

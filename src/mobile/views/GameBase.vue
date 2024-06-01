@@ -13,7 +13,8 @@
             />
             <game-info-card class="game-info" :room-data="gameRoomData">
                 <template #buttons>
-                    <icon-button :icon="Logout" type="error" @click="leaveRoom">退出房间</icon-button>
+                    <icon-button :icon="Sport" type="warning" @click="endGame" v-if="isHost&&!isCompleted">放弃游戏</icon-button>
+                    <icon-button :icon="Logout" type="error" @click="leaveRoom" v-if="!isHost||isCompleted">退出房间</icon-button>
                 </template>
             </game-info-card>
         </div>
@@ -33,9 +34,10 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Logout } from '@icon-park/vue-next'
+import { Logout,Sport } from '@icon-park/vue-next'
 import type { SignalrResponse } from '@/api/signalr'
 import { useGameHubStore } from '@/stores/gamehub'
+import { useUserStore } from '@/stores/user'
 import type { GameRoom } from '@/api/game'
 import { getGame } from '@/api/game'
 import type { ChatProps, Message } from '@/universal/components/ChatBoard.vue'
@@ -47,8 +49,10 @@ import { removeData } from '@/utils'
 interface GameProps extends ChatProps {}
 
 const emits = defineEmits<{
-    (e: 'onLoaded'): void;
-    (e: 'onGameClosed', response: SignalrResponse): void;
+    (e: 'onLoaded'): void
+    (e: 'onRoomData', data: GameRoom): void
+    (e: 'onGameClosed', response: SignalrResponse): void
+    (e: 'onGameCompleted', response: SignalrResponse): void
 }>()
 
 const props = defineProps<GameProps>()
@@ -56,25 +60,27 @@ const props = defineProps<GameProps>()
 const route = useRoute()
 const router = useRouter()
 const gameHub = useGameHubStore()
+const user = useUserStore()
 
 const roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 
 const gameRoomData = ref<GameRoom>()
 const isLoading = ref(true)
 const chat = ref()
-const debugDisplay = ref('1111')
+
+const isCompleted = ref(false)
+const isHost = computed(() => gameRoomData.value?.creatorId == user.userInfo?.id)
+
 const showPlayerList = ref(false)
 
-// if ("virtualKeyboard" in navigator) {
-//   debugDisplay.value = "virtualKeyboard is supported";
-//   (navigator as any).virtualKeyboard.overlaysContent = true;
+async function endGame(){
+    gameHub.invokeGameHub('CompleteGame', roomId)
+}
 
-//   (navigator as any).virtualKeyboard.addEventListener("geometrychange", (event:any) => {
-//     const { x, y, width, height } = event.target.boundingRect;
-//     debugDisplay.value = `x: ${x}, y: ${y}, width: ${width}, height: ${height}`;
-//   });
-// }
-
+function gameCompletedListener(response: SignalrResponse) {
+    isCompleted.value = true
+    emits('onGameCompleted', response)
+}
 
 async function gameClosedListener(response: SignalrResponse) {
     emits('onGameClosed', response)
@@ -105,7 +111,7 @@ watch(
 
         if (value) {
             emits('onLoaded')
-            gameHub.addGameHubListener('GameCompleted', gameClosedListener)
+            gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
             gameHub.addGameHubListener('GameClosed', gameClosedListener)
             gameHub.invokeGameHub('GetGame', roomId)
 
@@ -122,18 +128,14 @@ watch(
     }
 )
 
-const handleResize = () => {
-    debugDisplay.value = `innerWidth: ${window.innerWidth}, innerHeight: ${window.innerHeight}`
-}
-
 onMounted(async () => {
     gameRoomData.value = await getGame(roomId)
-    
-    window.addEventListener('resize', handleResize)
+    isCompleted.value = gameRoomData.value?.isCompleted
+    emits('onRoomData', gameRoomData.value as GameRoom)
 })
 
 onUnmounted(() => {
-    gameHub.removeGameHubListener('GameCompleted', gameClosedListener)
+    gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
     gameHub.removeGameHubListener('GameClosed', gameClosedListener)
     clearInterval(getGameInterval)
 })

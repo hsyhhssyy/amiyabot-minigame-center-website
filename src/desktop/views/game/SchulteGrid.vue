@@ -271,6 +271,8 @@ function gameInfo(data: GameRoom) {
 function gameCompleted(response: SignalrResponse) {
     const answers = response.Payload.RemainingAnswers
 
+    remainingAnswerList.value = answers
+
     clearInterval(timeRecordInterval)
 
     amiyaFace.value = answers.length ? 'ye' : 'joy'

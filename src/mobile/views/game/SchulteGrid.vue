@@ -1,20 +1,14 @@
 <template>
-    <game-base :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load" ref="base">
+    <game-base :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load" @on-room-data="gameInfo"
+        @on-game-completed="gameCompleted" ref="base">
         <div style="height: 100%; ">
             <div class="game-body">
                 <n-card embedded :bordered="false" style="width: fit-content">
                     <n-grid :x-gap="2" :y-gap="2" :cols="x" style="width: fit-content">
                         <n-grid-item v-for="(item, index) in expandedData" :key="index">
-                            <n-button
-                                size="small"
-                                class="char"
-                                :class="{ active: !item.recent && !item.fade }"
-                                :dashed="item.fade"
-                                :strong="!item.fade"
-                                :disabled="item.fade"
-                                :secondary="item.recent"
-                                :type="colors(item)"
-                            >
+                            <n-button size="small" class="char" :class="{ active: !item.recent && !item.fade }"
+                                :dashed="item.fade" :strong="!item.fade" :disabled="item.fade" :secondary="item.recent"
+                                :type="colors(item)">
                                 {{ item.char }}
                             </n-button>
                         </n-grid-item>
@@ -26,7 +20,7 @@
                 <div class="amiya-face" :style="amiyaFaceStyle"></div>
                 <n-card class="amiya-chat" embedded content-style="padding: 0;">{{ amiyaChat }}</n-card>
             </div>
-            
+
         </div>
         <template v-slot:players>
             <template v-for="(items, name) in playersRanking" :key="name">
@@ -34,12 +28,8 @@
                     <div class="rank-title">{{ playersRankingNames[name] }}</div>
                     <div class="play-item" v-for="(item, index) in items" :key="index">
                         <template v-if="name != 'others'">
-                            <n-avatar
-                                size="large"
-                                round
-                                :src="item.avatar"
-                                :img-props="{ referrerpolicy: 'no-referrer' }"
-                            />
+                            <n-avatar size="large" round :src="item.avatar"
+                                :img-props="{ referrerpolicy: 'no-referrer' }" />
                             <div style="padding-left: 5px">
                                 <div>{{ item.name }}</div>
                                 <div class="score">得分: {{ item.score }}</div>
@@ -63,6 +53,7 @@ import { useRoute } from 'vue-router'
 import { useGameHubStore } from '@/stores/gamehub'
 import type { SignalrResponse } from '@/api/signalr'
 import type { Player } from '@/def/players'
+import type { GameRoom } from '@/api/game'
 import GameBase from '@/mobile/views/GameBase.vue'
 import type { HitType } from '@/desktop/components/effects/HitEffect.vue'
 import HitEffect from '@/desktop/components/effects/HitEffect.vue'
@@ -104,10 +95,12 @@ const y = ref(2)
 const font_factor = ref(10)
 const players = ref<GamePlayer[]>([])
 const expandedData = ref<ExpandedDataItem[]>([])
+const RemainingAnswerPushed = ref(false)
 
 const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 const base = ref()
 const hit = ref()
+const baseLoaded =  ref(false)
 
 const amiyaFace = ref('smile')
 const amiyaChat = ref(
@@ -241,6 +234,46 @@ function receiveMoveListener(response: SignalrResponse) {
     } as Message)
 }
 
+function gameInfo(data: GameRoom) {
+    baseLoaded.value = true
+    if (data.isClosed) {
+        amiyaFace.value = 'wuwu'
+        amiyaChat.value = '博士，游戏已经结束了……下次请早点来吧~'
+    }
+}
+
+function gameCompleted(response: SignalrResponse) {
+    const answers = response.Payload.RemainingAnswers
+    pushRemainingAnswers(answers)
+}
+
+function pushRemainingAnswers(answers : any){
+    if(RemainingAnswerPushed.value){
+        return
+    }
+    if(!base.value||!baseLoaded.value){
+        return
+    }
+    RemainingAnswerPushed.value = true
+    base.value.pushMessage({
+            userId: "",
+            content: "该局游戏已经结束了"+ (answers.length?"，剩余的答案如下：":"。" ),
+            style: "Correct",
+            nickname: '阿米娅',
+            avatar: '/amiya.jpg'
+        } as Message)
+
+    for (const answer of answers) {
+        base.value.pushMessage({
+            userId: "",
+            content: answer.CharacterName + " - " + answer.SkillName ,
+            style: "Correct",
+            nickname: '阿米娅',
+            avatar: '/amiya.jpg'
+        } as Message)
+    }    
+}
+
 async function gameInfoListener(response: SignalrResponse) {
     if (expandedData.value.length == 0) {
         const grid = response.Payload.Grid
@@ -283,6 +316,10 @@ async function gameInfoListener(response: SignalrResponse) {
             }
         }
     }
+
+    if(response.Game.IsCompleted){
+        pushRemainingAnswers(response.Payload.RemainingAnswers)
+    }
 }
 
 function load() {
@@ -302,7 +339,7 @@ onMounted(() => {
          * 骚话环节！这里的判断有点多，要在有人说话和有人回答之间做判断（有人说话不一定有人回答）
          */
 
-         if (timeRecord >= 20) {
+        if (timeRecord >= 20) {
             if (timeRecordChat < timeRecord) {
                 face = 'tea'
                 chat = '博士们在讨论什么呢？有没有想好答案了呀~'
@@ -341,8 +378,8 @@ $guideHeight: 0px;
     position: relative;
 
     .char {
-        width: calc( 10vw - 5px);
-        height: calc( 10vw - 5px);
+        width: calc(10vw - 5px);
+        height: calc(10vw - 5px);
         font-size: 20px;
         font-weight: bold;
         padding: 0;
@@ -370,8 +407,8 @@ $guideHeight: 0px;
         height: fit-content;
         padding: 0px;
     }
-    
-    .amiya-chat-content{
+
+    .amiya-chat-content {
         padding: 0px;
     }
 }
