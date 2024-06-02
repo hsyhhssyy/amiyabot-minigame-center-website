@@ -1,5 +1,5 @@
 <template>
-    <div class="game-base" v-if="!isLoading && gameRoomData">
+    <div class="game-base" v-if="!isGameHubLoading && gameRoomData">
         <div>
             <slot></slot>
         </div>
@@ -19,7 +19,7 @@
             </game-info-card>
         </div>
     </div>       
-    <n-modal class="player-list-modal" v-model:show="showPlayerList">
+    <n-modal class="player-list-modal" v-model:show="showPlayerList" title="排行榜" preset="dialog">
         <n-card title="玩家列表" size="small" class="player-list" embedded>
             <slot name="players">
                 <div class="play-item" v-for="(item, index) in players" :key="index">
@@ -40,7 +40,7 @@ import { useGameHubStore } from '@/stores/gamehub'
 import { useUserStore } from '@/stores/user'
 import type { GameRoom } from '@/api/game'
 import { getGame } from '@/api/game'
-import type { ChatProps, Message } from '@/universal/components/ChatBoard.vue'
+import type { ChatProps, Message } from '@/mobile/components/ChatBoard.vue'
 import ChatBoard from '@/mobile/components/ChatBoard.vue'
 import GameInfoCard from '@/universal/components/GameInfoCard.vue'
 import IconButton from '@/universal/components/IconButton.vue'
@@ -65,7 +65,8 @@ const user = useUserStore()
 const roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 
 const gameRoomData = ref<GameRoom>()
-const isLoading = ref(true)
+const isGameHubLoading = ref(true)
+const isMounted = ref(false)
 const chat = ref()
 
 const isCompleted = ref(false)
@@ -107,10 +108,11 @@ let getGameInterval: any = null
 watch(
     computed(() => gameHub.isConnected),
     (value: boolean) => {
-        isLoading.value = !value
+        isGameHubLoading.value = !value
 
         if (value) {
-            emits('onLoaded')
+            onLoadedCheck()
+
             gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
             gameHub.addGameHubListener('GameClosed', gameClosedListener)
             gameHub.invokeGameHub('GetGame', roomId)
@@ -128,10 +130,30 @@ watch(
     }
 )
 
+watch(
+    chat,
+    (newVal,oldValue) => {
+        if(newVal && !oldValue){
+            onLoadedCheck()
+        }
+    }
+)
+
+function onLoadedCheck(){
+    console.log(isGameHubLoading.value, chat.value, isMounted.value)
+    if(isGameHubLoading.value==false && chat.value && isMounted.value==true){
+        emits('onLoaded')
+    }
+}
+
 onMounted(async () => {
+    isMounted.value = true
+    onLoadedCheck()
+
     gameRoomData.value = await getGame(roomId)
     isCompleted.value = gameRoomData.value?.isCompleted
     emits('onRoomData', gameRoomData.value as GameRoom)
+
 })
 
 onUnmounted(() => {

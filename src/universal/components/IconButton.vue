@@ -24,29 +24,23 @@ const loading = ref(false)
 
 const emit = defineEmits(['click'])
 
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
-  let timeout: NodeJS.Timeout | undefined
-  return function (this: ThisParameterType<T>, ...args: Parameters<T>): void {
-    const context = this
+let timeout: NodeJS.Timeout | undefined
+let lastTime = 0
+const wait = 300 // 防抖等待时间
+
+
+async function handleClick(): Promise<void> {
+  const now = Date.now()
+  if (now - lastTime < wait) {
     clearTimeout(timeout)
-    timeout = setTimeout(() => func.apply(context, args), wait)
-  } as T
-}
-
-const debouncedClick = debounce(() => {
-  console.log('debounced click')  
-  try{
-    emit('click')
-    loading.value = false
-  }catch(e){
-    loading.value = false
-    throw e
+    timeout = setTimeout(async () => {
+      lastTime = now
+      await emit('click')
+    }, wait)
+  } else {
+    lastTime = now
+    await emit('click')
   }
-}, 300)
-
-function handleClick() {
-  loading.value = true
-  debouncedClick()
 }
 
 

@@ -1,5 +1,5 @@
 <template>
-    <game-base :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load" @on-room-data="gameInfo"
+    <game-base :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="onBaseLoaded"
         @on-game-completed="gameCompleted" ref="base">
         <div style="height: 100%; ">
             <div class="game-body">
@@ -16,11 +16,6 @@
                 </n-card>
                 <hit-effect ref="hit"></hit-effect>
             </div>
-            <div class="game-guide" v-if="false">
-                <div class="amiya-face" :style="amiyaFaceStyle"></div>
-                <n-card class="amiya-chat" embedded content-style="padding: 0;">{{ amiyaChat }}</n-card>
-            </div>
-
         </div>
         <template v-slot:players>
             <template v-for="(items, name) in playersRanking" :key="name">
@@ -47,16 +42,16 @@
 </template>
 
 <script lang="ts" setup>
-import type { CSSProperties } from 'vue'
 import { onUnmounted, ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGameHubStore } from '@/stores/gamehub'
 import type { SignalrResponse } from '@/api/signalr'
 import type { Player } from '@/def/players'
-import type { GameRoom } from '@/api/game'
+// import type { GameRoom } from '@/api/game'
 import GameBase from '@/mobile/views/GameBase.vue'
-import type { HitType } from '@/desktop/components/effects/HitEffect.vue'
-import HitEffect from '@/desktop/components/effects/HitEffect.vue'
+import type { HitType } from '@/mobile/components/effects/HitEffect.vue'
+import HitEffect from '@/mobile/components/effects/HitEffect.vue'
+import { useUser } from '@/stores/user'
 
 interface GamePlayer extends Player {
     score: number
@@ -89,28 +84,20 @@ const playersRankingNames: { [key in RankNames]: string } = {
 
 const route = useRoute()
 const gameHub = useGameHubStore()
+const user = useUser()
 
 const x = ref(2)
 const y = ref(2)
 const font_factor = ref(10)
 const players = ref<GamePlayer[]>([])
 const expandedData = ref<ExpandedDataItem[]>([])
+const isCompleted = ref(false)
 const RemainingAnswerPushed = ref(false)
 
 const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 const base = ref()
 const hit = ref()
-const baseLoaded =  ref(false)
-
-const amiyaFace = ref('smile')
-const amiyaChat = ref(
-    '博士们，欢迎参加本场比赛，我是你们的向导：兔兔！比赛已经开始啦，请博士在上面的表中找到干员的【技能名】，然后在聊天框里发送【干员名】进行竞猜。'
-)
-const amiyaFaceStyle = computed<CSSProperties>(() => {
-    return {
-        backgroundImage: `url(/face/amiya/amiya_${amiyaFace.value}.webp)`
-    }
-})
+const baseLoaded = ref(false)
 
 const playersRanking = computed(() => {
     const playerList = players.value
@@ -146,10 +133,6 @@ const playersRanking = computed(() => {
     return result
 })
 
-let timeRecord = 0
-let timeRecordChat = 0
-let timeRecordInterval: any = null
-
 function colors(item: ExpandedDataItem) {
     if (item.fade) {
         return 'tertiary'
@@ -183,9 +166,8 @@ function receiveMoveListener(response: SignalrResponse) {
     }
     if (result in effects) {
         const face = effects[result]
+        var hitMessage = ""
 
-        timeRecord = 0
-        amiyaFace.value = face
         switch (result) {
             case 'Correct':
                 const dataArray = [...expandedData.value]
@@ -209,21 +191,33 @@ function receiveMoveListener(response: SignalrResponse) {
 
                 expandedData.value = dataArray
 
-                amiyaChat.value =
-                    `正确！是干员【${characterName}】的技能【${skills.join('】【')}】！` +
-                    `Dr.${player?.name} 加 200 分！太棒啦！`
+                if (player?.id === user.userInfo?.id) {
+                    hitMessage = "恭喜你猜对了！"
+                } else {
+                    hitMessage = "恭喜" + player?.name + "猜出干员：" + characterName
+                }
+
                 break
             case 'Answered':
-                amiyaChat.value = `Dr.${player?.name}，干员【${characterName}】已经猜过啦！`
+                if (player?.id === user.userInfo?.id) {
+                    hitMessage = "该干员已被猜过了。"
+                }else{
+                    hitMessage = "玩家" + player?.name + "猜测是干员"+characterName+"，但是他已经被猜过了。"
+                }
                 break
             case 'Wrong':
-                amiyaChat.value = `答案不正确，再仔细看看吧，Dr.${player?.name}~`
+                if (player?.id === user.userInfo?.id) {
+                    hitMessage = "猜错了！" + characterName + "不在谜题中。"
+                }else{
+                    hitMessage = "玩家" + player?.name + "猜测是干员"+characterName+"，但是他猜错了。"
+                }
                 break
         }
 
-        hit.value.hit(face)
+        if(hitMessage !== ""){
+            hit.value.hit(face, hitMessage)
+        }
     }
-    timeRecordChat = 0
 
     base.value.pushMessage({
         userId: response.Payload.PlayerId,
@@ -234,44 +228,46 @@ function receiveMoveListener(response: SignalrResponse) {
     } as Message)
 }
 
-function gameInfo(data: GameRoom) {
-    baseLoaded.value = true
-    if (data.isClosed) {
-        amiyaFace.value = 'wuwu'
-        amiyaChat.value = '博士，游戏已经结束了……下次请早点来吧~'
-    }
-}
 
 function gameCompleted(response: SignalrResponse) {
     const answers = response.Payload.RemainingAnswers
-    pushRemainingAnswers(answers)
+    if (isCompleted.value === false) {
+        isCompleted.value = true
+        RemainingAnswerPushed.value = false
+        pushRemainingAnswers(answers)
+    }
 }
 
-function pushRemainingAnswers(answers : any){
-    if(RemainingAnswerPushed.value){
+function pushRemainingAnswers(answers: any) {
+    if (RemainingAnswerPushed.value) {
         return
     }
-    if(!base.value||!baseLoaded.value){
+    if (!base.value || !baseLoaded.value) {
         return
     }
+
     RemainingAnswerPushed.value = true
-    base.value.pushMessage({
+
+    if (isCompleted.value) {
+        base.value.pushMessage({
             userId: "",
-            content: "该局游戏已经结束了"+ (answers.length?"，剩余的答案如下：":"。" ),
+            content: "该局游戏已经结束了" + (answers.length ? "，未猜出的答案如下：" : "。"),
             style: "Correct",
             nickname: '阿米娅',
             avatar: '/amiya.jpg'
         } as Message)
 
-    for (const answer of answers) {
-        base.value.pushMessage({
-            userId: "",
-            content: answer.CharacterName + " - " + answer.SkillName ,
-            style: "Correct",
-            nickname: '阿米娅',
-            avatar: '/amiya.jpg'
-        } as Message)
-    }    
+        for (const answer of answers) {
+            base.value.pushMessage({
+                userId: "",
+                content: answer.CharacterName + " - " + answer.SkillName,
+                style: "Correct",
+                nickname: '阿米娅',
+                avatar: '/amiya.jpg'
+            } as Message)
+        }
+
+    }
 }
 
 async function gameInfoListener(response: SignalrResponse) {
@@ -317,51 +313,42 @@ async function gameInfoListener(response: SignalrResponse) {
         }
     }
 
-    if(response.Game.IsCompleted){
-        pushRemainingAnswers(response.Payload.RemainingAnswers)
-    }
+    isCompleted.value = response.Game.IsCompleted
+    pushRemainingAnswers(response.Payload.RemainingAnswers)
+
 }
 
-function load() {
-    gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
-    gameHub.addGameHubListener('GameInfo', gameInfoListener)
+
+function onBaseLoaded() {
+    baseLoaded.value = true;
+    base.value.pushMessage({
+        userId: "",
+        content: "博士们，欢迎参加本场比赛，我是你们的向导：兔兔！比赛已经开始啦，请博士在上面的表中找到干员的【技能名】，然后在聊天框里发送【干员名】进行竞猜。",
+        style: "Correct",
+        nickname: '阿米娅',
+        avatar: '/amiya.jpg'
+    } as Message)
 }
+
+watch(
+    computed(() => gameHub.isConnected),
+    (value: boolean) => {
+
+        if (value) {
+            gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
+            gameHub.addGameHubListener('GameInfo', gameInfoListener)
+
+        }
+    },
+    {
+        immediate: true
+    }
+)
 
 onMounted(() => {
-    timeRecordInterval = setInterval(() => {
-        timeRecord += 1
-        timeRecordChat += 1
-
-        let face = ''
-        let chat = ''
-
-        /**
-         * 骚话环节！这里的判断有点多，要在有人说话和有人回答之间做判断（有人说话不一定有人回答）
-         */
-
-        if (timeRecord >= 20) {
-            if (timeRecordChat < timeRecord) {
-                face = 'tea'
-                chat = '博士们在讨论什么呢？有没有想好答案了呀~'
-            } else {
-                face = 'emmm'
-                chat = '博士们在思考吗？怎么没有博士说话了呢？'
-            }
-        }
-        if (timeRecord >= 60) {
-            face = 'nervous'
-            chat = '博士，实在不行，先随便猜一个试试吧……'
-        }
-
-        if (face && chat) {
-            amiyaFace.value = face
-            amiyaChat.value = chat
-        }
-    }, 1000)
 })
 
 onUnmounted(() => {
-    clearInterval(timeRecordInterval)
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
 })

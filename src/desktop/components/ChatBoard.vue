@@ -33,7 +33,7 @@
         </n-card>
         <n-input-group>
             <n-input
-                :placeholder="props.placeholder || '输入内容，按回车键发送...'"
+                :placeholder="props.placeholder || '输入干员名称...'"
                 v-model:value="inputMessage"
                 @keydown.enter="sendMessage"
             />

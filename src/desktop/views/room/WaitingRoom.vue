@@ -70,7 +70,7 @@ import type { Player } from '@/def/players'
 import type { SignalrResponse } from '@/api/signalr'
 import IconButton from '@/universal/components/IconButton.vue'
 import Icon from '@/universal/components/Icon.vue'
-import ChatBoard from '@/universal/components/ChatBoard.vue'
+import ChatBoard from '@/desktop/components/ChatBoard.vue'
 import GameInfoCard from '@/universal/components/GameInfoCard.vue'
 
 const route = useRoute()
