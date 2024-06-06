@@ -63,6 +63,11 @@ const desktopRoutes: RouteRecordRaw[] = [
                 path: 'schulte-grid/:roomId',
                 name: 'schulte-grid',
                 component: () => import('@/desktop/views/game/SchulteGrid.vue')
+            }, 
+            {
+                path: 'cypher-challenge/:roomId',
+                name: 'cypher-challenge',
+                component: () => import('@/desktop/views/game/CypherChallenge.vue')
             }
         ]
     }

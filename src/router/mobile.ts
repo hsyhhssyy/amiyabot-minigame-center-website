@@ -63,6 +63,11 @@ const mobileRoutes: RouteRecordRaw[] = [
                 path: 'schulte-grid/:roomId',
                 name: 'schulte-grid-mobile',
                 component: () => import('@/mobile/views/game/SchulteGrid.vue')
+            }, 
+            {
+                path: 'cypher-challenge/:roomId',
+                name: 'cypher-challenge-m',
+                component: () => import('@/mobile/views/game/CypherChallenge.vue')
             }
         ]
     },

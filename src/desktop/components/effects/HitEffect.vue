@@ -55,6 +55,7 @@ defineExpose({ hit })
     left: 50%;
     opacity: 0;
     transform: translate(-50%, -50%);
+    z-index: 999;
 }
 
 .popup.hit-effect {

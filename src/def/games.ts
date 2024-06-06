@@ -32,6 +32,14 @@ export const gameList: GameItem[] = [
         type: 'SkillGuess',
         route: '/games/schulte-grid/',
         notAvailable: true
+    },
+    {
+        id: 4,
+        image: '/games/CypherChallenge.png',
+        name: '大帝的挑战',
+        type: 'CypherChallenge',
+        route: '/games/cypher-challenge/',
+        notAvailable: false
     }
 ]
 

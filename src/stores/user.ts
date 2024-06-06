@@ -18,7 +18,7 @@ export const useUserStore = defineStore('user', () => {
             await router.push('/logout')
             return
         }
-
+        
         userInfo.value = descRet
         userName.value = descRet.nickname
         if (descRet.avatar) {

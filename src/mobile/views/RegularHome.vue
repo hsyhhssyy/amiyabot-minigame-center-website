@@ -140,6 +140,8 @@ onMounted(async () => {
             totalGameTop2.value = ret.totalGamesSecondPlace
             totalGameTop1.value = ret.totalGamesFirstPlace
             totalAnswerAccuracy.value = ret.totalAnswersCorrect == 0 ? '0%' : accu.toFixed(2) + '%'
+        }else{
+            await router.push('/m/logout')
         }
     }
 })

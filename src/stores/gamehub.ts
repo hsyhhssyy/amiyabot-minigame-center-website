@@ -63,6 +63,7 @@ export const useGameHubStore = defineStore('gameHub', () => {
             await postConnectionSetup()
         } catch (error) {
             console.error('An error occurred while connecting to the game hub:', error)
+            setTimeout(connect, 1000);
         }
     }
 
