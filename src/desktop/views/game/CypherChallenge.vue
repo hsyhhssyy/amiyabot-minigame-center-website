@@ -1,6 +1,11 @@
 <template>
-    <game-base ref="base" :min-width="1630" :room-id="roomId" :input-handler="sendMove" :players="players"
-        @on-loaded="load" @on-room-data="gameBaseRoomData" @on-game-completed="gameCompleted">
+    <game-base ref="base" 
+        :min-width="1630" 
+        :room-id="roomId" 
+        :input-handler="sendMove" 
+        :players="players"
+        @on-loaded="load" 
+        >
         <n-card style="height: 100%" class="game-card">
             <div v-if="nextQuestionShown" class="overlay">
                 <n-card title="公布答案" class="overlay-card">
@@ -9,7 +14,12 @@
                             {{ currentQuestion?.CharacterName }} 
                         </n-statistic>
                     </n-flex>
-                    <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"></result-table>
+                    <result-table 
+                        :currentQuestion="currentQuestion" 
+                        :playersMap="playersMap" 
+                        :headers="headers"
+                        :show-answer="true"
+                    ></result-table>
                     <n-flex justify="center" style="margin-top: 20px;" align="center">
                         <div>
                             <n-badge color="green" v-for="player in players" style="margin-right: 5px;">
@@ -48,7 +58,12 @@
                                 </n-statistic>
                             </div>
                         </n-card>
-                        <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"></result-table>
+                        <result-table 
+                            :currentQuestion="currentQuestion" 
+                            :playersMap="playersMap" 
+                            :headers="headers"
+                            :showAnswer="false"
+                        ></result-table>
                         
                     </div>
                 </div>
@@ -167,7 +182,18 @@ const renderCountdown = ({ seconds }: { seconds: number }) => {
   return `${seconds}秒`;
 };
 
-const nextQuestionShown = ref(true)
+const nextQuestionShown = ref(false)
+const hasNextQuestion = computed(()=>{
+    if(game.value.IsCompleted){
+        return false
+    }
+
+    if(currentQuestionIndex.value===9){
+        return false
+    }
+
+    return true
+})
 
 const amiyaFace = ref<HitType>('smile')
 const amiyaChat = ref(
@@ -293,24 +319,6 @@ function sendMove(content: string) {
     )
 }
 
-function gameBaseRoomData(data: GameRoom) {
-    if (data.isClosed) {
-        amiyaFace.value = 'wuwu'
-        amiyaChat.value = '博士，游戏已经结束了……下次请早点来吧~'
-    } else {
-        timeRecordInterval = setInterval(chatting, 1000)
-    }
-}
-
-function gameCompleted(response: SignalrResponse) {
-
-    clearInterval(timeRecordInterval)
-
-    amiyaFace.value ='joy'
-    amiyaChat.value =
-        '游戏结束。'
-}
-
 function receiveMoveListener(response: SignalrResponse) {
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
 
@@ -372,10 +380,6 @@ function receiveMoveListener(response: SignalrResponse) {
 function gameInfoListener(response: SignalrResponse) {
     if (response.Payload.Game) {
         game.value = response.Payload.Game
-
-        if(currentQuestionIndex.value === null) {
-            moveToNextQuestion()
-        }
     }
 
     players.value = response.PlayerList.map((p: any) => {
@@ -404,11 +408,36 @@ function rallyPointReachedListener(response: SignalrResponse) {
     moveToNextQuestion()
 }
 
-function load() {
+function gameCompletedListener(){
+    clearInterval(timeRecordInterval)
+
+    amiyaFace.value ='joy'
+    amiyaChat.value =
+        '游戏结束。'
+
+    prepareNextQuestion()
+}
+
+function load(roomData:GameRoom,gameData:SignalrResponse) {
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
     gameHub.addGameHubListener('RallyPointStatus', rallyPointStatusListener)
     gameHub.addGameHubListener('RallyPointReached', rallyPointReachedListener)
+    gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
+
+    
+    game.value = gameData.Payload.Game
+    currentQuestionIndex.value = game.value.CurrentQuestionIndex
+
+    if (roomData.isClosed||roomData.isCompleted) {
+        amiyaFace.value = 'wuwu'
+        amiyaChat.value = '博士，游戏已经结束了……下次请早点来吧~'
+        
+        prepareNextQuestion()
+    } else {
+        timeRecordInterval = setInterval(chatting, 1000)
+    }
+
 }
 
 function chatting() {
@@ -448,6 +477,8 @@ onUnmounted(() => {
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
     gameHub.removeGameHubListener('RallyPointStatus', rallyPointStatusListener)
     gameHub.removeGameHubListener('RallyPointReached', rallyPointReachedListener)
+    gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
+
 })
 </script>
 

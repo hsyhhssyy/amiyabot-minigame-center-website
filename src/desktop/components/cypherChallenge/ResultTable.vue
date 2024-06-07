@@ -38,10 +38,10 @@
                 <td>---</td>
                 <td>---</td>
             </tr>
-            <tr v-if="currentQuestion?.IsCompleted||currentQuestion?.GuessChanceLeft==0" class="final-answer">
-                <td>{{ currentQuestion.CharacterName }}</td>
+            <tr v-if="showAnswer" class="final-answer">
+                <td>{{ currentQuestion?.CharacterName }}</td>
                 <td v-for="header in headers">
-                    <template v-if="currentQuestion.CharacterProperties[header]">
+                    <template v-if="currentQuestion?.CharacterProperties[header]">
                         {{ currentQuestion.CharacterProperties[header] }}
                     </template>
                 </td>
@@ -58,6 +58,7 @@ interface Props{
     currentQuestion: any;
     playersMap: any;
     headers: any;
+    showAnswer: any;
 }
 
 const props = defineProps<Props>();

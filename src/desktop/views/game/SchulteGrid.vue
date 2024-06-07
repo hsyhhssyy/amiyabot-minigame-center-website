@@ -6,8 +6,6 @@
         :input-handler="sendMove"
         :players="players"
         @on-loaded="load"
-        @on-room-data="gameInfo"
-        @on-game-completed="gameCompleted"
     >
         <n-card style="height: 100%">
             <div class="game-body">
@@ -259,16 +257,7 @@ function sendMove(content: string) {
     )
 }
 
-function gameInfo(data: GameRoom) {
-    if (data.isClosed) {
-        amiyaFace.value = 'wuwu'
-        amiyaChat.value = '博士，游戏已经结束了……下次请早点来吧~'
-    } else {
-        timeRecordInterval = setInterval(chatting, 1000)
-    }
-}
-
-function gameCompleted(response: SignalrResponse) {
+function gameCompletedListener(response: SignalrResponse) {
     const answers = response.Payload.RemainingAnswers
 
     remainingAnswerList.value = answers
@@ -401,9 +390,17 @@ function gameInfoListener(response: SignalrResponse) {
     }
 }
 
-function load() {
+function load(roomData:GameRoom,gameData:SignalrResponse) {
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
+    gameHub.addGameHubListener('GameCompleted',gameCompletedListener);
+
+    if (roomData.isClosed) {
+        amiyaFace.value = 'wuwu'
+        amiyaChat.value = '博士，游戏已经结束了……下次请早点来吧~'
+    } else {
+        timeRecordInterval = setInterval(chatting, 1000)
+    }
 }
 
 function chatting() {
@@ -441,6 +438,7 @@ onUnmounted(() => {
     clearInterval(timeRecordInterval)
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
+    gameHub.removeGameHubListener('GameCompleted',gameCompletedListener)
 })
 </script>
 
