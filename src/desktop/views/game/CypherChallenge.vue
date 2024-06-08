@@ -1,6 +1,5 @@
 <template>
-    <game-base ref="base" 
-        :min-width="1630" 
+    <game-base ref="base"
         :room-id="roomId" 
         :input-handler="sendMove" 
         :players="players"
@@ -8,11 +7,11 @@
         >
         <n-card style="height: 100%" class="game-card">
             <div v-if="nextQuestionShown" class="overlay">
-                <n-card title="公布答案" class="overlay-card">
-                    <n-flex justify="center" style="margin-bottom: 20px;">                        
-                        <n-statistic label="答案是">
-                            {{ currentQuestion?.CharacterName }} 
-                        </n-statistic>
+                <n-card class="overlay-card">
+                    <n-flex justify="center">                        
+                        <div class="correct-answer">
+                            正确答案：{{ currentQuestion?.CharacterName }} 
+                        </div>
                     </n-flex>
                     <result-table 
                         :currentQuestion="currentQuestion" 
@@ -20,7 +19,7 @@
                         :headers="headers"
                         :show-answer="true"
                     ></result-table>
-                    <n-flex justify="center" style="margin-top: 20px;" align="center">
+                    <n-flex justify="center" style="margin-top: 20px;" align="center" v-if="hasNextQuestion">
                         <div>
                             <n-badge color="green" v-for="player in players" style="margin-right: 5px;">
                                 <template #value>
@@ -35,16 +34,22 @@
                             <n-countdown duration="10000" :active="true" :render="renderCountdown" ref="countdown"></n-countdown>
                         </n-statistic>
                     </n-flex>
+                    <n-flex justify="center" style="margin-top: 20px;" align="center" v-if="!hasNextQuestion">
+                        <n-statistic tabular-nums>
+                            游戏结束
+                        </n-statistic>
+                    </n-flex>
                 </n-card>
             </div>
             <div>
                 <div class="game-panel">
                     <hit-effect ref="hit"></hit-effect>
-                    <n-steps :current="(currentQuestionIndex??0) + 1" class="game-step">
+                    <n-steps :current="(currentQuestionIndex??0) + 1" class="game-step" v-if="false">
                         <n-step v-for="index in 10" :disabled="index > (currentQuestionIndex??0)" title=""></n-step>
                     </n-steps>
                     <div class="game-body">
-                        <n-card embedded :bordered="false" size="small" class="answer-list">
+                        <n-card :bordered="false" size="small" class="answer-list">
+                            <div class="game-title"></div>
                             <div class="property-revealed">
                                 <n-statistic label="干员" class="property-header">
                                     <div class="property-value">
@@ -113,6 +118,7 @@ import GameBase from '@/desktop/views/GameBase.vue'
 import Icon from '@/universal/components/Icon.vue'
 import ResultTable from '@/desktop/components/cypherChallenge/ResultTable.vue'
 import IconButton from '@/universal/components/IconButton.vue'
+import TitleContent from '@/assets/images/cypherChallenge/title_content.png';
 
 interface GamePlayer extends Player {
     score: number
@@ -222,8 +228,10 @@ const headers = computed(() => {
         }
     ).map(
         ([key]) => {
-            if (currentQuestion.value?.CharacterPropertiesRevealed[key]
-                ||game.value.CurrentQuestionIndex!==currentQuestionIndex.value) {
+            if (currentQuestion.value?.CharacterPropertiesRevealed[key] //属性已被揭示
+                ||game.value.CurrentQuestionIndex!==currentQuestionIndex.value //不是当前问题
+                || !hasNextQuestion.value //游戏已结束
+                ) {
                 return key
             } else {
                 return '未知线索'
@@ -291,8 +299,11 @@ function getRallyPointData(){
 function prepareNextQuestion() {
     nextQuestionShown.value = true
     countdown.value?.reset()
-    gameHub.invokeGameHub('RallyPointCreate', roomId, JSON.stringify({ Name: getRallyPointData() }))
-    gameHub.invokeGameHub('RallyPointStatus', roomId, JSON.stringify({ Name: getRallyPointData() }))
+
+    if(hasNextQuestion.value){
+        gameHub.invokeGameHub('RallyPointCreate', roomId, JSON.stringify({ Name: getRallyPointData() }))
+        gameHub.invokeGameHub('RallyPointStatus', roomId, JSON.stringify({ Name: getRallyPointData() }))
+    }
 }
 
 function nextQuestionButton(){
@@ -408,12 +419,14 @@ function rallyPointReachedListener(response: SignalrResponse) {
     moveToNextQuestion()
 }
 
-function gameCompletedListener(){
+function gameCompletedListener(response:SignalrResponse){
     clearInterval(timeRecordInterval)
 
     amiyaFace.value ='joy'
     amiyaChat.value =
         '游戏结束。'
+
+    game.value = response.Payload.Game
 
     prepareNextQuestion()
 }
@@ -488,6 +501,7 @@ $guideHeight: 160px;
 .game-card {
     position: relative;
     overflow: hidden;
+    min-width: 1000px;
 
 
     .overlay {
@@ -503,8 +517,19 @@ $guideHeight: 160px;
         z-index: 1000;
 
         .overlay-card {
-            width: 80%;
-            background-color: white;
+            width: 90%;
+            background-color: white;            
+            background: url(@/assets/images/cypherChallenge/loading.jpg) center / cover no-repeat;
+
+            .correct-answer{
+                font-size: 24px;
+                color: bisque;
+                text-shadow: 
+                    -1px -1px 0 #000,  
+                    1px -1px 0 #000,
+                    -1px  1px 0 #000,
+                    1px  1px 0 #000; /* 描边颜色和方向 */
+            }
         }
     }
 
@@ -512,7 +537,7 @@ $guideHeight: 160px;
 
     .game-panel {
         height: calc(100% - $guideHeight);
-        background: url(../../../assets/images/bg.6b5d30.jpg) center / cover no-repeat;
+        background: url(@/assets/images/cypherChallenge/loading.jpg) center / cover no-repeat;
         border-radius: 4px;
         padding: 10px 0;
         display: flex;

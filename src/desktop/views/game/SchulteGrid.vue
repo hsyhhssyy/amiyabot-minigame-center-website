@@ -1,7 +1,6 @@
 <template>
     <game-base
         ref="base"
-        :min-width="1630"
         :room-id="roomId"
         :input-handler="sendMove"
         :players="players"
@@ -476,6 +475,7 @@ $guideHeight: 160px;
         height: 100%;
         overflow: auto;
         margin-right: 20px;
+        margin-left: 20px;
 
         .answer-list-container {
             height: 100%;

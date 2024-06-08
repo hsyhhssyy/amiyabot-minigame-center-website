@@ -1,22 +1,20 @@
 <template>
-    <div class="game-base" v-if="!isGameHubLoading && gameRoomData" :style="{ minWidth: props.minWidth + 'px' }">
-        <div>
+    <div class="game-base" v-if="!isGameHubLoading && gameRoomData" ref="gameBase">
+        <div ref="gameSlot">
             <slot></slot>
         </div>
         <div class="player-panel">
             <game-info-card class="game-info" :room-data="gameRoomData">
                 <template #buttons>
-                    <icon-button :icon="Sport" type="warning" @click="endGame" v-if="isHost&&!isCompleted">放弃游戏</icon-button>
-                    <icon-button :icon="Logout" type="error" @click="leaveRoom" v-if="!isHost||isCompleted">退出房间</icon-button>
+                    <icon-button :icon="Sport" type="warning" @click="endGame"
+                        v-if="isHost && !isCompleted">放弃游戏</icon-button>
+                    <icon-button :icon="Logout" type="error" @click="leaveRoom"
+                        v-if="!isHost || isCompleted">退出房间</icon-button>
                 </template>
             </game-info-card>
             <div class="chat-area">
-                <chat-board
-                    :room-id="props.roomId"
-                    :players="props.players"
-                    :input-handler="props.inputHandler"
-                    ref="chat"
-                />
+                <chat-board :room-id="props.roomId" :players="props.players" :input-handler="props.inputHandler"
+                    ref="chat" />
                 <n-card title="玩家列表" size="small" class="player-list">
                     <slot name="players">
                         <div class="play-item" v-for="(item, index) in players" :key="index">
@@ -33,7 +31,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Logout,Sport } from '@icon-park/vue-next'
+import { Logout, Sport } from '@icon-park/vue-next'
 import type { SignalrResponse } from '@/api/signalr'
 import { useGameHubStore } from '@/stores/gamehub'
 import { useUserStore } from '@/stores/user'
@@ -46,11 +44,11 @@ import IconButton from '@/universal/components/IconButton.vue'
 import { removeData } from '@/utils'
 
 interface GameProps extends ChatProps {
-    minWidth: number
+
 }
 
 const emits = defineEmits<{
-    (e: 'onLoaded', roomData: GameRoom, gameData: SignalrResponse ): void
+    (e: 'onLoaded', roomData: GameRoom, gameData: SignalrResponse): void
     // (e: 'onRoomData', data: GameRoom): void
     // (e: 'onGameClosed', response: SignalrResponse): void
     // (e: 'onGameCompleted', response: SignalrResponse): void
@@ -62,6 +60,9 @@ const route = useRoute()
 const router = useRouter()
 const gameHub = useGameHubStore()
 const user = useUserStore()
+
+const gameSlot = ref()
+const gameBase = ref()
 
 const roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 
@@ -82,14 +83,14 @@ async function leaveRoom() {
     await router.push('/regular-home')
 }
 
-async function endGame(){
+async function endGame() {
     gameHub.invokeGameHub('CompleteGame', roomId)
 }
 
 function gameInfoListener(response: SignalrResponse) {
-    gameInfoData.value=response;
-    if(isGameInfoReceiving.value==true){
-        isGameInfoReceiving.value=false
+    gameInfoData.value = response;
+    if (isGameInfoReceiving.value == true) {
+        isGameInfoReceiving.value = false
     }
 }
 
@@ -112,13 +113,13 @@ let getGameInterval: any = null
 
 watch(
     computed(() => gameHub.isConnected),
-    (value: boolean) => {    
+    (value: boolean) => {
         isGameHubLoading.value = !value
 
         if (value) {
             gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
             gameHub.addGameHubListener('GameClosed', gameClosedListener)
-            gameHub.addGameHubListener('GameInfo',gameInfoListener)
+            gameHub.addGameHubListener('GameInfo', gameInfoListener)
             gameHub.invokeGameHub('GetGame', roomId)
 
             // 间隔一段时间获取一次房间信息
@@ -137,8 +138,8 @@ watch(
 
 watch(
     chat,
-    (newVal,oldValue) => {
-        if(newVal && !oldValue){
+    (newVal, oldValue) => {
+        if (newVal && !oldValue) {
             onLoadedCheck()
         }
     }
@@ -146,8 +147,8 @@ watch(
 
 watch(
     isGameHubLoading,
-    (newVal,oldValue) => {
-        if(!newVal && oldValue){
+    (newVal, oldValue) => {
+        if (!newVal && oldValue) {
             onLoadedCheck()
         }
     }
@@ -155,8 +156,8 @@ watch(
 
 watch(
     isMounting,
-    (newVal,oldValue) => {
-        if(!newVal && oldValue){
+    (newVal, oldValue) => {
+        if (!newVal && oldValue) {
             onLoadedCheck()
         }
     }
@@ -164,17 +165,45 @@ watch(
 
 watch(
     isGameInfoReceiving,
-    (newVal,oldValue) => {
-        if(!newVal && oldValue){
+    (newVal, oldValue) => {
+        if (!newVal && oldValue) {
             onLoadedCheck()
         }
     }
 )
 
-function onLoadedCheck(){
-    console.log("onLoadedCheck",!isGameHubLoading.value, !!chat.value, !isMounting.value, !isGameInfoReceiving.value)
-    if(isGameHubLoading.value==false && chat.value && isMounting.value==false && isGameInfoReceiving.value==false){
+function onLoadedCheck() {
+    console.log("onLoadedCheck", !isGameHubLoading.value, !!chat.value, !isMounting.value, !isGameInfoReceiving.value)
+    if (isGameHubLoading.value == false && chat.value && isMounting.value == false && isGameInfoReceiving.value == false) {
         emits('onLoaded', gameRoomData.value!, gameInfoData.value!)
+    }
+}
+
+function adjustLayout() {
+    if (!gameSlot.value || !gameBase.value) return;
+
+    const gameSlotElement = gameSlot.value;
+    const gameBaseElement = gameBase.value;
+
+    const firstChild = gameSlotElement.firstElementChild as HTMLElement;
+
+    let minWidth = 1000;
+
+    if (firstChild) {
+        minWidth = parseFloat(window.getComputedStyle(firstChild).minWidth);
+        if (!minWidth || minWidth === 0) {
+            minWidth = firstChild.offsetWidth;
+            firstChild.style.minWidth = `${minWidth}px`;
+        }
+    }
+
+    const actualWidth = gameBaseElement.clientWidth;
+
+    if (actualWidth > minWidth * 2 + 100) {
+        const gap = getComputedStyle(gameBaseElement).getPropertyValue('--gap').trim();
+        gameSlotElement.style.width = `calc(50% - ${gap} / 2)`;
+    } else {
+        gameSlotElement.style.removeProperty('width')
     }
 }
 
@@ -182,15 +211,17 @@ onMounted(async () => {
     gameRoomData.value = await getGame(roomId)
     isCompleted.value = gameRoomData.value?.isCompleted || false
     // emits('onRoomData', gameRoomData.value as GameRoom)
-    isMounting.value=false;
+    isMounting.value = false;
+    window.addEventListener('resize', adjustLayout);
 })
 
 onUnmounted(() => {
     gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
     gameHub.removeGameHubListener('GameClosed', gameClosedListener)
-    gameHub.removeGameHubListener('GameInfo',gameInfoListener)
+    gameHub.removeGameHubListener('GameInfo', gameInfoListener)
     clearInterval(getGameInterval)
-    isMounting.value=true;
+    isMounting.value = true;
+    window.removeEventListener('resize', adjustLayout);
 })
 </script>
 
@@ -206,9 +237,7 @@ $gap: 4px;
     justify-content: space-between;
     overflow: auto;
 
-    & > div {
-        width: calc(50% - $gap / 2);
-    }
+    --gap: #{$gap};
 
     .game-info {
         margin-bottom: $gap;
@@ -218,12 +247,15 @@ $gap: 4px;
         height: 100%;
         display: flex;
         flex-direction: column;
+        flex-grow: 1;
+        flex-shrink: 1;
+        flex-basis: 0;
 
         .chat-area {
             height: calc(100% - 156px);
             display: flex;
 
-            & > div {
+            &>div {
                 height: 100%;
             }
 
