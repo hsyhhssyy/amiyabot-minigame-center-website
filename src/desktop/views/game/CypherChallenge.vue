@@ -1,38 +1,31 @@
 <template>
-    <game-base ref="base"
-        :room-id="roomId" 
-        :input-handler="sendMove" 
-        :players="players"
-        @on-loaded="load" 
-        >
+    <game-base ref="base" :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load">
         <n-card style="height: 100%" class="game-card">
             <div v-if="nextQuestionShown" class="overlay">
                 <n-card class="overlay-card">
-                    <n-flex justify="center">                        
+                    <n-flex justify="center">
                         <div class="correct-answer">
-                            正确答案：{{ currentQuestion?.CharacterName }} 
+                            正确答案：{{ currentQuestion?.CharacterName }}
                         </div>
                     </n-flex>
-                    <result-table 
-                        :currentQuestion="currentQuestion" 
-                        :playersMap="playersMap" 
-                        :headers="headers"
-                        :show-answer="true"
-                    ></result-table>
+                    <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
+                        :showAnswer="true"></result-table>
                     <n-flex justify="center" style="margin-top: 20px;" align="center" v-if="hasNextQuestion">
                         <div>
                             <n-badge color="green" v-for="player in players" style="margin-right: 5px;">
                                 <template #value>
-                                    <icon :icon="Check" v-if="playersReadyList.includes(player.id)"/>
+                                    <icon :icon="Check" v-if="playersReadyList.includes(player.id)" />
                                 </template>
                                 <n-avatar :src="player.avatar" size="small"
-                                        :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
+                                    :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
                             </n-badge>
                         </div>
                         <icon-button :icon="SendOne" type="success" @click="nextQuestionButton">下一题</icon-button>
-                        <n-statistic tabular-nums>
-                            <n-countdown duration="10000" :active="true" :render="renderCountdown" ref="countdown"></n-countdown>
-                        </n-statistic>
+                        <div class="countdown">
+                            <n-countdown :duration="10000" :active="true" :render="renderCountdown" ref="countdown"
+                                @finish="onCountdownFinish"></n-countdown>
+                        </div>
+
                     </n-flex>
                     <n-flex justify="center" style="margin-top: 20px;" align="center" v-if="!hasNextQuestion">
                         <n-statistic tabular-nums>
@@ -44,12 +37,14 @@
             <div>
                 <div class="game-panel">
                     <hit-effect ref="hit"></hit-effect>
-                    <n-steps :current="(currentQuestionIndex??0) + 1" class="game-step" v-if="false">
-                        <n-step v-for="index in 10" :disabled="index > (currentQuestionIndex??0)" title=""></n-step>
+                    <n-steps :current="(currentQuestionIndex ?? 0) + 1" class="game-step" v-if="false">
+                        <n-step v-for="index in 10" :disabled="index > (currentQuestionIndex ?? 0)" title=""></n-step>
                     </n-steps>
                     <div class="game-body">
                         <n-card :bordered="false" size="small" class="answer-list">
                             <div class="game-title"></div>
+                            
+                            <icon-button :icon="SendOne" type="success" @click="test">test</icon-button>
                             <div class="property-revealed">
                                 <n-statistic label="干员" class="property-header">
                                     <div class="property-value">
@@ -63,13 +58,9 @@
                                 </n-statistic>
                             </div>
                         </n-card>
-                        <result-table 
-                            :currentQuestion="currentQuestion" 
-                            :playersMap="playersMap" 
-                            :headers="headers"
-                            :showAnswer="false"
-                        ></result-table>
-                        
+                        <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
+                            :showAnswer="false"></result-table>
+
                     </div>
                 </div>
                 <div class="game-guide">
@@ -168,12 +159,12 @@ const gameHub = useGameHubStore()
 
 const players = ref<GamePlayer[]>([])
 const playersReadyList = ref<string[]>([])
-const currentQuestionIndex = ref<number|null>(null)
-const currentQuestion = computed<Question>(()=>{
-    if(game?.value?.QuestionList==null){
+const currentQuestionIndex = ref<number | null>(null)
+const currentQuestion = computed<Question>(() => {
+    if (game?.value?.QuestionList == null) {
         return null
     }
-    if(currentQuestionIndex.value === null){
+    if (currentQuestionIndex.value === null) {
         return game.value.QuestionList[0]
     }
     return game.value.QuestionList[currentQuestionIndex.value]
@@ -185,16 +176,16 @@ const base = ref()
 const hit = ref()
 const countdown = ref()
 const renderCountdown = ({ seconds }: { seconds: number }) => {
-  return `${seconds}秒`;
+    return `${seconds}秒`;
 };
 
 const nextQuestionShown = ref(false)
-const hasNextQuestion = computed(()=>{
-    if(game.value.IsCompleted){
+const hasNextQuestion = computed(() => {
+    if (game?.value?.IsCompleted) {
         return false
     }
 
-    if(currentQuestionIndex.value===9){
+    if (currentQuestionIndex.value === 9) {
         return false
     }
 
@@ -229,9 +220,9 @@ const headers = computed(() => {
     ).map(
         ([key]) => {
             if (currentQuestion.value?.CharacterPropertiesRevealed[key] //属性已被揭示
-                ||game.value.CurrentQuestionIndex!==currentQuestionIndex.value //不是当前问题
+                || game.value.CurrentQuestionIndex !== currentQuestionIndex.value //不是当前问题
                 || !hasNextQuestion.value //游戏已结束
-                ) {
+            ) {
                 return key
             } else {
                 return '未知线索'
@@ -292,30 +283,35 @@ const playersRanking = computed(() => {
     return result
 })
 
-function getRallyPointData(){
-    return "PrepareNextQuestion:"+ currentQuestionIndex.value;
+function onCountdownFinish(){
+    console.log('CountDown结束，强制跳转下一题')
+    //moveToNextQuestion()
+}
+
+function getRallyPointData() {
+    return "PrepareNextQuestion:" + currentQuestionIndex.value;
 }
 
 function prepareNextQuestion() {
     nextQuestionShown.value = true
     countdown.value?.reset()
 
-    if(hasNextQuestion.value){
+    if (hasNextQuestion.value) {
         gameHub.invokeGameHub('RallyPointCreate', roomId, JSON.stringify({ Name: getRallyPointData() }))
         gameHub.invokeGameHub('RallyPointStatus', roomId, JSON.stringify({ Name: getRallyPointData() }))
     }
 }
 
-function nextQuestionButton(){
-    gameHub.invokeGameHub('RallyPointReached',roomId, JSON.stringify({ Name: getRallyPointData() }));
+function nextQuestionButton() {
+    gameHub.invokeGameHub('RallyPointReached', roomId, JSON.stringify({ Name: getRallyPointData() }));
     gameHub.invokeGameHub('RallyPointStatus', roomId, JSON.stringify({ Name: getRallyPointData() }))
 }
 
-function moveToNextQuestion(){
+function moveToNextQuestion() {
     playersReadyList.value = []
     nextQuestionShown.value = false
 
-    if(game.value.QuestionList.length>game.value.CurrentQuestionIndex){
+    if (game.value.QuestionList.length > game.value.CurrentQuestionIndex) {
         currentQuestionIndex.value = game.value.CurrentQuestionIndex
     }
 }
@@ -379,10 +375,10 @@ function receiveMoveListener(response: SignalrResponse) {
         avatar: player?.avatar || '/avatar.webp'
     } as Message)
 
-    if(result === 'Correct') {
+    if (result === 'Correct') {
         prepareNextQuestion()
-    }else{
-        if(game.value.CurrentQuestionIndex!=currentQuestionIndex.value){
+    } else {
+        if (game.value.CurrentQuestionIndex != currentQuestionIndex.value) {
             prepareNextQuestion()
         }
     }
@@ -404,10 +400,11 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 function rallyPointStatusListener(response: SignalrResponse) {
-    if(response.Name == getRallyPointData()){
+    console.log('rally st', response)
+    if (response.Name == getRallyPointData()) {
         for (let i = 0; i < players.value.length; i++) {
-            if(response.Players.includes(players.value[i].id)){
-                if(!playersReadyList.value.includes(players.value[i].id)){
+            if (response.Players.includes(players.value[i].id)) {
+                if (!playersReadyList.value.includes(players.value[i].id)) {
                     playersReadyList.value.push(players.value[i].id)
                 }
             }
@@ -419,10 +416,10 @@ function rallyPointReachedListener(response: SignalrResponse) {
     moveToNextQuestion()
 }
 
-function gameCompletedListener(response:SignalrResponse){
+function gameCompletedListener(response: SignalrResponse) {
     clearInterval(timeRecordInterval)
 
-    amiyaFace.value ='joy'
+    amiyaFace.value = 'joy'
     amiyaChat.value =
         '游戏结束。'
 
@@ -431,21 +428,21 @@ function gameCompletedListener(response:SignalrResponse){
     prepareNextQuestion()
 }
 
-function load(roomData:GameRoom,gameData:SignalrResponse) {
+function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
     gameHub.addGameHubListener('RallyPointStatus', rallyPointStatusListener)
     gameHub.addGameHubListener('RallyPointReached', rallyPointReachedListener)
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
 
-    
+
     game.value = gameData.Payload.Game
     currentQuestionIndex.value = game.value.CurrentQuestionIndex
 
-    if (roomData.isClosed||roomData.isCompleted) {
+    if (roomData.isClosed || roomData.isCompleted) {
         amiyaFace.value = 'wuwu'
         amiyaChat.value = '博士，游戏已经结束了……下次请早点来吧~'
-        
+
         prepareNextQuestion()
     } else {
         timeRecordInterval = setInterval(chatting, 1000)
@@ -493,6 +490,14 @@ onUnmounted(() => {
     gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
 
 })
+
+function test(){
+    console.log('current index:', currentQuestionIndex.value)
+    currentQuestionIndex.value = ( currentQuestionIndex.value??0 ) - 1
+    console.log('current index:', currentQuestionIndex.value)
+    prepareNextQuestion()
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -501,7 +506,7 @@ $guideHeight: 160px;
 .game-card {
     position: relative;
     overflow: hidden;
-    min-width: 1000px;
+    width: 1000px;
 
 
     .overlay {
@@ -518,17 +523,29 @@ $guideHeight: 160px;
 
         .overlay-card {
             width: 90%;
-            background-color: white;            
+            background-color: white;
             background: url(@/assets/images/cypherChallenge/loading.jpg) center / cover no-repeat;
 
-            .correct-answer{
+            .correct-answer {
                 font-size: 24px;
                 color: bisque;
-                text-shadow: 
-                    -1px -1px 0 #000,  
+                text-shadow:
+                    -1px -1px 0 #000,
                     1px -1px 0 #000,
-                    -1px  1px 0 #000,
-                    1px  1px 0 #000; /* 描边颜色和方向 */
+                    -1px 1px 0 #000,
+                    1px 1px 0 #000;
+                /* 描边颜色和方向 */
+            }
+
+            .countdown {
+                font-size: 20px;
+                color: bisque;
+                text-shadow:
+                    -1px -1px 0 #000,
+                    1px -1px 0 #000,
+                    -1px 1px 0 #000,
+                    1px 1px 0 #000;
+                /* 描边颜色和方向 */
             }
         }
     }

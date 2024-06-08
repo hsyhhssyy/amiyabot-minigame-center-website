@@ -213,6 +213,7 @@ onMounted(async () => {
     // emits('onRoomData', gameRoomData.value as GameRoom)
     isMounting.value = false;
     window.addEventListener('resize', adjustLayout);
+    adjustLayout()
 })
 
 onUnmounted(() => {

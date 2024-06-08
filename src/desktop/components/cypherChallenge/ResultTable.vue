@@ -6,7 +6,7 @@
             <div class="table-header-no-bg"></div>
         </div>
         <div v-if="showAnswer" class="table-content-row">
-            <div class="operator-name-cell right-align">
+            <div class="operator-name-cell left-align">
                 <n-avatar :src="getOperatorUrl(currentQuestion?.CharacterId)" size="large"
                     :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
                 <div class="operator-name one-line-text">
@@ -45,7 +45,7 @@
                     </template>
                     <template v-else>
                         <div class="two-line-text">
-                            {{ answer?.CharacterPropertiesResult[header] ?? "" }}
+                            {{ answer?.CharacterProperties?.[header] ?? "" }}
                         </div>
                     </template>
                 </template>
@@ -65,7 +65,7 @@
                 </template>
             </div>
         </div>
-        <div v-for="n in (10 - currentAnswers.length)">
+        <div v-for="n in blankRows" class="table-content-row">
             <div class="operator-name-cell">
                 <!-- 只是为了撑开高度 -->
             </div>
@@ -102,6 +102,14 @@ const currentAnswers = computed(() => {
     }
 
     return props.currentQuestion.AnswerList
+})
+
+const blankRows = computed(() => {
+    let rowCount = 10 - (currentAnswers.value?.length ?? 0)
+    if(rowCount<0){
+        rowCount = 0
+    }
+    return Array(rowCount).fill("");
 })
 
 </script>
@@ -198,7 +206,7 @@ const currentAnswers = computed(() => {
             font-size: 16px;
             max-width: 100px;
             white-space: nowrap;
-            overflow: hidden;        
+            overflow: hidden;
         }
 
         .two-line-text {
