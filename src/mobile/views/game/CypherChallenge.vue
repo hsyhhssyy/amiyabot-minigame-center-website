@@ -282,6 +282,7 @@ function getRallyPointData() {
 function prepareNextQuestion() {
     nextQuestionShown.value = true
     countdown.value?.reset()
+    countDownActive.value=true
 
     if (hasNextQuestion.value) {
         gameHub.invokeGameHub('RallyPointCreate', roomId, JSON.stringify({ Name: getRallyPointData() }))
