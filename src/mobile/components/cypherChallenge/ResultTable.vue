@@ -3,34 +3,22 @@
         <div class="table-header-row">
             <div class="table-header-no-bg"></div>
             <div v-for="header in headers" class="table-header">{{ header == "未知线索" ? "???" : header }}</div>
-            <div class="table-header-no-bg"></div>
         </div>
         <div v-if="showAnswer" class="table-content-row">
             <div class="operator-name-cell left-align">
                 <n-avatar :src="getOperatorUrl(currentQuestion?.CharacterId)" size="large"
                     :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
-                <div class="operator-name one-line-text">
-                    {{ currentQuestion?.CharacterName }}
-                </div>
             </div>
             <div v-for="header in headers" class="property-cell">
                 <template v-if="currentQuestion?.CharacterProperties[header]">
                     {{ currentQuestion.CharacterProperties[header] }}
                 </template>
             </div>
-            <div class="operator-name-cell">
-                <div class="operator-name one-line-text">
-                    正确答案
-                </div>
-            </div>
         </div>
         <div v-for="answer in currentAnswers" class="table-content-row">
             <div class="operator-name-cell left-align">
                 <n-avatar :src="getOperatorUrl(answer?.CharacterId)" size="large"
                     :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
-                <div class="operator-name one-line-text">
-                    {{ answer.CharacterName }}
-                </div>
             </div>
             <div v-for="header in headers" class="property-cell">
                 <template v-if="!showAnswer">
@@ -52,20 +40,6 @@
                             {{ answer?.CharacterProperties?.[header] ?? "" }}
                         </div>
                     </template>
-                </template>
-            </div>
-            <div class="operator-name-cell left-align">
-                <template v-if="playersMap[answer.PlayerId]">
-                    <n-avatar :src="playersMap[answer.PlayerId].avatar" size="small" class="operator-avatar"
-                        :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
-                    <div class="operator-name two-line-text">
-                        {{ playersMap[answer.PlayerId].name }}
-                    </div>
-                </template>
-                <template v-else>
-                    <div class="operator-name one-line-text">
-                        兔兔的提示
-                    </div>
                 </template>
             </div>
         </div>
@@ -130,17 +104,17 @@ const blankRows = computed(() => {
 
         .table-header {
             text-align: center;
-            font-size: 16px;
-            height: 26px;
+            font-size: 12px;
+            height: 20px;
 
             background-image: url(@/assets/images/cypherChallenge/again.8b9776.png);
             background-size: 100% 100%;
             background-repeat: no-repeat;
             background-position: center;
 
-            width: 70px;
-            margin-left: 5px;
-            margin-right: 5px;
+            width: 50px;
+            margin-left: 2px;
+            margin-right: 2px;
         }
 
         .table-header-no-bg {
@@ -193,9 +167,9 @@ const blankRows = computed(() => {
             align-items: center;
             justify-content: center;
 
-            width: 70px;
-            margin-left: 5px;
-            margin-right: 5px;
+            width: 50px;
+            margin-left: 2px;
+            margin-right: 2px;
         }
 
         .one-line-text {

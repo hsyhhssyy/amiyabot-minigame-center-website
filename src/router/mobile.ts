@@ -67,6 +67,11 @@ const mobileRoutes: RouteRecordRaw[] = [
             {
                 path: 'cypher-challenge/:roomId',
                 name: 'cypher-challenge-m',
+                component: () => import('@/mobile/views/game/CypherChallenge.vue')
+            },
+            {
+                path: 'not-imp/:roomId',
+                name: 'not-imp-m',
                 component: () => import('@/mobile/MobileNotImplemented.vue')
             }
         ]

@@ -1,8 +1,8 @@
 <template>
     <game-base ref="base" :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load">
-        <n-card style="height: 100%" class="game-card">
-            <div v-if="nextQuestionShown" class="overlay">
-                <n-card class="overlay-card">
+        <div style="height: 100%" class="game-card">
+            <n-modal v-model:show="nextQuestionShown">
+                <div class="overlay-card">
                     <n-flex justify="center">
                         <div class="correct-answer">
                             正确答案：{{ currentQuestion?.CharacterName }}
@@ -32,42 +32,29 @@
                             游戏已结束
                         </div>
                     </n-flex>
-                </n-card>
-            </div>
+                </div>
+            </n-modal>
             <div>
                 <div class="game-panel">
                     <hit-effect ref="hit"></hit-effect>
-                    <n-steps :current="(currentQuestionIndex ?? 0) + 1" class="game-step" v-if="false">
-                        <n-step v-for="index in 10" :disabled="index > (currentQuestionIndex ?? 0)" title=""></n-step>
-                    </n-steps>
                     <div class="game-body">
-                        <n-card :bordered="false" size="small" class="answer-list">
-                            <div class="game-title"></div>
+                        <div :bordered="false" size="small" class="answer-list">
                             <!-- <icon-button :icon="SendOne" type="success" @click="test">test</icon-button> -->
                             <div class="property-revealed">
-                                <!-- <div label="干员" class="property-header">
-                                    <div class="property-value">
-                                        {{ currentCharacter }}
-                                    </div>
-                                </div> -->
                                 <div v-for="header in headers" class="property-header">
                                     <div class="property-value">
-                                        {{ header + ":" }}  {{ currentQuestion.CharacterProperties[header] || '???' }}
+                                        {{ header + ":" }} {{ currentQuestion.CharacterProperties[header] || '???' }}
                                     </div>
                                 </div>
                             </div>
-                        </n-card>
+                        </div>
                         <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
                             :showAnswer="false"></result-table>
 
                     </div>
                 </div>
-                <div class="game-guide">
-                    <div class="amiya-face" :style="amiyaFaceStyle"></div>
-                    <n-card class="amiya-chat" embedded>{{ amiyaChat }}</n-card>
-                </div>
             </div>
-        </n-card>
+        </div>
         <template v-slot:players>
             <template v-for="(items, name) in playersRanking" :key="name">
                 <template v-if="items.length">
@@ -94,7 +81,7 @@
 
 <script lang="ts" setup>
 import type { CSSProperties } from 'vue'
-import { computed,  onUnmounted, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Check, SendOne } from '@icon-park/vue-next'
 import { useGameHubStore } from '@/stores/gamehub'
@@ -281,9 +268,9 @@ const playersRanking = computed(() => {
     return result
 })
 
-function onCountdownFinish(){
+function onCountdownFinish() {
     //console.log('CountDown结束，强制跳转下一题')
-    if(nextQuestionShown.value === true){
+    if (nextQuestionShown.value === true) {
         moveToNextQuestion()
     }
 }
@@ -490,9 +477,9 @@ onUnmounted(() => {
 
 })
 
-function test(){
+function test() {
     console.log('current index:', currentQuestionIndex.value)
-    currentQuestionIndex.value = ( currentQuestionIndex.value??0 ) - 1
+    currentQuestionIndex.value = (currentQuestionIndex.value ?? 0) - 1
     console.log('current index:', currentQuestionIndex.value)
     prepareNextQuestion()
 }
@@ -505,92 +492,40 @@ $guideHeight: 160px;
 .game-card {
     position: relative;
     overflow: hidden;
-    width: 1080px; // 此处固定宽度,是因为amiya face，会改变宽度，因此偷懒临时固定宽度
-
-
-    .overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-
-        .overlay-card {
-            width: 90%;
-            background-color: white;
-            background: url(@/assets/images/cypherChallenge/loading.jpg) center / cover no-repeat;
-
-            .correct-answer {
-                font-size: 24px;
-                color: bisque;
-                text-shadow:
-                    -1px -1px 0 #000,
-                    1px -1px 0 #000,
-                    -1px 1px 0 #000,
-                    1px 1px 0 #000;
-                /* 描边颜色和方向 */
-            }
-
-            .countdown {
-                font-size: 20px;
-                color: bisque;
-                text-shadow:
-                    -1px -1px 0 #000,
-                    1px -1px 0 #000,
-                    -1px 1px 0 #000,
-                    1px 1px 0 #000;
-                /* 描边颜色和方向 */
-            }
-        }
-    }
-
-
 
     .game-panel {
         height: calc(100% - $guideHeight);
         background: url(@/assets/images/cypherChallenge/loading.jpg) center / cover no-repeat;
         border-radius: 4px;
-        padding: 10px 0;
+        padding: 5px 5px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: space-between;
 
-        .game-step {
-            margin-left: 40px;
-        }
-
         .game-body {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             width: 100%;
-            margin-top: 10px;
             flex-grow: 1;
             flex-shrink: 1;
 
             .answer-list {
-                margin-right: 5px;
-                margin-left: 5px;
-                width: 200px;
-                
                 background: rgba(0, 0, 0, 0);
-                
-                .game-title{
-                    width: 100%;
+                display: flex;
+                flex-direction: row;
+
+                .game-title {
+                    width: 30%;
                     aspect-ratio: 10/4;
                     background: url(@/assets/images/cypherChallenge/title_content.png) center / contain no-repeat;
-                    margin-bottom: 20px;
                 }
 
                 .property-revealed {
+                    width: 100%;
                     overflow: auto;
                     display: grid;
-                    grid-template-columns: repeat(1, 1fr);
+                    grid-template-columns: repeat(3, 1fr);
 
                     .property-header {
                         margin-left: -10px;
@@ -609,7 +544,6 @@ $guideHeight: 160px;
             }
 
             .answer-table {
-                margin-right: 20px;
                 font-size: 12px;
 
                 .player-shown {
@@ -640,6 +574,33 @@ $guideHeight: 160px;
     }
 }
 
+.overlay-card {
+    border-radius: 5px;
+    border: 5px solid wheat;
+    background: url(@/assets/images/cypherChallenge/loading.jpg) center / cover no-repeat;
+
+    .correct-answer {
+        font-size: 24px;
+        color: bisque;
+        text-shadow:
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000;
+        /* 描边颜色和方向 */
+    }
+
+    .countdown {
+        font-size: 20px;
+        color: bisque;
+        text-shadow:
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000;
+        /* 描边颜色和方向 */
+    }
+}
 
 .rank-title {
     font-size: 16px;
