@@ -507,7 +507,7 @@ $guideHeight: 160px;
 .game-card {
     position: relative;
     overflow: hidden;
-    min-width: 1100px;
+    min-width: 1080px;
 
 
     .overlay {

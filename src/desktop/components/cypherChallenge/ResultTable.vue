@@ -193,7 +193,7 @@ const blankRows = computed(() => {
             align-items: center;
             justify-content: center;
 
-            width: 80px;
+            width: 70px;
             margin-left: 5px;
             margin-right: 5px;
         }
