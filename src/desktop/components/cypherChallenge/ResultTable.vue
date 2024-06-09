@@ -18,7 +18,11 @@
                     {{ currentQuestion.CharacterProperties[header] }}
                 </template>
             </div>
-            <div class="operator-name-cell"></div>
+            <div class="operator-name-cell">
+                <div class="operator-name one-line-text">
+                    正确答案
+                </div>
+            </div>
         </div>
         <div v-for="answer in currentAnswers" class="table-content-row">
             <div class="operator-name-cell left-align">
@@ -59,21 +63,13 @@
                     </div>
                 </template>
                 <template v-else>
-                    <div class="operator-name two-line-text">
+                    <div class="operator-name one-line-text">
                         兔兔的提示
                     </div>
                 </template>
             </div>
         </div>
-        <div v-for="n in blankRows" class="table-content-row">
-            <div class="operator-name-cell">
-                <!-- 只是为了撑开高度 -->
-            </div>
-            <div v-for="header in headers" class="property-cell">
-            </div>
-            <div class="operator-name-cell">
-                <!-- 只是为了撑开高度 -->
-            </div>
+        <div v-for="n in blankRows" class="empty-row">
         </div>
     </div>
 </template>
@@ -106,7 +102,7 @@ const currentAnswers = computed(() => {
 
 const blankRows = computed(() => {
     let rowCount = 10 - (currentAnswers.value?.length ?? 0)
-    if(rowCount<0){
+    if (rowCount < 0) {
         rowCount = 0
     }
     return Array(rowCount).fill("");
@@ -134,15 +130,15 @@ const blankRows = computed(() => {
 
         .table-header {
             text-align: center;
-            font-size: 18px;
-            height: 30px;
+            font-size: 16px;
+            height: 26px;
 
             background-image: url(@/assets/images/cypherChallenge/again.8b9776.png);
             background-size: 100% 100%;
             background-repeat: no-repeat;
             background-position: center;
 
-            width: 80px;
+            width: 70px;
             margin-left: 5px;
             margin-right: 5px;
         }
@@ -221,5 +217,9 @@ const blankRows = computed(() => {
         }
     }
 
+    .empty-row{        
+        min-height: 40px;
+        margin-bottom: 5px;
+    }
 }
 </style>

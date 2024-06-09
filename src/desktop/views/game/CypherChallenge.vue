@@ -43,19 +43,18 @@
                     <div class="game-body">
                         <n-card :bordered="false" size="small" class="answer-list">
                             <div class="game-title"></div>
-                            
-                            <icon-button :icon="SendOne" type="success" @click="test">test</icon-button>
+                            <!-- <icon-button :icon="SendOne" type="success" @click="test">test</icon-button> -->
                             <div class="property-revealed">
-                                <n-statistic label="干员" class="property-header">
+                                <!-- <div label="干员" class="property-header">
                                     <div class="property-value">
                                         {{ currentCharacter }}
                                     </div>
-                                </n-statistic>
-                                <n-statistic v-for="header in headers" :label="header" class="property-header">
+                                </div> -->
+                                <div v-for="header in headers" class="property-header">
                                     <div class="property-value">
-                                        {{ currentQuestion.CharacterProperties[header] || '---' }}
+                                        {{ header + ":" }}  {{ currentQuestion.CharacterProperties[header] || '???' }}
                                     </div>
-                                </n-statistic>
+                                </div>
                             </div>
                         </n-card>
                         <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
@@ -194,7 +193,7 @@ const hasNextQuestion = computed(() => {
 
 const amiyaFace = ref<HitType>('smile')
 const amiyaChat = ref(
-    '博士们，欢迎参加本场比赛，我是你们的向导：兔兔！比赛已经开始啦，请博士在上面的表中找到干员的【技能名】，然后在聊天框里发送【干员名】进行竞猜。'
+    '博士们，欢迎参加本场比赛，我是你们的向导：兔兔！比赛已经开始啦，谜底是一位干员。请博士在聊天框里发送【干员名】猜测他是谁。如果您发送的干员和目标干员有相同的属性，这个属性会被标记为绿色并被揭示出来。'
 )
 const amiyaFaceStyle = computed<CSSProperties>(() => {
     return {
@@ -284,8 +283,10 @@ const playersRanking = computed(() => {
 })
 
 function onCountdownFinish(){
-    console.log('CountDown结束，强制跳转下一题')
-    //moveToNextQuestion()
+    //console.log('CountDown结束，强制跳转下一题')
+    if(nextQuestionShown.value === true){
+        moveToNextQuestion()
+    }
 }
 
 function getRallyPointData() {
@@ -506,7 +507,7 @@ $guideHeight: 160px;
 .game-card {
     position: relative;
     overflow: hidden;
-    width: 1000px;
+    min-width: 1100px;
 
 
     .overlay {
@@ -575,9 +576,18 @@ $guideHeight: 160px;
             flex-shrink: 1;
 
             .answer-list {
-                margin-right: 20px;
-                margin-left: 20px;
-                width: 150px;
+                margin-right: 5px;
+                margin-left: 5px;
+                width: 200px;
+                
+                background: rgba(0, 0, 0, 0);
+                
+                .game-title{
+                    width: 100%;
+                    aspect-ratio: 10/4;
+                    background: url(@/assets/images/cypherChallenge/title_content.png) center / contain no-repeat;
+                    margin-bottom: 20px;
+                }
 
                 .property-revealed {
                     overflow: auto;
@@ -585,10 +595,16 @@ $guideHeight: 160px;
                     grid-template-columns: repeat(1, 1fr);
 
                     .property-header {
-                        margin-bottom: 10px;
+                        margin-left: -10px;
+                        aspect-ratio: 36/10;
+
+                        background: url(@/assets/images/cypherChallenge/advanced_tag_bg_1.png) center / contain no-repeat;
 
                         .property-value {
+                            padding-left: 10px;
+                            text-align: center;
                             font-size: 16px;
+                            color: black;
                         }
                     }
                 }
