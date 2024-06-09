@@ -436,8 +436,7 @@ function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('RallyPointReached', rallyPointReachedListener)
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
 
-
-    game.value = gameData.Payload.Game
+    gameInfoListener(gameData)
     currentQuestionIndex.value = game.value.CurrentQuestionIndex
 
     if (roomData.isClosed || roomData.isCompleted) {
