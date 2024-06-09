@@ -34,7 +34,7 @@
             </div>
             <div v-for="header in headers" class="property-cell">
                 <template v-if="!showAnswer">
-                    <template v-if="answer.CharacterPropertiesResult[header]=='Correct'">
+                    <template v-if="answer.CharacterPropertiesResult[header]">
                         <img :src="ThumbsUp" width="28px" height="28px">
                     </template>
                     <template v-else>

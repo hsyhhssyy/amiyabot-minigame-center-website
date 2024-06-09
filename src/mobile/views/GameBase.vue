@@ -49,10 +49,7 @@ import { removeData } from '@/utils'
 interface GameProps extends ChatProps {}
 
 const emits = defineEmits<{
-    (e: 'onLoaded'): void
-    (e: 'onRoomData', data: GameRoom): void
-    (e: 'onGameClosed', response: SignalrResponse): void
-    (e: 'onGameCompleted', response: SignalrResponse): void
+    (e: 'onLoaded', roomData: GameRoom, gameData: SignalrResponse): void
 }>()
 
 const props = defineProps<GameProps>()
@@ -65,8 +62,11 @@ const user = useUserStore()
 const roomId: string = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 
 const gameRoomData = ref<GameRoom>()
+const gameInfoData = ref<SignalrResponse>()
+
 const isGameHubLoading = ref(true)
-const isMounted = ref(false)
+const isMounting = ref(true) //GameBase的OnMount
+const isGameInfoReceiving = ref(true) // 第一次接收到GameInfo
 const chat = ref()
 
 const isCompleted = ref(false)
@@ -80,11 +80,17 @@ async function endGame(){
 
 function gameCompletedListener(response: SignalrResponse) {
     isCompleted.value = true
-    emits('onGameCompleted', response)
 }
 
 async function gameClosedListener(response: SignalrResponse) {
-    emits('onGameClosed', response)
+    
+}
+
+function gameInfoListener(response: SignalrResponse) {
+    gameInfoData.value = response;
+    if (isGameInfoReceiving.value == true) {
+        isGameInfoReceiving.value = false
+    }
 }
 
 async function leaveRoom() {
@@ -111,10 +117,10 @@ watch(
         isGameHubLoading.value = !value
 
         if (value) {
-            onLoadedCheck()
 
             gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
             gameHub.addGameHubListener('GameClosed', gameClosedListener)
+            gameHub.addGameHubListener('GameInfo', gameInfoListener)
             gameHub.invokeGameHub('GetGame', roomId)
 
             // 间隔一段时间获取一次房间信息
@@ -139,27 +145,56 @@ watch(
     }
 )
 
-function onLoadedCheck(){
-    console.log(isGameHubLoading.value, chat.value, isMounted.value)
-    if(isGameHubLoading.value==false && chat.value && isMounted.value==true){
-        emits('onLoaded')
+
+watch(
+    isGameHubLoading,
+    (newVal, oldValue) => {
+        if (!newVal && oldValue) {
+            onLoadedCheck()
+        }
+    }
+)
+
+watch(
+    isMounting,
+    (newVal, oldValue) => {
+        if (!newVal && oldValue) {
+            onLoadedCheck()
+        }
+    }
+)
+
+watch(
+    isGameInfoReceiving,
+    (newVal, oldValue) => {
+        if (!newVal && oldValue) {
+            onLoadedCheck()
+        }
+    }
+)
+
+function onLoadedCheck() {
+    console.log("onLoadedCheck", !isGameHubLoading.value, !!chat.value, !isMounting.value, !isGameInfoReceiving.value)
+    if (isGameHubLoading.value == false && chat.value && isMounting.value == false && isGameInfoReceiving.value == false) {
+        emits('onLoaded', gameRoomData.value!, gameInfoData.value!)
     }
 }
 
 onMounted(async () => {
-    isMounted.value = true
-    onLoadedCheck()
-
     gameRoomData.value = await getGame(roomId)
     isCompleted.value = gameRoomData.value?.isCompleted
-    emits('onRoomData', gameRoomData.value as GameRoom)
+
+    isMounting.value = false;
 
 })
 
 onUnmounted(() => {
     gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
     gameHub.removeGameHubListener('GameClosed', gameClosedListener)
+    gameHub.removeGameHubListener('GameInfo', gameInfoListener)
+
     clearInterval(getGameInterval)
+    isMounting.value = true;
 })
 </script>
 
