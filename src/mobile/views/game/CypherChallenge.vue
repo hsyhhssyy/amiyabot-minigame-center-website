@@ -1,7 +1,7 @@
 <template>
     <game-base ref="base" :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load">
         <div style="height: 100%" class="game-card">
-            <n-modal v-model:show="nextQuestionShown">
+            <n-modal v-model:show="nextQuestionShown" :mask-closable="false">
                 <div class="overlay-card">
                     <n-flex justify="center">
                         <div class="correct-answer">
@@ -22,7 +22,7 @@
                         </div>
                         <icon-button :icon="SendOne" type="success" @click="nextQuestionButton">下一题</icon-button>
                         <div class="countdown">
-                            <n-countdown :duration="10000" :active="true" :render="renderCountdown" ref="countdown"
+                            <n-countdown :duration="10000" :active="countDownActive" :render="renderCountdown" ref="countdown"
                                 @finish="onCountdownFinish"></n-countdown>
                         </div>
 
@@ -163,7 +163,7 @@ const countdown = ref()
 const renderCountdown = ({ seconds }: { seconds: number }) => {
     return `${seconds}秒`;
 };
-
+const countDownActive = ref(false)
 const nextQuestionShown = ref(false)
 const hasNextQuestion = computed(() => {
     if (game?.value?.IsCompleted) {
@@ -270,7 +270,7 @@ const playersRanking = computed(() => {
 
 function onCountdownFinish() {
     //console.log('CountDown结束，强制跳转下一题')
-    if (nextQuestionShown.value === true) {
+    if(countDownActive.value == true){
         moveToNextQuestion()
     }
 }
@@ -297,6 +297,7 @@ function nextQuestionButton() {
 function moveToNextQuestion() {
     playersReadyList.value = []
     nextQuestionShown.value = false
+    countDownActive.value = false
 
     if (game.value.QuestionList.length > game.value.CurrentQuestionIndex) {
         currentQuestionIndex.value = game.value.CurrentQuestionIndex
