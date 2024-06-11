@@ -40,9 +40,12 @@ export const useGameHubStore = defineStore('gameHub', () => {
             if (lastToken.value !== currentToken) {
                 lastToken.value = currentToken
                 await close()
+            }else{
+                if(isConnected){
+                    return
+                }
             }
-
-            // 创建新的连接实例
+            
             connection.value = new signalR.HubConnectionBuilder()
                 .withUrl(`${rootUrl}/gamehub`, {
                     accessTokenFactory: () => currentToken

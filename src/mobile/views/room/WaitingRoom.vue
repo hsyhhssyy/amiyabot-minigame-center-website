@@ -148,7 +148,7 @@ async function leaveRoom() {
 
 async function shareRoom() {
     const sUrl = await getShortenUrl(roomId)
-    await navigator.clipboard.writeText(`快来和大家一起玩游戏吧，点击链接: ${sUrl} 立刻加入房间。`)
+    await navigator.clipboard.writeText(`快来和大家一起玩游戏吧，点击链接: ${sUrl} 立刻加入房间。房间号[${gameRoomData.value?.joinCode}]。`)
     await toast('已复制加入链接到剪贴板', 'success')
 }
 

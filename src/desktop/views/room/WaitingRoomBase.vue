@@ -50,17 +50,22 @@
                 </n-space>
             </n-card>
             <div ref="roomSettingsSlot">
-                <slot></slot>
+                <n-card>
+                    <template #header>
+                    房间设置
+                    </template>
+                    <slot></slot>
+                </n-card>
             </div>
         </n-space>
         <div style="height: 100%">
-            <chat-board :players="players" :room-id="roomId" />
+            <chat-board :players="players" :room-id="roomId" placeholder="说点什么吧...."/>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch,computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Close, Logout, Peoples, Play, ShareOne } from '@icon-park/vue-next'
 import { useGameHubStore } from '@/stores/gamehub'
@@ -77,11 +82,11 @@ import ChatBoard from '@/desktop/components/ChatBoard.vue'
 import GameInfoCard from '@/universal/components/GameInfoCard.vue'
 
 interface WaitingRoomProps {
-
+    settings: any
 }
 
 const emits = defineEmits<{
-    (e: 'onSettingsChange', settings:any): void
+    (e: 'onSettingsLoaded', settings:any): void
 }>()
 const props = defineProps<WaitingRoomProps>()
 
@@ -100,6 +105,11 @@ const gameTypeMap = ref<GameTypes>(getGameTypeMap())
 const players = ref<Player[]>([])
 
 const roomSettingsSlot = ref<any>()
+
+watch( computed(() => props.settings), (value:any) => {
+    console.log('settings changed', value)
+    gameHub.invokeGameHub('ChangeGameSettings', roomId, JSON.stringify(value))
+})
 
 let getGameInterval: any = null
 
@@ -138,6 +148,11 @@ async function playerLeftListener(response: SignalrResponse) {
     }
 }
 
+async function gameSettingsChangedListener(response: SignalrResponse) {
+    const settings = response.Settings
+    emits('onSettingsLoaded', settings)
+}
+
 async function gameStartedListener() {
     if (gameRoomData.value?.gameType) {
         const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
@@ -166,7 +181,7 @@ async function leaveRoom() {
 
 async function shareRoom() {
     const sUrl = await getShortenUrl(roomId)
-    await navigator.clipboard.writeText(`快来和大家一起玩游戏吧，点击链接: ${sUrl} 立刻加入房间。`)
+    await navigator.clipboard.writeText(`快来和大家一起玩游戏吧，点击链接: ${sUrl} 立刻加入房间。房间号[${gameRoomData.value?.joinCode}]。`)
     await toast('已复制加入链接到剪贴板', 'success')
 }
 
@@ -179,6 +194,7 @@ onMounted(async () => {
     gameHub.addGameHubListener('PlayerKicked', playerLeftListener)
     gameHub.addGameHubListener('GameClosed', gameClosedListener)
     gameHub.addGameHubListener('GameStarted', gameStartedListener)
+    gameHub.addGameHubListener('GameSettingsChanged', gameSettingsChangedListener)
 
     gameHub.invokeGameHub('GetGame', roomId)
 
@@ -195,6 +211,7 @@ onUnmounted(async () => {
     gameHub.removeGameHubListener('PlayerKicked', playerLeftListener)
     gameHub.removeGameHubListener('GameClosed', gameClosedListener)
     gameHub.removeGameHubListener('GameStarted', gameStartedListener)
+    gameHub.removeGameHubListener('GameSettingsChanged', gameSettingsChangedListener)
 
     clearInterval(getGameInterval)
 })
