@@ -14,6 +14,7 @@ export const useGameHubStore = defineStore('gameHub', () => {
     const user = useUser()
 
     const connection = ref<signalR.HubConnection | null>()
+    const checkInterval = ref<NodeJS.Timeout>()
     const serverInterval = ref<NodeJS.Timeout>()
     const lastToken = ref('')
 
@@ -63,7 +64,7 @@ export const useGameHubStore = defineStore('gameHub', () => {
             await postConnectionSetup()
         } catch (error) {
             console.error('An error occurred while connecting to the game hub:', error)
-            setTimeout(connect, 1000);
+            setTimeout(connect, 1000)
         }
     }
 
@@ -139,7 +140,8 @@ export const useGameHubStore = defineStore('gameHub', () => {
             router.push('/regular-home').then()
             return
         }
-        setTimeout(checkConnection, 500)
+        clearTimeout(checkInterval.value)
+        checkInterval.value = setTimeout(checkConnection, 500)
     }
 
     watch(
@@ -153,8 +155,8 @@ export const useGameHubStore = defineStore('gameHub', () => {
 
     watch(
         computed(() => user.userName),
-        async () => {
-            if (!isConnected.value) {
+        async (userName) => {
+            if (!isConnected.value && userName) {
                 await connect()
                 checkConnection()
             }
