@@ -62,6 +62,7 @@
 import { Back, DoneAll, Game, KeyOne, Login as LoginIcon, Mail, User as UserIcon } from '@icon-park/vue-next'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import { loginApi, quickRegisterApi, registerApi, verifyTokenApi } from '@/api/account'
 import IconButton from '@/universal/components/IconButton.vue'
 import Icon from '@/universal/components/Icon.vue'
@@ -75,6 +76,7 @@ const emit = defineEmits<{
     (e: 'back'): void
 }>()
 
+const user = useUserStore()
 const router = useRouter()
 
 const email = ref('')
@@ -94,6 +96,7 @@ async function login() {
     const res = await loginApi(email.value, password.value)
     if (res && res.token) {
         if (await verifyTokenApi(res.token)) {
+            await user.init()
             await router.push('/')
         }
     }
@@ -113,7 +116,7 @@ async function register() {
         return
     }
     const nickname = '游客博士#' + Math.floor(Math.random() * 10000)
-    const res = await registerApi(email.value,password.value,nickname)
+    const res = await registerApi(email.value, password.value, nickname)
     if (res) {
         await goBack()
     }
