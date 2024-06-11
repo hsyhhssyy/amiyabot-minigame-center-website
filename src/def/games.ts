@@ -4,6 +4,7 @@ export interface GameItem {
     name: string
     type: string
     route: string
+    settings: string|null
     notAvailable?: boolean
 }
 
@@ -15,7 +16,8 @@ export const gameList: GameItem[] = [
         image: '/games/SchulteGrid.png',
         name: '技能方格猜干员',
         type: 'SchulteGrid',
-        route: '/games/schulte-grid/'
+        route: '/games/schulte-grid/',
+        settings: null
     },
     {
         id: 2,
@@ -23,6 +25,7 @@ export const gameList: GameItem[] = [
         name: '立绘猜干员',
         type: 'SkinGuess',
         route: '/games/skin-guess/',
+        settings: null,
         notAvailable: true
     },
     {
@@ -31,6 +34,7 @@ export const gameList: GameItem[] = [
         name: '技能图标猜干员',
         type: 'SkillGuess',
         route: '/games/schulte-grid/',
+        settings: null,
         notAvailable: true
     },
     {
@@ -39,6 +43,7 @@ export const gameList: GameItem[] = [
         name: '大帝的挑战',
         type: 'CypherChallenge',
         route: '/games/cypher-challenge/',
+        settings: null,
         notAvailable: false
     }
 ]

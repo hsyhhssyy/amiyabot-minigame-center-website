@@ -83,9 +83,10 @@ async function sendMessage() {
     }
     if (props.inputHandler) {
         props.inputHandler(content)
-    } else {
-        gameHub.invokeGameHub('Chat', props.roomId, content)
     }
+    
+    gameHub.invokeGameHub('Chat', props.roomId, content)
+    
     inputMessage.value = ''
 }
 

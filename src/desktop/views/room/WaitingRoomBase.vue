@@ -49,7 +49,9 @@
                     </n-space>
                 </n-space>
             </n-card>
-            <component :is="roomSettingsComponenet" v-if="roomSettingsComponenet"></component>
+            <div ref="roomSettingsSlot">
+                <slot></slot>
+            </div>
         </n-space>
         <div style="height: 100%">
             <chat-board :players="players" :room-id="roomId" />
@@ -74,6 +76,15 @@ import Icon from '@/universal/components/Icon.vue'
 import ChatBoard from '@/desktop/components/ChatBoard.vue'
 import GameInfoCard from '@/universal/components/GameInfoCard.vue'
 
+interface WaitingRoomProps {
+
+}
+
+const emits = defineEmits<{
+    (e: 'onSettingsChange', settings:any): void
+}>()
+const props = defineProps<WaitingRoomProps>()
+
 const route = useRoute()
 const router = useRouter()
 const gameHub = useGameHubStore()
@@ -88,7 +99,7 @@ const gameTypeMap = ref<GameTypes>(getGameTypeMap())
 
 const players = ref<Player[]>([])
 
-const roomSettingsComponenet = ref<any>(null)
+const roomSettingsSlot = ref<any>()
 
 let getGameInterval: any = null
 
