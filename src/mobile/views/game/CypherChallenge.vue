@@ -27,10 +27,11 @@
                         </div>
 
                     </n-flex>
-                    <n-flex justify="center" style="margin-top: 20px;" align="center" v-if="!hasNextQuestion">
+                    <n-flex justify="center" style="margin-top: 20px; margin-bottom: 10px;" align="center" v-if="!hasNextQuestion">
                         <div class="countdown">
                             游戏已结束
                         </div>
+                        <icon-button :icon="Close" type="error" @click="closeResultPopup">关闭</icon-button>
                     </n-flex>
                 </div>
             </n-modal>
@@ -83,7 +84,7 @@
 import type { CSSProperties } from 'vue'
 import { computed, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Check, SendOne } from '@icon-park/vue-next'
+import { Check, SendOne, Close } from '@icon-park/vue-next'
 import { useGameHubStore } from '@/stores/gamehub'
 import { listToDict } from '@/utils'
 import type { SignalrResponse } from '@/api/signalr'
@@ -266,6 +267,10 @@ function onCountdownFinish() {
 
 function getRallyPointData() {
     return "PrepareNextQuestion:" + currentQuestionIndex.value;
+}
+
+function closeResultPopup(){
+    nextQuestionShown.value = false
 }
 
 function prepareNextQuestion() {
