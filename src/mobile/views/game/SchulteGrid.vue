@@ -1,21 +1,23 @@
 <template>
     <game-base :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="onBaseLoaded"
-        @on-game-completed="gameCompleted" ref="base">
+        ref="base">
         <div style="height: 100%; ">
-            <div class="game-body">
-                <n-card embedded :bordered="false" style="width: fit-content">
-                    <n-grid :x-gap="2" :y-gap="2" :cols="x" style="width: fit-content">
-                        <n-grid-item v-for="(item, index) in expandedData" :key="index">
-                            <n-button size="small" class="char" :class="{ active: !item.recent && !item.fade }"
-                                :dashed="item.fade" :strong="!item.fade" :disabled="item.fade" :secondary="item.recent"
-                                :type="colors(item)">
-                                {{ item.char }}
-                            </n-button>
-                        </n-grid-item>
-                    </n-grid>
-                </n-card>
-                <hit-effect ref="hit"></hit-effect>
-            </div>
+            <n-spin :show="expandedData?.length < 100">
+                <div class="game-body">
+                    <n-card embedded :bordered="false" style="width: fit-content">
+                        <n-grid :x-gap="2" :y-gap="2" :cols="x" style="width: fit-content">
+                            <n-grid-item v-for="(item, index) in expandedData" :key="index">
+                                <n-button size="small" class="char" :class="{ active: !item.recent && !item.fade }"
+                                    :dashed="item.fade" :strong="!item.fade" :disabled="item.fade"
+                                    :secondary="item.recent" :type="colors(item)">
+                                    {{ item.char }}
+                                </n-button>
+                            </n-grid-item>
+                        </n-grid>
+                    </n-card>
+                    <hit-effect ref="hit"></hit-effect>
+                </div>
+            </n-spin>
         </div>
         <template v-slot:players>
             <template v-for="(items, name) in playersRanking" :key="name">
@@ -201,20 +203,20 @@ function receiveMoveListener(response: SignalrResponse) {
             case 'Answered':
                 if (player?.id === user.userInfo?.id) {
                     hitMessage = "该干员已被猜过了。"
-                }else{
-                    hitMessage = "玩家" + player?.name + "猜测是干员"+characterName+"，但是他已经被猜过了。"
+                } else {
+                    hitMessage = "玩家" + player?.name + "猜测是干员" + characterName + "，但是他已经被猜过了。"
                 }
                 break
             case 'Wrong':
                 if (player?.id === user.userInfo?.id) {
                     hitMessage = "猜错了！" + characterName + "不在谜题中。"
-                }else{
-                    hitMessage = "玩家" + player?.name + "猜测是干员"+characterName+"，但是他猜错了。"
+                } else {
+                    hitMessage = "玩家" + player?.name + "猜测是干员" + characterName + "，但是他猜错了。"
                 }
                 break
         }
 
-        if(hitMessage !== ""){
+        if (hitMessage !== "") {
             hit.value.hit(face, hitMessage)
         }
     }
@@ -229,7 +231,7 @@ function receiveMoveListener(response: SignalrResponse) {
 }
 
 
-function gameCompleted(response: SignalrResponse) {
+function gameCompletedListener(response: SignalrResponse) {
     const answers = response.Payload.RemainingAnswers
     if (isCompleted.value === false) {
         isCompleted.value = true
@@ -337,6 +339,8 @@ watch(
         if (value) {
             gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
             gameHub.addGameHubListener('GameInfo', gameInfoListener)
+            gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
+
 
         }
     },
@@ -351,6 +355,7 @@ onMounted(() => {
 onUnmounted(() => {
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
+    gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
 })
 </script>
 

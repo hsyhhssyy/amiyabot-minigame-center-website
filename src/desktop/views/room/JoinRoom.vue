@@ -33,7 +33,7 @@ async function gameJoinListener(response: SignalrResponse) {
     setData('current-game-id', gameId)
 
     //获取GameRoute
-    const gameRoute = gameList.find((game) => game.type === response.Game.Type)
+    const gameRoute = gameList.find((game) => game.type === response.Game.GameType)
     if (!gameRoute) {
         console.error('未找到游戏路由')
         return

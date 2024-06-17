@@ -84,6 +84,23 @@ const desktopRoutes: RouteRecordRaw[] = [
                     component: () => import('@/desktop/views/room/WaitingRoom.vue')
                   }
                 ]
+            },
+            {
+                path: 'skin-guess',
+                name: 'skin-guess',
+                component: () => EmptyContainer,
+                children: [
+                  {
+                    path: 'game/:roomId',
+                    name: 'skin-guess-game',
+                    component: () => import('@/desktop/views/game/SkinGuess.vue')
+                  },
+                  {
+                    path: 'room/:roomId',
+                    name: 'skin-guess-room',
+                    component: () => import('@/desktop/views/room/WaitingRoom.vue')
+                  }
+                ]
             }
         ]
     }

@@ -26,7 +26,7 @@ export const gameList: GameItem[] = [
         type: 'SkinGuess',
         route: '/games/skin-guess/',
         settings: null,
-        notAvailable: true
+        notAvailable: false
     },
     {
         id: 3,
