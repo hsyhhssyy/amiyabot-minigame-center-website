@@ -1,7 +1,7 @@
 <template>
     <game-base ref="base" :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load">
         <div style="height: 100%" class="game-card">
-            <n-modal v-model:show="nextQuestionShown" :mask-closable="false">
+            <n-modal v-model:show="settlementDialogShown" :mask-closable="false">
                 <div class="overlay-card">
                     <n-flex justify="center">
                         <div class="correct-answer">
@@ -10,29 +10,9 @@
                     </n-flex>
                     <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
                         :showAnswer="true"></result-table>
-                    <n-flex justify="center" style="margin-top: 20px;" align="center" v-if="hasNextQuestion">
-                        <div>
-                            <n-badge color="green" v-for="player in players" style="margin-right: 5px;">
-                                <template #value>
-                                    <icon :icon="Check" v-if="playersReadyList.includes(player.id)" />
-                                </template>
-                                <n-avatar :src="player.avatar" size="small"
-                                    :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
-                            </n-badge>
-                        </div>
-                        <icon-button :icon="SendOne" type="success" @click="nextQuestionButton">下一题</icon-button>
-                        <div class="countdown">
-                            <n-countdown :duration="10000" :active="countDownActive" :render="renderCountdown" ref="countdown"
-                                @finish="onCountdownFinish"></n-countdown>
-                        </div>
-
-                    </n-flex>
-                    <n-flex justify="center" style="margin-top: 20px; margin-bottom: 10px;" align="center" v-if="!hasNextQuestion">
-                        <div class="countdown">
-                            游戏已结束
-                        </div>
-                        <icon-button :icon="Close" type="error" @click="closeResultPopup">关闭</icon-button>
-                    </n-flex>
+                    <next-question :room-id="roomId" :active="settlementCountdownActive" @on-next-question="moveToNextQuestion"
+                        :show-close="true" @on-close-result-popup="closeResultPopup"></next-question>
+                    
                 </div>
             </n-modal>
             <div>
@@ -84,7 +64,6 @@
 import type { CSSProperties } from 'vue'
 import { computed, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Check, SendOne, Close } from '@icon-park/vue-next'
 import { useGameHubStore } from '@/stores/gamehub'
 import { listToDict } from '@/utils'
 import type { SignalrResponse } from '@/api/signalr'
@@ -93,9 +72,8 @@ import type { Player } from '@/def/players'
 import type { HitType } from '@/mobile/components/effects/HitEffect.vue'
 import HitEffect from '@/mobile/components/effects/HitEffect.vue'
 import GameBase from '@/mobile/views/GameBase.vue'
-import Icon from '@/universal/components/Icon.vue'
 import ResultTable from '@/mobile/components/cypherChallenge/ResultTable.vue'
-import IconButton from '@/universal/components/IconButton.vue'
+import NextQuestion from '@/universal/components/NextQuestion.vue'
 
 interface GamePlayer extends Player {
     score: number
@@ -164,8 +142,9 @@ const countdown = ref()
 const renderCountdown = ({ seconds }: { seconds: number }) => {
     return `${seconds}秒`;
 };
-const countDownActive = ref(false)
-const nextQuestionShown = ref(false)
+
+const settlementDialogShown = ref(false)
+const settlementCountdownActive = ref(false)
 const hasNextQuestion = computed(() => {
     if (game?.value?.IsCompleted) {
         return false
@@ -176,16 +155,6 @@ const hasNextQuestion = computed(() => {
     }
 
     return true
-})
-
-const amiyaFace = ref<HitType>('smile')
-const amiyaChat = ref(
-    '博士们，欢迎参加本场比赛，我是你们的向导：兔兔！比赛已经开始啦，谜底是一位干员。请博士在聊天框里发送【干员名】猜测他是谁。如果您发送的干员和目标干员有相同的属性，这个属性会被标记为绿色并被揭示出来。'
-)
-const amiyaFaceStyle = computed<CSSProperties>(() => {
-    return {
-        backgroundImage: `url(/face/amiya/amiya_${amiyaFace.value}.webp)`
-    }
 })
 
 let timeRecord = 0
@@ -258,52 +227,29 @@ const playersRanking = computed(() => {
     return result
 })
 
-function onCountdownFinish() {
-    //console.log('CountDown结束，强制跳转下一题')
-    if(countDownActive.value == true){
-        moveToNextQuestion()
-    }
-}
-
-function getRallyPointData() {
-    return "PrepareNextQuestion:" + currentQuestionIndex.value;
-}
-
 function closeResultPopup(){
-    nextQuestionShown.value = false
+    settlementDialogShown.value = false
 }
 
 function prepareNextQuestion() {
-    if(countDownActive.value==true){
+    if(settlementCountdownActive.value==true){
         return
     }
-    nextQuestionShown.value = true
+    settlementDialogShown.value = true
     countdown.value?.reset()
-    countDownActive.value=true
-
-    if (hasNextQuestion.value) {
-        gameHub.invokeGameHub('RallyPointCreate', roomId, JSON.stringify({ Name: getRallyPointData() }))
-        gameHub.invokeGameHub('RallyPointStatus', roomId, JSON.stringify({ Name: getRallyPointData() }))
-    }
+    settlementCountdownActive.value=true
 }
 
-function nextQuestionButton() {
-    gameHub.invokeGameHub('RallyPointReached', roomId, JSON.stringify({ Name: getRallyPointData() }));
-    gameHub.invokeGameHub('RallyPointStatus', roomId, JSON.stringify({ Name: getRallyPointData() }))
-}
+function moveToNextQuestion(newQuestionIndex: number) {
+    settlementDialogShown.value = false
+    settlementCountdownActive.value = false
 
-function moveToNextQuestion() {
-    playersReadyList.value = []
-    nextQuestionShown.value = false
-    countDownActive.value = false
-
-    if (game.value.QuestionList.length > game.value.CurrentQuestionIndex) {
-        currentQuestionIndex.value = game.value.CurrentQuestionIndex
-    }
+    currentQuestionIndex.value = newQuestionIndex
+    
 }
 
 function sendMove(content: string) {
-    if(countDownActive.value==true){
+    if(settlementCountdownActive.value==true){
         gameHub.invokeGameHub(
             'Chat',
             roomId,
@@ -353,22 +299,22 @@ function receiveMoveListener(response: SignalrResponse) {
         const face = effects[result]
 
         timeRecord = 0
-        amiyaFace.value = face
+        var amiyaChat = ""
         switch (result) {
             case 'Correct':
-                amiyaChat.value =
+                amiyaChat =
                     `正确！是干员【${characterName}】` +
                     `Dr.${player?.name} 加 200 分！太棒啦！`
                 break
             case 'Answered':
-                amiyaChat.value = `Dr.${player?.name}，干员【${characterName}】已经猜过啦！`
+            amiyaChat = `Dr.${player?.name}，干员【${characterName}】已经猜过啦！`
                 break
             case 'Wrong':
-                amiyaChat.value = `答案不正确……Dr.${player?.name}，再仔细看看吧~`
+            amiyaChat = `答案不正确……Dr.${player?.name}，再仔细看看吧~`
                 break
         }
 
-        hit.value.hit(face)
+        hit.value.hit(face,amiyaChat)
     }
 
     base.value.pushMessage({
@@ -403,29 +349,8 @@ function gameInfoListener(response: SignalrResponse) {
     })
 }
 
-function rallyPointStatusListener(response: SignalrResponse) {
-    console.log('rally st', response)
-    if (response.Name == getRallyPointData()) {
-        for (let i = 0; i < players.value.length; i++) {
-            if (response.Players.includes(players.value[i].id)) {
-                if (!playersReadyList.value.includes(players.value[i].id)) {
-                    playersReadyList.value.push(players.value[i].id)
-                }
-            }
-        }
-    }
-}
-
-function rallyPointReachedListener(response: SignalrResponse) {
-    moveToNextQuestion()
-}
-
 function gameCompletedListener(response: SignalrResponse) {
     clearInterval(timeRecordInterval)
-
-    amiyaFace.value = 'joy'
-    amiyaChat.value =
-        '游戏结束。'
 
     game.value = response.Payload.Game
 
@@ -435,8 +360,6 @@ function gameCompletedListener(response: SignalrResponse) {
 function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
-    gameHub.addGameHubListener('RallyPointStatus', rallyPointStatusListener)
-    gameHub.addGameHubListener('RallyPointReached', rallyPointReachedListener)
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
     gameHub.addGameHubListener('Chat', chatListener)
 
@@ -444,44 +367,8 @@ function load(roomData: GameRoom, gameData: SignalrResponse) {
     currentQuestionIndex.value = game.value.CurrentQuestionIndex
 
     if (roomData.isClosed || roomData.isCompleted) {
-        amiyaFace.value = 'wuwu'
-        amiyaChat.value = '博士，游戏已经结束了……下次请早点来吧~'
 
         prepareNextQuestion()
-    } else {
-        timeRecordInterval = setInterval(chatting, 1000)
-    }
-
-}
-
-function chatting() {
-    timeRecord += 1
-    timeRecordChat += 1
-
-    let face: HitType = 'doubt'
-    let chat = ''
-
-    /**
-     * 骚话环节！这里的判断有点多，要在有人说话和有人回答之间做判断（有人说话不一定有人回答）
-     */
-
-    if (timeRecord >= 20) {
-        if (timeRecordChat < timeRecord) {
-            face = 'tea'
-            chat = '博士们在讨论什么呢？有没有想好答案了呀~'
-        } else {
-            face = 'emmm'
-            chat = '博士们在思考吗？怎么没有博士说话了呢？'
-        }
-    }
-    if (timeRecord >= 60) {
-        face = 'nervous'
-        chat = '博士，实在不行，先随便猜一个试试吧……'
-    }
-
-    if (chat) {
-        amiyaFace.value = face
-        amiyaChat.value = chat
     }
 }
 
@@ -489,8 +376,6 @@ onUnmounted(() => {
     clearInterval(timeRecordInterval)
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
-    gameHub.removeGameHubListener('RallyPointStatus', rallyPointStatusListener)
-    gameHub.removeGameHubListener('RallyPointReached', rallyPointReachedListener)
     gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
     gameHub.removeGameHubListener('Chat', chatListener)
 

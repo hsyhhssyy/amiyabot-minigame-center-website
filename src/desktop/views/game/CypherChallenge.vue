@@ -1,7 +1,7 @@
 <template>
     <game-base ref="base" :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load">
         <n-card style="height: 100%" class="game-card">
-            <div v-if="nextQuestionShown" class="overlay">
+            <div v-if="settlementDialogShown" class="overlay">
                 <n-card class="overlay-card">
                     <n-flex justify="center">
                         <div class="correct-answer">
@@ -10,28 +10,8 @@
                     </n-flex>
                     <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
                         :showAnswer="true"></result-table>
-                    <n-flex justify="center" style="margin-top: 20px;" align="center" v-if="hasNextQuestion">
-                        <div>
-                            <n-badge color="green" v-for="player in players" style="margin-right: 5px;">
-                                <template #value>
-                                    <icon :icon="Check" v-if="playersReadyList.includes(player.id)" />
-                                </template>
-                                <n-avatar :src="player.avatar" size="small"
-                                    :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
-                            </n-badge>
-                        </div>
-                        <icon-button :icon="SendOne" type="success" @click="nextQuestionButton">下一题</icon-button>
-                        <div class="countdown">
-                            <n-countdown :duration="10000" :active="true" :render="renderCountdown" ref="countdown"
-                                @finish="onCountdownFinish"></n-countdown>
-                        </div>
-
-                    </n-flex>
-                    <n-flex justify="center" style="margin-top: 20px;" align="center" v-if="!hasNextQuestion">
-                        <div class="countdown">
-                            游戏已结束
-                        </div>
-                    </n-flex>
+                    <next-question :room-id="roomId" :active="settlementCountdownActive" @on-next-question="moveToNextQuestion"></next-question>
+                    
                 </n-card>
             </div>
             <div>
@@ -105,9 +85,8 @@ import type { Player } from '@/def/players'
 import type { HitType } from '@/desktop/components/effects/HitEffect.vue'
 import HitEffect from '@/desktop/components/effects/HitEffect.vue'
 import GameBase from '@/desktop/views/GameBase.vue'
-import Icon from '@/universal/components/Icon.vue'
 import ResultTable from '@/desktop/components/cypherChallenge/ResultTable.vue'
-import IconButton from '@/universal/components/IconButton.vue'
+import NextQuestion from '@/universal/components/NextQuestion.vue'
 
 interface GamePlayer extends Player {
     score: number
@@ -156,7 +135,6 @@ const route = useRoute()
 const gameHub = useGameHubStore()
 
 const players = ref<GamePlayer[]>([])
-const playersReadyList = ref<string[]>([])
 const currentQuestionIndex = ref<number | null>(null)
 const currentQuestion = computed<Question>(() => {
     if (game?.value?.QuestionList == null) {
@@ -172,12 +150,9 @@ const game = ref<any>()
 const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 const base = ref()
 const hit = ref()
-const countdown = ref()
-const renderCountdown = ({ seconds }: { seconds: number }) => {
-    return `${seconds}秒`;
-};
 
-const nextQuestionShown = ref(false)
+const settlementDialogShown = ref(false)
+const settlementCountdownActive = ref(false)
 const hasNextQuestion = computed(() => {
     if (game?.value?.IsCompleted) {
         return false
@@ -270,47 +245,23 @@ const playersRanking = computed(() => {
     return result
 })
 
-function onCountdownFinish(){
-    //console.log('CountDown结束，强制跳转下一题')
-    if(nextQuestionShown.value === true){
-        moveToNextQuestion()
-    }
-}
-
-function getRallyPointData() {
-    return "PrepareNextQuestion:" + currentQuestionIndex.value;
-}
-
 function prepareNextQuestion() {
-    if(nextQuestionShown.value==true){
+    if(settlementDialogShown.value==true){
         return
     }
 
-    nextQuestionShown.value = true
-    countdown.value?.reset()
-
-    if (hasNextQuestion.value) {
-        gameHub.invokeGameHub('RallyPointCreate', roomId, JSON.stringify({ Name: getRallyPointData() }))
-        gameHub.invokeGameHub('RallyPointStatus', roomId, JSON.stringify({ Name: getRallyPointData() }))
-    }
+    settlementDialogShown.value = true
+    settlementCountdownActive.value = true
 }
 
-function nextQuestionButton() {
-    gameHub.invokeGameHub('RallyPointReached', roomId, JSON.stringify({ Name: getRallyPointData() }));
-    gameHub.invokeGameHub('RallyPointStatus', roomId, JSON.stringify({ Name: getRallyPointData() }))
-}
+function moveToNextQuestion(newQuestionIndex: number) {
+    settlementDialogShown.value = false
 
-function moveToNextQuestion() {
-    playersReadyList.value = []
-    nextQuestionShown.value = false
-
-    if (game.value.QuestionList.length > game.value.CurrentQuestionIndex) {
-        currentQuestionIndex.value = game.value.CurrentQuestionIndex
-    }
+    currentQuestionIndex.value = newQuestionIndex
 }
 
 function sendMove(content: string) {
-    if(nextQuestionShown.value==true){
+    if(settlementDialogShown.value==true){
         gameHub.invokeGameHub(
             'Chat',
             roomId,
@@ -326,16 +277,6 @@ function sendMove(content: string) {
         )
     }
 }
-
-// function chatListener(response: SignalrResponse) {
-//     base.value.pushMessage({
-//         userId: response.UserId,
-//         content: response.Message,
-//         style: 'chat',
-//         nickname: playersMap.value[response.UserId]?.name || 'Unknown',
-//         avatar: playersMap.value[response.UserId]?.avatar || '/avatar.webp'
-//     } as Message)
-// }
 
 function receiveMoveListener(response: SignalrResponse) {
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
@@ -410,23 +351,6 @@ function gameInfoListener(response: SignalrResponse) {
     })
 }
 
-function rallyPointStatusListener(response: SignalrResponse) {
-    console.log('rally st', response)
-    if (response.Name == getRallyPointData()) {
-        for (let i = 0; i < players.value.length; i++) {
-            if (response.Players.includes(players.value[i].id)) {
-                if (!playersReadyList.value.includes(players.value[i].id)) {
-                    playersReadyList.value.push(players.value[i].id)
-                }
-            }
-        }
-    }
-}
-
-function rallyPointReachedListener(response: SignalrResponse) {
-    moveToNextQuestion()
-}
-
 function gameCompletedListener(response: SignalrResponse) {
     clearInterval(timeRecordInterval)
 
@@ -442,8 +366,6 @@ function gameCompletedListener(response: SignalrResponse) {
 function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
-    gameHub.addGameHubListener('RallyPointStatus', rallyPointStatusListener)
-    gameHub.addGameHubListener('RallyPointReached', rallyPointReachedListener)
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
     // gameHub.addGameHubListener('Chat',chatListener)
 
@@ -496,8 +418,6 @@ onUnmounted(() => {
     clearInterval(timeRecordInterval)
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
-    gameHub.removeGameHubListener('RallyPointStatus', rallyPointStatusListener)
-    gameHub.removeGameHubListener('RallyPointReached', rallyPointReachedListener)
     gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
     // gameHub.removeGameHubListener('Chat',chatListener)
 
@@ -540,17 +460,6 @@ $guideHeight: 160px;
 
             .correct-answer {
                 font-size: 24px;
-                color: bisque;
-                text-shadow:
-                    -1px -1px 0 #000,
-                    1px -1px 0 #000,
-                    -1px 1px 0 #000,
-                    1px 1px 0 #000;
-                /* 描边颜色和方向 */
-            }
-
-            .countdown {
-                font-size: 20px;
                 color: bisque;
                 text-shadow:
                     -1px -1px 0 #000,
