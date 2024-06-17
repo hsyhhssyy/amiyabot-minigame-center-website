@@ -26,7 +26,6 @@ watch(isPrivateRoom, (value) => {
     roomSettings.value = {
         IsPrivate: value
     }
-    console.log('isPrivateRoom', value)
 })
 
 function railStyle({ focused, checked }: { focused: boolean; checked: boolean }) {

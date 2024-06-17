@@ -8,6 +8,7 @@ import type { SignalrResponse } from '@/api/signalr'
 import { getData, removeData, setData, toast } from '@/utils'
 import { useRoute, useRouter } from 'vue-router'
 import { getGame } from '@/api/game'
+import { gameList } from '@/def/games'
 import { useDialog } from 'naive-ui'
 import { useGameHubStore } from '@/stores/gamehub'
 
@@ -30,7 +31,18 @@ async function gameJoinListener(response: SignalrResponse) {
 
     const gameId = response.GameId
     setData('current-game-id', gameId)
-    await router.push('/regular-home/waiting-room/' + gameId)
+
+    //获取GameRoute
+    const gameRoute = gameList.find((game) => game.type === response.Game.Type)
+    if (!gameRoute) {
+        console.error('未找到游戏路由')
+        return
+    }
+
+    const route = gameRoute.route
+
+    // 跳转到房间等待页面
+    router.push(route + "room/" + gameId)
 }
 
 async function initJoinRoom() {
@@ -51,9 +63,10 @@ async function initJoinRoom() {
                 return
             }
 
-            if (route.name?.toString().startsWith('waiting-room')) {
-                return
+            if (route.name && route.name.toString().includes('/room/')) {
+                return;
             }
+
 
             const playerList = game.playerList
             const player = Object.keys(playerList).find((key) => key == getData('user-id'))
@@ -66,7 +79,17 @@ async function initJoinRoom() {
                     negativeText: '算了',
                     maskClosable: false,
                     onPositiveClick: async () => {
-                        await router.push('/regular-home/waiting-room/' + getData('current-game-id'))
+                        //获取GameRoute
+                        const gameRoute = gameList.find((g) => g.type === game.gameType)
+                        if (!gameRoute) {
+                            console.error('未找到游戏路由')
+                            return
+                        }
+
+                        const route = gameRoute.route
+
+                        // 跳转到房间等待页面
+                        await router.push(route + "room/" + gameId)
                     },
                     onNegativeClick: async () => removeData('current-game-id')
                 })

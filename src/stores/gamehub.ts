@@ -171,7 +171,8 @@ export const useGameHubStore = defineStore('gameHub', () => {
         isConnected,
         invokeGameHub,
         addGameHubListener,
-        removeGameHubListener
+        removeGameHubListener,
+        connect
     }
 })
 

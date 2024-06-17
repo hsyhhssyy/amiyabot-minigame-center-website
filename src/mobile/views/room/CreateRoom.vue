@@ -48,6 +48,7 @@ import { gameList } from '@/def/games'
 import { Back,Help } from '@icon-park/vue-next'
 import IconButton from '@/universal/components/IconButton.vue'
 import Icon from '@/universal/components/Icon.vue'
+import type { SignalrResponse } from '@/api/signalr'
 
 const router = useRouter()
 const gameHub = useGameHubStore()
@@ -83,7 +84,7 @@ async function goBack() {
     await router.push('/regular-home')
 }
 
-function gameCreateListener(response: { GameId: string }) {
+function gameCreateListener(response: SignalrResponse) {
     isGameCreating.value = false
 
     console.log(response)
@@ -91,8 +92,17 @@ function gameCreateListener(response: { GameId: string }) {
     const gameId = response.GameId
     setData('current-game-id', gameId)
 
+    //获取GameRoute
+    const gameRoute = gameList.find((game) => game.type === response.Game.GameType)
+    if (!gameRoute) {
+        console.error('未找到游戏路由')
+        return
+    }
+
+    const route = gameRoute.route
+
     // 跳转到房间等待页面
-    router.push('/regular-home/waiting-room/' + gameId)
+    router.push(route + "room/" + gameId)
 }
 
 onMounted(() => {

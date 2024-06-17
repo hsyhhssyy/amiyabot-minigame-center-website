@@ -1,7 +1,7 @@
 <template>
-    <n-button :type="props.type || 'default'" :size="props.size || 'medium'" :text="text" @click="handleClick">
+    <n-button :type="props.type || 'default'" :size="props.size || 'medium'" :text="text" @click="handleClick" :loading="loading">
         <template #icon>
-            <icon :icon="loading ? Loading : props.icon" />
+            <icon :icon="props.icon" />
         </template>
         <slot></slot>
     </n-button>
@@ -11,7 +11,6 @@
 import { ref } from 'vue'
 import type { Size, Type } from 'naive-ui/lib/button/src/interface'
 import Icon from '@/universal/components/Icon.vue'
-import { Loading } from '@icon-park/vue-next';
 
 const props = defineProps<{
     icon: any

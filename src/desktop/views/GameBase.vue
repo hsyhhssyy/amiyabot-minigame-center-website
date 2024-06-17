@@ -202,8 +202,10 @@ function adjustLayout() {
     if (actualWidth > minWidth * 2 + 100) {
         const gap = getComputedStyle(gameBaseElement).getPropertyValue('--gap').trim();
         gameSlotElement.style.width = `calc(50% - ${gap} / 2)`;
+        console.log('set width by calc', gameSlotElement.style.width)
     } else {
         gameSlotElement.style.removeProperty('width')
+        console.log('remove width')
     }
 }
 

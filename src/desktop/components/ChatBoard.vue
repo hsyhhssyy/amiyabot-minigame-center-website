@@ -76,6 +76,8 @@ const messages = ref<Message[]>([])
 const inputMessage = ref('')
 const chatBoard = ref()
 
+// 这是默认的消息处理器，只会在没有传入inputHandler时生效
+// 目前只有等待室使用无inputHandler的情况
 async function sendMessage() {
     const content = inputMessage.value.trim()
     if (content === '') {
@@ -83,9 +85,9 @@ async function sendMessage() {
     }
     if (props.inputHandler) {
         props.inputHandler(content)
+    }else{    
+        gameHub.invokeGameHub('Chat', props.roomId, content)
     }
-    
-    gameHub.invokeGameHub('Chat', props.roomId, content)
     
     inputMessage.value = ''
 }
@@ -117,11 +119,11 @@ watch(
 )
 
 onMounted(async () => {
-    !props.inputHandler && gameHub.addGameHubListener('Chat', chatListener)
+    gameHub.addGameHubListener('Chat', chatListener)
 })
 
 onUnmounted(async () => {
-    !props.inputHandler && gameHub.removeGameHubListener('Chat', chatListener)
+    gameHub.removeGameHubListener('Chat', chatListener)
 })
 </script>
 

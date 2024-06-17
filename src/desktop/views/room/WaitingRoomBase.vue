@@ -156,7 +156,7 @@ async function gameSettingsChangedListener(response: SignalrResponse) {
 async function gameStartedListener() {
     if (gameRoomData.value?.gameType) {
         const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
-        await router.push(gameData.route + roomId)
+        await router.push(gameData.route + "game/" + roomId)
     }
 }
 

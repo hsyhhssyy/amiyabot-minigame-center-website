@@ -26,13 +26,11 @@ export const useUserStore = defineStore('user', () => {
         }
 
         await reset()
-        await nextTick(() => {
-            userInfo.value = descRet
-            userName.value = descRet.nickname
-            if (descRet.avatar) {
-                userAvatar.value = descRet.avatar
-            }
-        })
+        userInfo.value = descRet
+        userName.value = descRet.nickname
+        if (descRet.avatar) {
+            userAvatar.value = descRet.avatar
+        }
     }
 
     init().then()

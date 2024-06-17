@@ -144,11 +144,11 @@ watch(
 )
 
 onMounted(async () => {
-    !props.inputHandler && gameHub.addGameHubListener('Chat', chatListener)
+    gameHub.addGameHubListener('Chat', chatListener)
 })
 
 onUnmounted(async () => {
-    !props.inputHandler && gameHub.removeGameHubListener('Chat', chatListener)
+    gameHub.removeGameHubListener('Chat', chatListener)
 })
 </script>
 

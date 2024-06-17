@@ -37,14 +37,6 @@ const desktopRoutes: RouteRecordRaw[] = [
                 component: () => import('@/desktop/views/room/CreateRoom.vue')
             },
             {
-                path: 'waiting-room/:roomId',
-                name: 'waiting-room',
-                meta: {
-                    pageName: '游戏房间'
-                },
-                component: () => import('@/desktop/views/room/WaitingRoom.vue')
-            },
-            {
                 path: 'edit-profile',
                 name: 'edit-profile',
                 meta: {
@@ -60,14 +52,38 @@ const desktopRoutes: RouteRecordRaw[] = [
         component: EmptyContainer,
         children: [
             {
-                path: 'schulte-grid/:roomId',
+                path: 'schulte-grid',
                 name: 'schulte-grid',
-                component: () => import('@/desktop/views/game/SchulteGrid.vue')
-            }, 
+                component: () => EmptyContainer,
+                children: [
+                  {
+                    path: 'game/:roomId',
+                    name: 'schulte-grid-game',
+                    component: () => import('@/desktop/views/game/SchulteGrid.vue')
+                  }, 
+                  {
+                    path: 'room/:roomId',
+                    name: 'schulte-grid-room',
+                    component: () => import('@/desktop/views/room/WaitingRoom.vue')
+                  }
+                ]
+            },
             {
-                path: 'cypher-challenge/:roomId',
+                path: 'cypher-challenge',
                 name: 'cypher-challenge',
-                component: () => import('@/desktop/views/game/CypherChallenge.vue')
+                component: () => EmptyContainer,
+                children: [
+                  {
+                    path: 'game/:roomId',
+                    name: 'cypher-challenge-game',
+                    component: () => import('@/desktop/views/game/CypherChallenge.vue')
+                  },
+                  {
+                    path: 'room/:roomId',
+                    name: 'cypher-challenge-room',
+                    component: () => import('@/desktop/views/room/WaitingRoom.vue')
+                  }
+                ]
             }
         ]
     }

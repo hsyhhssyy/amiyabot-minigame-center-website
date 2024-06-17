@@ -44,6 +44,7 @@ import type { GameItem } from '@/def/games'
 import { gameList } from '@/def/games'
 import { Back } from '@icon-park/vue-next'
 import IconButton from '@/universal/components/IconButton.vue'
+import type { SignalrResponse } from '@/api/signalr'
 
 const router = useRouter()
 const gameHub = useGameHubStore()
@@ -70,7 +71,7 @@ function railStyle({ focused, checked }: { focused: boolean; checked: boolean })
 }
 
 async function selectGame(game: GameItem) {
-    // 创建房间并跳转到房间等待页面
+    // 创建房间
     gameHub.invokeGameHub('CreateGame', game.type, JSON.stringify({ IsPrivate: isPrivateRoom.value }))
     isGameCreating.value = true
 }
@@ -79,7 +80,7 @@ async function goBack() {
     await router.push('/regular-home')
 }
 
-function gameCreateListener(response: { GameId: string }) {
+function gameCreateListener(response: SignalrResponse) {
     isGameCreating.value = false
 
     console.log(response)
@@ -87,8 +88,17 @@ function gameCreateListener(response: { GameId: string }) {
     const gameId = response.GameId
     setData('current-game-id', gameId)
 
+    //获取GameRoute
+    const gameRoute = gameList.find((game) => game.type === response.Game.GameType)
+    if (!gameRoute) {
+        console.error('未找到游戏路由')
+        return
+    }
+
+    const route = gameRoute.route
+
     // 跳转到房间等待页面
-    router.push('/regular-home/waiting-room/' + gameId)
+    router.push(route + "room/" + gameId)
 }
 
 onMounted(() => {

@@ -1,26 +1,18 @@
 <template>
-    <game-base
-        ref="base"
-        :room-id="roomId"
-        :input-handler="sendMove"
-        :players="players"
-        @on-loaded="load"
-    >
+    <game-base ref="base" :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load">
         <n-card style="height: 100%">
+            <n-spin :show="expandedData?.length<100">
+                <template #description>
+                    正在加载题目，请稍候
+                </template>
             <div class="game-body">
                 <n-card embedded :bordered="false" size="small" class="answer-list" :content-style="{ padding: 0 }">
                     <div class="answer-list-container" ref="asd">
-                        <n-space vertical :size="10">
-                            <n-button
-                                class="skill-item"
-                                size="medium"
-                                tertiary
-                                v-for="(item, index) in answersDisplay"
-                                :type="item.PlayerId ? 'default' : 'error'"
-                                :key="index"
-                                @click="selectedSkill = item"
-                            >
-                                <div class="badge" :class="{ leaved: !playersMap[item.PlayerId] }" v-if="item.PlayerId">
+                        <n-button class="skill-item" tertiary v-for="(item, index) in answersDisplay" 
+                            :type="item.PlayerId ? 'default' : 'error'" :key="index" @click="selectedSkill = item">
+                            <div class="button-content">
+                                <div class="badge" :class="{ leaved: !playersMap[item.PlayerId] }"
+                                    v-if="item.PlayerId">
                                     <template v-if="playersMap[item.PlayerId]">
                                         <icon :icon="Check" />
                                         {{ playersMap[item.PlayerId].name }}
@@ -30,25 +22,32 @@
                                         已离开
                                     </template>
                                 </div>
-                                <span>{{ item.CharacterName }} - {{ item.SkillName }}</span>
-                            </n-button>
-                        </n-space>
+                                <div class="badge system" 
+                                v-if="!item.PlayerId"
+                                >兔兔的提示</div>
+                                <div class="one-line">
+                                    <n-avatar :src="getOperatorUrl(item.CharacterId)" size="small"
+                                        :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
+                                    <div class="ellipsis-text">
+                                        <div class="text">{{ item.CharacterName }}</div>
+                                        <div class="text">{{ item.SkillName }}</div>
+                                    </div>
+                                    <n-avatar :src="getSkillUrl(item.SkillId)" size="small"
+                                        :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
+                                </div>
+
+                            </div>
+                        </n-button>
                     </div>
                 </n-card>
-                <n-card embedded :bordered="false" size="small" style="width: fit-content">
+                <n-card embedded :bordered="false" size="small" style="width: fit-content; margin-right: 20px;">
                     <div class="char-grid">
                         <n-grid :x-gap="2" :y-gap="2" :cols="x" style="width: fit-content">
                             <n-grid-item v-for="(item, index) in expandedData" :key="index">
-                                <n-button
-                                    size="small"
-                                    class="char"
-                                    :class="[!item.recent && !item.fade ? 'active' : '', item.pos]"
-                                    :dashed="item.fade"
-                                    :strong="!item.fade"
-                                    :disabled="item.fade"
-                                    :secondary="item.recent"
-                                    :type="colors(item)"
-                                >
+                                <n-button size="small" class="char"
+                                    :class="[!item.recent && !item.fade ? 'active' : '', item.pos]" :dashed="item.fade"
+                                    :strong="!item.fade" :disabled="item.fade" :secondary="item.recent"
+                                    :type="colors(item)">
                                     {{ item.char }}
                                 </n-button>
                             </n-grid-item>
@@ -61,6 +60,7 @@
                 <div class="amiya-face" :style="amiyaFaceStyle"></div>
                 <n-card class="amiya-chat" embedded>{{ amiyaChat }}</n-card>
             </div>
+            </n-spin>
         </n-card>
         <template v-slot:players>
             <template v-for="(items, name) in playersRanking" :key="name">
@@ -68,12 +68,8 @@
                     <div class="rank-title">{{ playersRankingNames[name] }}</div>
                     <div class="play-item" v-for="(item, index) in items" :key="index">
                         <template v-if="name != 'others'">
-                            <n-avatar
-                                size="large"
-                                round
-                                :src="item.avatar"
-                                :img-props="{ referrerpolicy: 'no-referrer' }"
-                            />
+                            <n-avatar size="large" round :src="item.avatar"
+                                :img-props="{ referrerpolicy: 'no-referrer' }" />
                             <div style="padding-left: 5px">
                                 <div>{{ item.name }}</div>
                                 <div class="score">得分: {{ item.score }}</div>
@@ -104,6 +100,7 @@ import type { HitType } from '@/desktop/components/effects/HitEffect.vue'
 import HitEffect from '@/desktop/components/effects/HitEffect.vue'
 import GameBase from '@/desktop/views/GameBase.vue'
 import Icon from '@/universal/components/Icon.vue'
+import { getOperatorUrl, getSkillUrl } from '@/arknights'
 
 interface GamePlayer extends Player {
     score: number
@@ -128,7 +125,9 @@ interface ExpandedDataItem {
 interface Answer {
     PlayerId: string
     SkillName: string
+    SkillId: string
     CharacterName: string
+    CharacterId: string
     GridPointList: { X: number; Y: number }[]
     AnswerTime: string
 }
@@ -145,13 +144,15 @@ const playersRankingNames: { [key in RankNames]: string } = {
 const route = useRoute()
 const gameHub = useGameHubStore()
 
-const x = ref(2)
-const y = ref(2)
-const font_factor = ref(10)
+const x = ref(10)
+const y = ref(10)
+//const font_factor = ref(10)
 const players = ref<GamePlayer[]>([])
 const answerList = ref<Answer[]>([])
 const remainingAnswerList = ref<Answer[]>([])
 const expandedData = ref<ExpandedDataItem[]>([])
+//填充100个问号
+
 const selectedSkill = ref<Answer>()
 
 const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
@@ -353,7 +354,7 @@ function gameInfoListener(response: SignalrResponse) {
                 }
             }
 
-            font_factor.value = 6 / Math.max(x.value, y.value)
+            //font_factor.value = 6 / Math.max(x.value, y.value)
 
             y.value = grid.length
             x.value = grid[0] ? grid[0].length : 0 // 默认data的每个子数组长度是相同的
@@ -389,10 +390,10 @@ function gameInfoListener(response: SignalrResponse) {
     }
 }
 
-function load(roomData:GameRoom,gameData:SignalrResponse) {
+function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
-    gameHub.addGameHubListener('GameCompleted',gameCompletedListener);
+    gameHub.addGameHubListener('GameCompleted', gameCompletedListener);
 
     if (roomData.isClosed) {
         amiyaFace.value = 'wuwu'
@@ -437,7 +438,7 @@ onUnmounted(() => {
     clearInterval(timeRecordInterval)
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
-    gameHub.removeGameHubListener('GameCompleted',gameCompletedListener)
+    gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
 })
 </script>
 
@@ -445,7 +446,6 @@ onUnmounted(() => {
 $guideHeight: 160px;
 
 .game-body {
-    height: calc(100% - $guideHeight);
     background: url(../../../assets/images/bg.ac9e0a.jpg) center / cover no-repeat;
     border-radius: 4px;
     padding: 10px 0;
@@ -471,8 +471,8 @@ $guideHeight: 160px;
     }
 
     .answer-list {
-        width: 240px;
-        height: 100%;
+        width: 180px;
+        height: 462px;
         overflow: auto;
         margin-right: 20px;
         margin-left: 20px;
@@ -480,13 +480,22 @@ $guideHeight: 160px;
         .answer-list-container {
             height: 100%;
             overflow: auto;
-            padding: 20px;
+            padding: 5px;
+            padding-top: 10px;
+            overflow-y: scroll;
         }
 
         .skill-item {
             width: 100%;
             position: relative;
+            padding: 5px;
+            justify-content: start;
+            height: 50px;
 
+            .button-content{                
+                width: 100%;
+            }
+            
             .badge {
                 font-size: 12px;
                 padding: 2px 5px;
@@ -496,12 +505,48 @@ $guideHeight: 160px;
                 display: flex;
                 position: absolute;
                 top: -8px;
-                left: -8px;
+                left: 0px;
 
                 &.leaved {
                     background-color: #e91e63;
                 }
+
+                &.system {
+                    background-color: gray;
+                }
             }
+
+            .one-line {
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+
+                .ellipsis-text {
+                    flex-grow: 1;
+                    flex-shrink: 1;
+                    flex-basis: 0;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+
+                    .text {
+                        display: -webkit-box;
+                        -webkit-box-orient: vertical;
+                        -webkit-line-clamp: 2;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        text-align: center;
+                        font-size: 14px;
+                        line-height: 14px;
+                        height: 14px;
+                    }
+                }
+            }
+
+
+
+
         }
     }
 }
@@ -543,4 +588,16 @@ $guideHeight: 160px;
         font-size: 12px;
     }
 }
+</style>
+
+<style lang="scss">
+
+.skill-item .n-button__content{
+    width: 100%;
+}
+
+.answer-list-container{
+    scrollbar-width: thick;
+}
+
 </style>

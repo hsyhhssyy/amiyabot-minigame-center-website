@@ -327,15 +327,15 @@ function sendMove(content: string) {
     }
 }
 
-function chatListener(response: SignalrResponse) {
-    base.value.pushMessage({
-        userId: response.UserId,
-        content: response.Message,
-        style: 'chat',
-        nickname: playersMap.value[response.UserId]?.name || 'Unknown',
-        avatar: playersMap.value[response.UserId]?.avatar || '/avatar.webp'
-    } as Message)
-}
+// function chatListener(response: SignalrResponse) {
+//     base.value.pushMessage({
+//         userId: response.UserId,
+//         content: response.Message,
+//         style: 'chat',
+//         nickname: playersMap.value[response.UserId]?.name || 'Unknown',
+//         avatar: playersMap.value[response.UserId]?.avatar || '/avatar.webp'
+//     } as Message)
+// }
 
 function receiveMoveListener(response: SignalrResponse) {
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
@@ -445,7 +445,7 @@ function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('RallyPointStatus', rallyPointStatusListener)
     gameHub.addGameHubListener('RallyPointReached', rallyPointReachedListener)
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
-    gameHub.addGameHubListener('Chat',chatListener)
+    // gameHub.addGameHubListener('Chat',chatListener)
 
     gameInfoListener(gameData)
     currentQuestionIndex.value = game.value.CurrentQuestionIndex
@@ -499,7 +499,7 @@ onUnmounted(() => {
     gameHub.removeGameHubListener('RallyPointStatus', rallyPointStatusListener)
     gameHub.removeGameHubListener('RallyPointReached', rallyPointReachedListener)
     gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
-    gameHub.removeGameHubListener('Chat',chatListener)
+    // gameHub.removeGameHubListener('Chat',chatListener)
 
 })
 

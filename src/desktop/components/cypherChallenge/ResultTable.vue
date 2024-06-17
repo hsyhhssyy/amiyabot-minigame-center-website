@@ -78,6 +78,7 @@
 import ThumbsUp from '@/assets/images/cypherChallenge/icon/thumbs-up.svg';
 import ThumbsDown from '@/assets/images/cypherChallenge/icon/thumbs-down.svg';
 import { computed } from 'vue'
+import { getOperatorUrl } from '@/arknights'
 
 interface Props {
     currentQuestion: any;
@@ -87,10 +88,6 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
-function getOperatorUrl(CharacterId: string) {
-    return `https://web.hycdn.cn/arknights/game/assets/char_skin/avatar/${CharacterId}%231.png`
-}
 
 const currentAnswers = computed(() => {
     if (!props.currentQuestion) {

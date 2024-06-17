@@ -66,6 +66,11 @@ import { loginApi, quickRegisterApi, registerApi, verifyTokenApi } from '@/api/a
 import IconButton from '@/universal/components/IconButton.vue'
 import Icon from '@/universal/components/Icon.vue'
 import { toast } from '@/utils'
+import { useGameHubStore } from '@/stores/gamehub'
+import { useUserStore } from '@/stores/user'
+
+const gameHub = useGameHubStore()
+const user = useUserStore()
 
 const props = defineProps<{
     type: string
@@ -94,6 +99,10 @@ async function login() {
     const res = await loginApi(email.value, password.value)
     if (res && res.token) {
         if (await verifyTokenApi(res.token)) {
+            await user.init()
+            if (!gameHub.isConnected) {
+                await gameHub.connect()
+            }
             await router.push('/')
         }
     }
@@ -127,6 +136,10 @@ async function quickRegister() {
     const res = await quickRegisterApi(nickname.value)
     if (res && res.token) {
         if (await verifyTokenApi(res.token)) {
+            await user.init()
+            if (!gameHub.isConnected) {
+                await gameHub.connect()
+            }
             await router.push('/')
         }
     }
