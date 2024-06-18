@@ -35,94 +35,38 @@
                     </div>
                 </div>
             </div>
+            <div style="height: 0;">
+                <amiya-face @on-hit="onFaceHit" :v-show="false"></amiya-face>
+            </div>
         </div>
         <template v-slot:players>
-            <template v-for="(items, name) in playersRanking" :key="name">
-                <template v-if="items.length">
-                    <div class="rank-title">{{ playersRankingNames[name] }}</div>
-                    <div class="play-item" v-for="(item, index) in items" :key="index">
-                        <template v-if="name != 'others'">
-                            <n-avatar size="large" round :src="item.avatar"
-                                :img-props="{ referrerpolicy: 'no-referrer' }" />
-                            <div style="padding-left: 5px">
-                                <div>{{ item.name }}</div>
-                                <div class="score">得分: {{ item.score }}</div>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <n-avatar round :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }" />
-                            <span style="padding-left: 5px">{{ item.name }}</span>
-                        </template>
-                    </div>
-                </template>
-            </template>
+            <player-ranking></player-ranking>
         </template>
     </game-base>
 </template>
 
 <script lang="ts" setup>
-import type { CSSProperties } from 'vue'
 import { computed, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGameHubStore } from '@/stores/gamehub'
 import { listToDict } from '@/utils'
 import type { SignalrResponse } from '@/api/signalr'
 import type { GameRoom } from '@/api/game'
-import type { Player } from '@/def/players'
+import type { GamePlayer, Player } from '@/def/players'
 import type { HitType } from '@/mobile/components/effects/HitEffect.vue'
 import HitEffect from '@/mobile/components/effects/HitEffect.vue'
 import GameBase from '@/mobile/views/GameBase.vue'
 import ResultTable from '@/mobile/components/cypherChallenge/ResultTable.vue'
 import NextQuestion from '@/universal/components/NextQuestion.vue'
-
-interface GamePlayer extends Player {
-    score: number
-}
-
-interface Message {
-    userId: string
-    nickname: string
-    content: string
-    avatar: string
-    style?: string
-}
-
-interface Answer {
-    CharacterName: string;
-    CharacterId: string;
-    CharacterPropertiesResult: { [key: string]: string };
-    AnswerTime: Date;
-    PlayerId?: string;
-    IsAnswerCorrect: boolean;
-}
-
-interface Question {
-    GuessChanceLeft: number;
-    CharacterName: string;
-    CharacterId: string;
-    IsHinted: boolean;
-    IsCompleted: boolean;
-    CharacterProperties: { [key: string]: string };
-    CharacterPropertiesRevealed: { [key: string]: boolean };
-    CharacterPropertiesUsed: { [key: string]: boolean };
-    AnswerList: Answer[];
-}
-
-
-type RankNames = 'golden' | 'silver' | 'bronze' | 'others'
-
-const playersRankingNames: { [key in RankNames]: string } = {
-    golden: '🏅 金榜',
-    silver: '🥈 银榜',
-    bronze: '🥉 铜榜',
-    others: '🍉 吃瓜群众'
-}
+import type { Question } from '@/def/cypher-challenge'
+import type { Message } from '@/def/signalr-common'
+import PlayerRanking from '@/desktop/components/PlayerRanking.vue'
+import AmiyaFace from '@/desktop/components/AmiyaFace.vue'
 
 const route = useRoute()
 const gameHub = useGameHubStore()
 
 const players = ref<GamePlayer[]>([])
-const playersReadyList = ref<string[]>([])
 const currentQuestionIndex = ref<number | null>(null)
 const currentQuestion = computed<Question>(() => {
     if (game?.value?.QuestionList == null) {
@@ -139,9 +83,6 @@ const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(','
 const base = ref()
 const hit = ref()
 const countdown = ref()
-const renderCountdown = ({ seconds }: { seconds: number }) => {
-    return `${seconds}秒`;
-};
 
 const settlementDialogShown = ref(false)
 const settlementCountdownActive = ref(false)
@@ -156,10 +97,6 @@ const hasNextQuestion = computed(() => {
 
     return true
 })
-
-let timeRecord = 0
-let timeRecordChat = 0
-let timeRecordInterval: any = null
 
 const headers = computed(() => {
     if (!currentQuestion.value) {
@@ -193,39 +130,6 @@ const playersMap = computed(() => {
     var playersMapVal = listToDict<GamePlayer>(players.value, 'id')
     return playersMapVal
 })
-const playersRanking = computed(() => {
-    const playerList = players.value
-    const sortedData = [...playerList]
-
-    sortedData.sort((a, b) => b.score - a.score)
-
-    const result: { [key in RankNames]: GamePlayer[] } = { golden: [], silver: [], bronze: [], others: [] }
-
-    if (sortedData.length) {
-        let goldScore = sortedData[0].score || -1 // 金榜分数线
-        let silverScore = -1 // 银榜分数线
-
-        for (const item of sortedData) {
-            if (item.score && item.score < goldScore) {
-                silverScore = item.score
-                break
-            }
-        }
-
-        for (const item of playerList) {
-            if (item.score === goldScore) {
-                result.golden.push(item)
-            } else if (item.score === silverScore) {
-                result.silver.push(item)
-            } else if (item.score > 0) {
-                result.bronze.push(item)
-            } else {
-                result.others.push(item)
-            }
-        }
-    }
-    return result
-})
 
 function closeResultPopup(){
     settlementDialogShown.value = false
@@ -248,6 +152,10 @@ function moveToNextQuestion(newQuestionIndex: number) {
     
 }
 
+function onFaceHit(face: HitType, chat: string) {
+    hit.value.hit(face, chat)
+}
+
 function sendMove(content: string) {
     if(settlementCountdownActive.value==true){
         gameHub.invokeGameHub(
@@ -266,16 +174,6 @@ function sendMove(content: string) {
     }
 }
 
-function chatListener(response: SignalrResponse) {
-    base.value.pushMessage({
-        userId: response.UserId,
-        content: response.Message,
-        style: 'chat',
-        nickname: playersMap.value[response.UserId]?.name || 'Unknown',
-        avatar: playersMap.value[response.UserId]?.avatar || '/avatar.webp'
-    } as Message)
-}
-
 function receiveMoveListener(response: SignalrResponse) {
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
 
@@ -287,35 +185,6 @@ function receiveMoveListener(response: SignalrResponse) {
     const characterName = response.Payload.CharacterName
 
     let content = characterName
-
-    const effects: { [key: string]: HitType } = {
-        Correct: 'expectation',
-        Answered: 'sweat',
-        Wrong: 'refuse'
-    }
-
-    timeRecordChat = 0
-    if (result in effects) {
-        const face = effects[result]
-
-        timeRecord = 0
-        var amiyaChat = ""
-        switch (result) {
-            case 'Correct':
-                amiyaChat =
-                    `正确！是干员【${characterName}】` +
-                    `Dr.${player?.name} 加 200 分！太棒啦！`
-                break
-            case 'Answered':
-            amiyaChat = `Dr.${player?.name}，干员【${characterName}】已经猜过啦！`
-                break
-            case 'Wrong':
-            amiyaChat = `答案不正确……Dr.${player?.name}，再仔细看看吧~`
-                break
-        }
-
-        hit.value.hit(face,amiyaChat)
-    }
 
     base.value.pushMessage({
         userId: response.Payload.PlayerId,
@@ -350,10 +219,7 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 function gameCompletedListener(response: SignalrResponse) {
-    clearInterval(timeRecordInterval)
-
     game.value = response.Payload.Game
-
     prepareNextQuestion()
 }
 
@@ -361,7 +227,6 @@ function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
-    gameHub.addGameHubListener('Chat', chatListener)
 
     gameInfoListener(gameData)
     currentQuestionIndex.value = game.value.CurrentQuestionIndex
@@ -373,21 +238,11 @@ function load(roomData: GameRoom, gameData: SignalrResponse) {
 }
 
 onUnmounted(() => {
-    clearInterval(timeRecordInterval)
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
     gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
-    gameHub.removeGameHubListener('Chat', chatListener)
 
 })
-
-function test() {
-    console.log('current index:', currentQuestionIndex.value)
-    currentQuestionIndex.value = (currentQuestionIndex.value ?? 0) - 1
-    console.log('current index:', currentQuestionIndex.value)
-    prepareNextQuestion()
-}
-
 </script>
 
 <style lang="scss" scoped>

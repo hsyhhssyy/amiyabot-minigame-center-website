@@ -25,6 +25,7 @@ export const useGameHubStore = defineStore('gameHub', () => {
     const callbacks: {
         originalCallback: (...args: any[]) => void
         jsonCallback: (response: any) => void
+        eventName: string
     }[] = []
 
     async function connect() {
@@ -99,6 +100,11 @@ export const useGameHubStore = defineStore('gameHub', () => {
             })
 
             await connection.value.invoke('Me')
+
+            // 重新注册事件
+            for (const callback of callbacks) {
+                connection.value.on(callback.eventName, callback.jsonCallback)
+            }
         }
     }
 
@@ -122,7 +128,11 @@ export const useGameHubStore = defineStore('gameHub', () => {
             callback(responseObj)
         }
 
-        callbacks.push({ originalCallback: callback, jsonCallback: jsonParseCallback })
+        callbacks.push({ 
+            originalCallback: callback,
+             jsonCallback: jsonParseCallback, 
+            eventName: eventName
+        })
         connection.value.on(eventName, jsonParseCallback)
     }
 

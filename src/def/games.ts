@@ -55,3 +55,13 @@ export function getGameTypeMap() {
     }
     return gameTypeMap
 }
+
+
+export type RankNames = 'golden' | 'silver' | 'bronze' | 'others'
+
+export const playersRankingNames: { [key in RankNames]: string } = {
+    golden: '🏅 金榜',
+    silver: '🥈 银榜',
+    bronze: '🥉 铜榜',
+    others: '🍉 吃瓜群众'
+}

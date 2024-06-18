@@ -3,3 +3,7 @@ export interface Player {
     name: string
     avatar: string
 }
+
+export interface GamePlayer extends Player {
+    score: number
+}

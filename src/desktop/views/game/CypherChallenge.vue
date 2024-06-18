@@ -43,31 +43,12 @@
                     </div>
                 </div>
                 <div class="game-guide">
-                    <div class="amiya-face" :style="amiyaFaceStyle"></div>
-                    <n-card class="amiya-chat" embedded>{{ amiyaChat }}</n-card>
+                    <amiya-face @on-hit="onFaceHit"></amiya-face>
                 </div>
             </div>
         </n-card>
         <template v-slot:players>
-            <template v-for="(items, name) in playersRanking" :key="name">
-                <template v-if="items.length">
-                    <div class="rank-title">{{ playersRankingNames[name] }}</div>
-                    <div class="play-item" v-for="(item, index) in items" :key="index">
-                        <template v-if="name != 'others'">
-                            <n-avatar size="large" round :src="item.avatar"
-                                :img-props="{ referrerpolicy: 'no-referrer' }" />
-                            <div style="padding-left: 5px">
-                                <div>{{ item.name }}</div>
-                                <div class="score">得分: {{ item.score }}</div>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <n-avatar round :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }" />
-                            <span style="padding-left: 5px">{{ item.name }}</span>
-                        </template>
-                    </div>
-                </template>
-            </template>
+            <player-ranking></player-ranking>
         </template>
     </game-base>
 </template>
@@ -76,60 +57,20 @@
 import type { CSSProperties } from 'vue'
 import { computed,  onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Check, SendOne } from '@icon-park/vue-next'
 import { useGameHubStore } from '@/stores/gamehub'
 import { listToDict } from '@/utils'
 import type { SignalrResponse } from '@/api/signalr'
 import type { GameRoom } from '@/api/game'
-import type { Player } from '@/def/players'
+import type { Message } from '@/def/signalr-common'
+import type { GamePlayer } from '@/def/players'
+import type { Question } from '@/def/cypher-challenge'
 import type { HitType } from '@/desktop/components/effects/HitEffect.vue'
 import HitEffect from '@/desktop/components/effects/HitEffect.vue'
 import GameBase from '@/desktop/views/GameBase.vue'
 import ResultTable from '@/desktop/components/cypherChallenge/ResultTable.vue'
 import NextQuestion from '@/universal/components/NextQuestion.vue'
-
-interface GamePlayer extends Player {
-    score: number
-}
-
-interface Message {
-    userId: string
-    nickname: string
-    content: string
-    avatar: string
-    style?: string
-}
-
-interface Answer {
-    CharacterName: string;
-    CharacterId: string;
-    CharacterPropertiesResult: { [key: string]: string };
-    AnswerTime: Date;
-    PlayerId?: string;
-    IsAnswerCorrect: boolean;
-}
-
-interface Question {
-    GuessChanceLeft: number;
-    CharacterName: string;
-    CharacterId: string;
-    IsHinted: boolean;
-    IsCompleted: boolean;
-    CharacterProperties: { [key: string]: string };
-    CharacterPropertiesRevealed: { [key: string]: boolean };
-    CharacterPropertiesUsed: { [key: string]: boolean };
-    AnswerList: Answer[];
-}
-
-
-type RankNames = 'golden' | 'silver' | 'bronze' | 'others'
-
-const playersRankingNames: { [key in RankNames]: string } = {
-    golden: '🏅 金榜',
-    silver: '🥈 银榜',
-    bronze: '🥉 铜榜',
-    others: '🍉 吃瓜群众'
-}
+import PlayerRanking from '@/desktop/components/PlayerRanking.vue'
+import AmiyaFace from '@/desktop/components/AmiyaFace.vue'
 
 const route = useRoute()
 const gameHub = useGameHubStore()
@@ -142,6 +83,9 @@ const currentQuestion = computed<Question>(() => {
     }
     if (currentQuestionIndex.value === null) {
         return game.value.QuestionList[0]
+    }
+    if (currentQuestionIndex.value >= game.value.QuestionList.length) {
+        return game.value.QuestionList[game.value.QuestionList.length - 1]
     }
     return game.value.QuestionList[currentQuestionIndex.value]
 })
@@ -165,19 +109,6 @@ const hasNextQuestion = computed(() => {
     return true
 })
 
-const amiyaFace = ref<HitType>('smile')
-const amiyaChat = ref(
-    '博士们，欢迎参加本场比赛，我是你们的向导：兔兔！比赛已经开始啦，谜底是一位干员。请博士在聊天框里发送【干员名】猜测他是谁。如果您发送的干员和目标干员有相同的属性，这个属性会被标记为绿色并被揭示出来。'
-)
-const amiyaFaceStyle = computed<CSSProperties>(() => {
-    return {
-        backgroundImage: `url(/face/amiya/amiya_${amiyaFace.value}.webp)`
-    }
-})
-
-let timeRecord = 0
-let timeRecordChat = 0
-let timeRecordInterval: any = null
 
 const headers = computed(() => {
     if (!currentQuestion.value) {
@@ -211,39 +142,10 @@ const playersMap = computed(() => {
     var playersMapVal = listToDict<GamePlayer>(players.value, 'id')
     return playersMapVal
 })
-const playersRanking = computed(() => {
-    const playerList = players.value
-    const sortedData = [...playerList]
 
-    sortedData.sort((a, b) => b.score - a.score)
-
-    const result: { [key in RankNames]: GamePlayer[] } = { golden: [], silver: [], bronze: [], others: [] }
-
-    if (sortedData.length) {
-        let goldScore = sortedData[0].score || -1 // 金榜分数线
-        let silverScore = -1 // 银榜分数线
-
-        for (const item of sortedData) {
-            if (item.score && item.score < goldScore) {
-                silverScore = item.score
-                break
-            }
-        }
-
-        for (const item of playerList) {
-            if (item.score === goldScore) {
-                result.golden.push(item)
-            } else if (item.score === silverScore) {
-                result.silver.push(item)
-            } else if (item.score > 0) {
-                result.bronze.push(item)
-            } else {
-                result.others.push(item)
-            }
-        }
-    }
-    return result
-})
+function onFaceHit(face: HitType, _ : string) {
+    hit.value.hit(face)
+}
 
 function prepareNextQuestion() {
     if(settlementDialogShown.value==true){
@@ -296,26 +198,8 @@ function receiveMoveListener(response: SignalrResponse) {
         Wrong: 'refuse'
     }
 
-    timeRecordChat = 0
     if (result in effects) {
         const face = effects[result]
-
-        timeRecord = 0
-        amiyaFace.value = face
-        switch (result) {
-            case 'Correct':
-                amiyaChat.value =
-                    `正确！是干员【${characterName}】` +
-                    `Dr.${player?.name} 加 200 分！太棒啦！`
-                break
-            case 'Answered':
-                amiyaChat.value = `Dr.${player?.name}，干员【${characterName}】已经猜过啦！`
-                break
-            case 'Wrong':
-                amiyaChat.value = `答案不正确……Dr.${player?.name}，再仔细看看吧~`
-                break
-        }
-
         hit.value.hit(face)
     }
 
@@ -352,14 +236,7 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 function gameCompletedListener(response: SignalrResponse) {
-    clearInterval(timeRecordInterval)
-
-    amiyaFace.value = 'joy'
-    amiyaChat.value =
-        '游戏结束。'
-
     game.value = response.Payload.Game
-
     prepareNextQuestion()
 }
 
@@ -367,68 +244,30 @@ function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
-    // gameHub.addGameHubListener('Chat',chatListener)
 
     gameInfoListener(gameData)
     currentQuestionIndex.value = game.value.CurrentQuestionIndex
 
     if (roomData.isClosed || roomData.isCompleted) {
-        amiyaFace.value = 'wuwu'
-        amiyaChat.value = '博士，游戏已经结束了……下次请早点来吧~'
-
         prepareNextQuestion()
-    } else {
-        timeRecordInterval = setInterval(chatting, 1000)
     }
 
 }
 
-function chatting() {
-    timeRecord += 1
-    timeRecordChat += 1
-
-    let face: HitType = 'doubt'
-    let chat = ''
-
-    /**
-     * 骚话环节！这里的判断有点多，要在有人说话和有人回答之间做判断（有人说话不一定有人回答）
-     */
-
-    if (timeRecord >= 20) {
-        if (timeRecordChat < timeRecord) {
-            face = 'tea'
-            chat = '博士们在讨论什么呢？有没有想好答案了呀~'
-        } else {
-            face = 'emmm'
-            chat = '博士们在思考吗？怎么没有博士说话了呢？'
-        }
-    }
-    if (timeRecord >= 60) {
-        face = 'nervous'
-        chat = '博士，实在不行，先随便猜一个试试吧……'
-    }
-
-    if (chat) {
-        amiyaFace.value = face
-        amiyaChat.value = chat
-    }
-}
 
 onUnmounted(() => {
-    clearInterval(timeRecordInterval)
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
     gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
-    // gameHub.removeGameHubListener('Chat',chatListener)
 
 })
 
-function test(){
-    console.log('current index:', currentQuestionIndex.value)
-    currentQuestionIndex.value = ( currentQuestionIndex.value??0 ) - 1
-    console.log('current index:', currentQuestionIndex.value)
-    prepareNextQuestion()
-}
+// function test(){
+//     console.log('current index:', currentQuestionIndex.value)
+//     currentQuestionIndex.value = ( currentQuestionIndex.value??0 ) - 1
+//     console.log('current index:', currentQuestionIndex.value)
+//     prepareNextQuestion()
+// }
 
 </script>
 
@@ -562,24 +401,4 @@ $guideHeight: 160px;
     }
 }
 
-
-.rank-title {
-    font-size: 16px;
-    margin: 15px 0 10px 0;
-
-    &:first-child {
-        margin-top: 0;
-    }
-}
-
-.play-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 3px;
-
-    .score {
-        color: #ff3d00;
-        font-size: 12px;
-    }
-}
 </style>
