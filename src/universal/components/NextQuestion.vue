@@ -105,7 +105,7 @@ function onCountdownFinish() {
     if(game.value.CurrentQuestionIndex !== currentQuestionIndex.value) {
         return
     }
-    // moveToNextQuestion()
+    moveToNextQuestion()
 }
 
 function closeResultPopup() {
