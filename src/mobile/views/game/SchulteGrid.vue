@@ -20,25 +20,7 @@
             </n-spin>
         </div>
         <template v-slot:players>
-            <template v-for="(items, name) in playersRanking" :key="name">
-                <template v-if="items.length">
-                    <div class="rank-title">{{ playersRankingNames[name] }}</div>
-                    <div class="play-item" v-for="(item, index) in items" :key="index">
-                        <template v-if="name != 'others'">
-                            <n-avatar size="large" round :src="item.avatar"
-                                :img-props="{ referrerpolicy: 'no-referrer' }" />
-                            <div style="padding-left: 5px">
-                                <div>{{ item.name }}</div>
-                                <div class="score">得分: {{ item.score }}</div>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <n-avatar round :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }" />
-                            <span style="padding-left: 5px">{{ item.name }}</span>
-                        </template>
-                    </div>
-                </template>
-            </template>
+            <player-ranking :players="players"></player-ranking>
         </template>
     </game-base>
 </template>
@@ -53,6 +35,7 @@ import type { Player } from '@/def/players'
 import GameBase from '@/mobile/views/GameBase.vue'
 import type { HitType } from '@/mobile/components/effects/HitEffect.vue'
 import HitEffect from '@/mobile/components/effects/HitEffect.vue'
+import PlayerRanking from '@/mobile/components/PlayerRanking.vue'
 import { useUser } from '@/stores/user'
 
 interface GamePlayer extends Player {
@@ -74,16 +57,6 @@ interface ExpandedDataItem {
     placeholder: boolean
 }
 
-type RankNames = 'golden' | 'silver' | 'bronze' | 'others'
-
-const playersRankingNames: { [key in RankNames]: string } = {
-    golden: '🏅 金榜',
-    silver: '🥈 银榜',
-    bronze: '🥉 铜榜',
-    others: '🍉 吃瓜群众'
-}
-
-
 const route = useRoute()
 const gameHub = useGameHubStore()
 const user = useUser()
@@ -100,40 +73,6 @@ const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(','
 const base = ref()
 const hit = ref()
 const baseLoaded = ref(false)
-
-const playersRanking = computed(() => {
-    const playerList = players.value
-    const sortedData = [...playerList]
-
-    sortedData.sort((a, b) => b.score - a.score)
-
-    const result: { [key in RankNames]: GamePlayer[] } = { golden: [], silver: [], bronze: [], others: [] }
-
-    if (sortedData.length) {
-        let goldScore = sortedData[0].score || -1 // 金榜分数线
-        let silverScore = -1 // 银榜分数线
-
-        for (const item of sortedData) {
-            if (item.score && item.score < goldScore) {
-                silverScore = item.score
-                break
-            }
-        }
-
-        for (const item of playerList) {
-            if (item.score === goldScore) {
-                result.golden.push(item)
-            } else if (item.score === silverScore) {
-                result.silver.push(item)
-            } else if (item.score > 0) {
-                result.bronze.push(item)
-            } else {
-                result.others.push(item)
-            }
-        }
-    }
-    return result
-})
 
 function colors(item: ExpandedDataItem) {
     if (item.fade) {

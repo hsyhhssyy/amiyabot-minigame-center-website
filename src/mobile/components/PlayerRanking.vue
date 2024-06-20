@@ -20,22 +20,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-
-import { useGameHubStore } from '@/stores/gamehub'
+import { computed } from 'vue'
 
 import { playersRankingNames } from '@/def/games'
 
 import type { GamePlayer } from '@/def/players'
 import type { RankNames } from '@/def/games'
-import type { SignalrResponse } from '@/api/signalr'
 
-const gameHub = useGameHubStore()
+export interface ChatProps {
+    players: GamePlayer[]
+}
 
-const players = ref<GamePlayer[]>([])
+const props = defineProps<ChatProps>()
 
 const playersRanking = computed(() => {
-    const playerList = players.value
+    const playerList = props.players
     const sortedData = [...playerList]
 
     sortedData.sort((a, b) => b.score - a.score)
@@ -66,29 +65,6 @@ const playersRanking = computed(() => {
         }
     }
     return result
-})
-
-function gameInfoListener(response: SignalrResponse) {
-    if(!response.PlayerList) return
-
-    console.log('ranking updated')
-    
-    players.value = response.PlayerList.map((p: any) => {
-        return {
-            id: p.UserId,
-            name: p.UserName,
-            avatar: p.UserAvatar ? p.UserAvatar : '/avatar.webp',
-            score: p.Score
-        }
-    })
-}
-
-onMounted(() => {    
-    gameHub.addGameHubListener('GameInfo', gameInfoListener)
-})
-
-onUnmounted(() => {
-    gameHub.removeGameHubListener('GameInfo', gameInfoListener)
 })
 
 </script>

@@ -86,6 +86,23 @@ const mobileRoutes: RouteRecordRaw[] = [
                 ]
             },
             {
+                path: 'skin-guess',
+                name: 'skin-guess-mobile',
+                component: EmptyContainer,
+                children: [
+                  {
+                    path: 'game/:roomId',
+                    name: 'skin-guess-game-mobile',
+                    component: () => import('@/mobile/views/game/SkinGuess.vue')
+                  },
+                  {
+                    path: 'room/:roomId',
+                    name: 'skin-guess-room-mobile',
+                    component: () => import('@/mobile/views/room/WaitingRoom.vue')
+                  }
+                ]
+            },
+            {
                 path: 'not-imp/:roomId',
                 name: 'not-imp-m',
                 component: () => import('@/mobile/MobileNotImplemented.vue')

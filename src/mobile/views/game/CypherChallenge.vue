@@ -41,7 +41,7 @@
             </div>
         </div>
         <template v-slot:players>
-            <player-ranking></player-ranking>
+            <player-ranking :players="players"></player-ranking>
         </template>
     </game-base>
 </template>
@@ -61,7 +61,7 @@ import ResultTable from '@/mobile/components/cypherChallenge/ResultTable.vue'
 import NextQuestion from '@/universal/components/NextQuestion.vue'
 import type { Question } from '@/def/cypher-challenge'
 import type { Message } from '@/def/signalr-common'
-import PlayerRanking from '@/desktop/components/PlayerRanking.vue'
+import PlayerRanking from '@/mobile/components/PlayerRanking.vue'
 import AmiyaFace from '@/desktop/components/AmiyaFace.vue'
 
 const route = useRoute()
