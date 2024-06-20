@@ -5,14 +5,15 @@
                 <div class="overlay-card">
                     <n-flex justify="center">
                         <div class="correct-answer">
-                            正确答案：{{ currentQuestion?.CharacterName }}
+                            正确答案：{{ lastQuestion?.CharacterName }}
                         </div>
                     </n-flex>
-                    <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
+                    <result-table :currentQuestion="lastQuestion" :playersMap="playersMap" :headers="headers"
                         :showAnswer="true"></result-table>
-                    <next-question :room-id="roomId" :active="settlementCountdownActive" @on-next-question="moveToNextQuestion"
-                        :show-close="true" @on-close-result-popup="closeResultPopup"></next-question>
-                    
+                    <next-question :room-id="roomId" :active="settlementCountdownActive"
+                        @on-next-question="moveToNextQuestion" :show-close="true"
+                        @on-close-result-popup="closeResultPopup" :game="game" :players="players"></next-question>
+
                 </div>
             </n-modal>
             <div>
@@ -67,7 +68,12 @@ const route = useRoute()
 const gameHub = useGameHubStore()
 
 const players = ref<GamePlayer[]>([])
-const currentQuestionIndex = ref<number | null>(null)
+const currentQuestionIndex = computed<number>(() => {
+    if (game?.value?.CurrentQuestionIndex == null) {
+        return null
+    }
+    return game.value.CurrentQuestionIndex
+})
 const currentQuestion = computed<Question>(() => {
     if (game?.value?.QuestionList == null) {
         return null
@@ -75,7 +81,23 @@ const currentQuestion = computed<Question>(() => {
     if (currentQuestionIndex.value === null) {
         return game.value.QuestionList[0]
     }
+    if (currentQuestionIndex.value >= game.value.QuestionList.length) {
+        return game.value.QuestionList[game.value.QuestionList.length - 1]
+    }
     return game.value.QuestionList[currentQuestionIndex.value]
+})
+const lastQuestion = computed<Question>(() => {
+    if (game?.value?.QuestionList == null) {
+        return null
+    }
+    if (currentQuestionIndex.value === null) {
+        return game.value.QuestionList[0]
+    }
+
+    if (game.value.IsCompleted || game.value.IsClosed) {
+        return game.value.QuestionList[currentQuestionIndex.value]
+    }
+    return game.value.QuestionList[currentQuestionIndex.value - 1]
 })
 const game = ref<any>()
 
@@ -86,17 +108,6 @@ const countdown = ref()
 
 const settlementDialogShown = ref(false)
 const settlementCountdownActive = ref(false)
-const hasNextQuestion = computed(() => {
-    if (game?.value?.IsCompleted) {
-        return false
-    }
-
-    if (currentQuestionIndex.value === 9) {
-        return false
-    }
-
-    return true
-})
 
 const headers = computed(() => {
     if (!currentQuestion.value) {
@@ -111,10 +122,7 @@ const headers = computed(() => {
         }
     ).map(
         ([key]) => {
-            if (currentQuestion.value?.CharacterPropertiesRevealed[key] //属性已被揭示
-                || game.value.CurrentQuestionIndex !== currentQuestionIndex.value //不是当前问题
-                || !hasNextQuestion.value //游戏已结束
-            ) {
+            if (currentQuestion.value?.CharacterPropertiesRevealed[key]) {
                 return key
             } else {
                 return '未知线索'
@@ -131,25 +139,23 @@ const playersMap = computed(() => {
     return playersMapVal
 })
 
-function closeResultPopup(){
+function closeResultPopup() {
     settlementDialogShown.value = false
 }
 
 function prepareNextQuestion() {
-    if(settlementCountdownActive.value==true){
+    if (settlementCountdownActive.value == true) {
         return
     }
     settlementDialogShown.value = true
     countdown.value?.reset()
-    settlementCountdownActive.value=true
+    settlementCountdownActive.value = true
 }
 
-function moveToNextQuestion(newQuestionIndex: number) {
+function moveToNextQuestion() {
     settlementDialogShown.value = false
     settlementCountdownActive.value = false
 
-    currentQuestionIndex.value = newQuestionIndex
-    
 }
 
 function onFaceHit(face: HitType, chat: string) {
@@ -157,13 +163,13 @@ function onFaceHit(face: HitType, chat: string) {
 }
 
 function sendMove(content: string) {
-    if(settlementCountdownActive.value==true){
+    if (settlementCountdownActive.value == true) {
         gameHub.invokeGameHub(
             'Chat',
             roomId,
             content
         )
-    }else{
+    } else {
         gameHub.invokeGameHub(
             'SendMove',
             roomId,
@@ -195,17 +201,21 @@ function receiveMoveListener(response: SignalrResponse) {
     } as Message)
 
     if (result === 'Correct') {
+        //回答正确
         prepareNextQuestion()
-    } else {
-        if (game.value.CurrentQuestionIndex != currentQuestionIndex.value) {
-            prepareNextQuestion()
-        }
+    } else if (response.Payload.MoveTonextQuestion) {
+        //没有回答机会了
+        prepareNextQuestion()
+    }
+    else if (game.value.IsClosed || game.value.IsCompleted) {
+        //游戏已结束
+        prepareNextQuestion()
     }
 }
 
 function gameInfoListener(response: SignalrResponse) {
-    if (response.Payload.Game) {
-        game.value = response.Payload.Game
+    if (response.Game) {
+        game.value = response.Game
     }
 
     players.value = response.PlayerList.map((p: any) => {
@@ -229,10 +239,8 @@ function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
 
     gameInfoListener(gameData)
-    currentQuestionIndex.value = game.value.CurrentQuestionIndex
 
     if (roomData.isClosed || roomData.isCompleted) {
-
         prepareNextQuestion()
     }
 }

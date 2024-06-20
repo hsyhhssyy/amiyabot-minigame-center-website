@@ -83,11 +83,35 @@ import { getOperatorUrl } from '@/arknights'
 interface Props {
     currentQuestion: any;
     playersMap: any;
-    headers: any;
     showAnswer: any;
 }
 
 const props = defineProps<Props>();
+
+const headers = computed(() => {
+    if (!props.currentQuestion) {
+        return []
+    }
+
+    const entries = Object.entries(props.currentQuestion.CharacterPropertiesUsed);
+
+    const headersValue = entries.filter(
+        ([, value]) => {
+            return value == true
+        }
+    ).map(
+        ([key]) => {
+            if (props.currentQuestion?.CharacterPropertiesRevealed[key] || props.showAnswer) {
+                return key
+            } else {
+                return '未知线索'
+            }
+        }
+    )
+
+    return headersValue
+}
+)
 
 const currentAnswers = computed(() => {
     if (!props.currentQuestion) {

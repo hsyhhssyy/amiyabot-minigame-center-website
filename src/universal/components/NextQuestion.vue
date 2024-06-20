@@ -37,6 +37,8 @@ const gameHub = useGameHubStore()
 
 const props = withDefaults(defineProps<{
     roomId: string
+    game: any
+    players: any
     active: boolean
     showClose: boolean
 }>(), {
@@ -45,7 +47,7 @@ const props = withDefaults(defineProps<{
 
 // 该Emit触发时，指示外部控件可以进行下一题，传入参数为当前正在进行题目的Index（也就是下一题的Index）
 const emits = defineEmits<{
-    (e: 'onNextQuestion', currentQuestionIndex: number): void
+    (e: 'onNextQuestion'): void
     (e: 'onCloseResultPopup'): void
 }>()
 
@@ -53,21 +55,19 @@ interface GamePlayer extends Player {
     score: number
 }
 
-const players = ref<GamePlayer[]>([])
-const playersMap = computed(() => {
-    var playersMapVal = listToDict<GamePlayer>(players.value, 'id')
-    return playersMapVal
+const players = computed(() => {
+    return props.players
 })
+
+const game = computed(() => {
+    return props.game
+})
+const countdown = ref<any>()
 const clockActive = ref<boolean>(props.active)
 const playersReadyList = ref<string[]>([])
-const game = ref<any>()
 const currentQuestionIndex = ref<number | null>(null)
 const hasNextQuestion = computed(() => {
     if (game?.value?.IsCompleted) {
-        return false
-    }
-
-    if (currentQuestionIndex.value === 10) {
         return false
     }
 
@@ -83,14 +83,29 @@ watch(computed(() => props.active), (newVal, oldVal) => {
     if (newVal) {
         //启动计时器
         clockActive.value = true
+        countdown.value.reset()
+        //currentQuestionIndex.value = game.value.CurrentQuestionIndex
+        //console.log('currentQuestionIndex force set', currentQuestionIndex.value)
     }
+})
+
+watch(computed(() => props.game), (newVal:any, oldVal) => {
+    if (newVal !== null) {
+        if (currentQuestionIndex.value === null) {
+            currentQuestionIndex.value = newVal.CurrentQuestionIndex-1
+        }
+    }
+})
+
+watch(currentQuestionIndex, (newVal, oldVal) => {
+    console.log('currentQuestionIndex changed', newVal, oldVal)
 })
 
 function onCountdownFinish() {
     if(game.value.CurrentQuestionIndex !== currentQuestionIndex.value) {
         return
     }
-    moveToNextQuestion()
+    // moveToNextQuestion()
 }
 
 function closeResultPopup() {
@@ -106,31 +121,11 @@ function nextQuestionButton() {
     gameHub.invokeGameHub('RallyPointStatus', props.roomId, JSON.stringify({ Name: getRallyPointData() }))
 }
 
-function gameInfoListener(response: SignalrResponse) {
-    if (response.Payload.Game) {
-        game.value = response.Payload.Game
-    }
-
-    players.value = response.PlayerList.map((p: any) => {
-        return {
-            id: p.UserId,
-            name: p.UserName,
-            avatar: p.UserAvatar ? p.UserAvatar : '/avatar.webp',
-            score: p.Score
-        }
-    })
-
-    if (currentQuestionIndex.value === null) {
-        currentQuestionIndex.value = response.Payload.Game.CurrentQuestionIndex-1
-    }
-
-    if (!rallyPointHistory.value) {
-        //开始逐个查询RallyPoint是否存在
-    }
-}
-
 function rallyPointStatusListener(response: SignalrResponse) {
-    console.log('rally st', response)
+    if(response.Name !== getRallyPointData()) {
+        return
+    }
+    //console.log('rally st', response)
     if (response.Name == getRallyPointData()) {
         for (let i = 0; i < players.value.length; i++) {
             if (response.Players.includes(players.value[i].id)) {
@@ -143,30 +138,34 @@ function rallyPointStatusListener(response: SignalrResponse) {
 }
 
 function rallyPointReachedListener(response: SignalrResponse) {
+    if(response.Name !== getRallyPointData()) {
+        return
+    }
+    console.log('rally reached', response)
     moveToNextQuestion()
 }
 
 function moveToNextQuestion() {
     playersReadyList.value = []
 
-    if (game.value.QuestionList.length > game.value.CurrentQuestionIndex) {
-        currentQuestionIndex.value = game.value.CurrentQuestionIndex
-    }
+    // if (game.value.QuestionList.length > game.value.CurrentQuestionIndex) {
+    //     currentQuestionIndex.value = game.value.CurrentQuestionIndex
+    // }
+    // 因为这里立即为CurrentIndex加了1，所以后续RallyPointReach也不会再次触发了
+    currentQuestionIndex.value = currentQuestionIndex.value! + 1
 
     if (currentQuestionIndex.value !== null) {
-        emits('onNextQuestion', currentQuestionIndex.value!)
+        emits('onNextQuestion')
     }
 }
 
 
 onMounted(() => {
-    gameHub.addGameHubListener('GameInfo', gameInfoListener)
     gameHub.addGameHubListener('RallyPointStatus', rallyPointStatusListener)
     gameHub.addGameHubListener('RallyPointReached', rallyPointReachedListener)
 })
 
 onUnmounted(() => {
-    gameHub.removeGameHubListener('GameInfo', gameInfoListener)
     gameHub.removeGameHubListener('RallyPointStatus', rallyPointStatusListener)
     gameHub.removeGameHubListener('RallyPointReached', rallyPointReachedListener)
 })

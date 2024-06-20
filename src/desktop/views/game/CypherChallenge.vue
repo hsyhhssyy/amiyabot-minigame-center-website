@@ -1,25 +1,26 @@
 <template>
     <game-base ref="base" :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load">
         <n-card style="height: 100%" class="game-card">
-            <div v-if="settlementDialogShown" class="overlay">
+            <div :class="{
+                'overlay': settlementDialogShown,
+                'collapsed': !settlementDialogShown
+            }">
                 <n-card class="overlay-card">
                     <n-flex justify="center">
                         <div class="correct-answer">
-                            正确答案：{{ currentQuestion?.CharacterName }}
+                            正确答案：{{ lastQuestion?.CharacterName }}
                         </div>
                     </n-flex>
-                    <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
+                    <result-table :currentQuestion="lastQuestion" :playersMap="playersMap"
                         :showAnswer="true"></result-table>
-                    <next-question :room-id="roomId" :active="settlementCountdownActive" @on-next-question="moveToNextQuestion"></next-question>
-                    
+                    <next-question :room-id="roomId" :active="settlementCountdownActive" :show-close="false"
+                        @on-next-question="moveToNextQuestion" :game="game" :players="players"></next-question>
+
                 </n-card>
             </div>
             <div>
                 <div class="game-panel">
                     <hit-effect ref="hit"></hit-effect>
-                    <n-steps :current="(currentQuestionIndex ?? 0) + 1" class="game-step" v-if="false">
-                        <n-step v-for="index in 10" :disabled="index > (currentQuestionIndex ?? 0)" title=""></n-step>
-                    </n-steps>
                     <div class="game-body">
                         <n-card :bordered="false" size="small" class="answer-list">
                             <div class="game-title"></div>
@@ -32,12 +33,12 @@
                                 </div> -->
                                 <div v-for="header in headers" class="property-header">
                                     <div class="property-value">
-                                        {{ header + ":" }}  {{ currentQuestion.CharacterProperties[header] || '???' }}
+                                        {{ header + ":" }} {{ currentQuestion.CharacterProperties[header] || '???' }}
                                     </div>
                                 </div>
                             </div>
                         </n-card>
-                        <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
+                        <result-table :currentQuestion="currentQuestion" :playersMap="playersMap"
                             :showAnswer="false"></result-table>
 
                     </div>
@@ -55,7 +56,7 @@
 
 <script lang="ts" setup>
 import type { CSSProperties } from 'vue'
-import { computed,  onUnmounted, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGameHubStore } from '@/stores/gamehub'
 import { listToDict } from '@/utils'
@@ -76,7 +77,12 @@ const route = useRoute()
 const gameHub = useGameHubStore()
 
 const players = ref<GamePlayer[]>([])
-const currentQuestionIndex = ref<number | null>(null)
+const currentQuestionIndex = computed<number>(() => {
+    if (game?.value?.CurrentQuestionIndex == null) {
+        return null
+    }
+    return game.value.CurrentQuestionIndex
+})
 const currentQuestion = computed<Question>(() => {
     if (game?.value?.QuestionList == null) {
         return null
@@ -89,6 +95,20 @@ const currentQuestion = computed<Question>(() => {
     }
     return game.value.QuestionList[currentQuestionIndex.value]
 })
+const lastQuestion = computed<Question>(() => {
+    if (game?.value?.QuestionList == null) {
+        return null
+    }
+    if (currentQuestionIndex.value === null) {
+        return game.value.QuestionList[0]
+    }
+
+    if(game.value.IsCompleted||game.value.IsClosed){
+        return game.value.QuestionList[currentQuestionIndex.value]
+    }
+    return game.value.QuestionList[currentQuestionIndex.value - 1]
+})
+
 const game = ref<any>()
 
 const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
@@ -123,10 +143,7 @@ const headers = computed(() => {
         }
     ).map(
         ([key]) => {
-            if (currentQuestion.value?.CharacterPropertiesRevealed[key] //属性已被揭示
-                || game.value.CurrentQuestionIndex !== currentQuestionIndex.value //不是当前问题
-                || !hasNextQuestion.value //游戏已结束
-            ) {
+            if (currentQuestion.value?.CharacterPropertiesRevealed[key]) {
                 return key
             } else {
                 return '未知线索'
@@ -143,12 +160,12 @@ const playersMap = computed(() => {
     return playersMapVal
 })
 
-function onFaceHit(face: HitType, _ : string) {
+function onFaceHit(face: HitType, _: string) {
     hit.value.hit(face)
 }
 
 function prepareNextQuestion() {
-    if(settlementDialogShown.value==true){
+    if (settlementDialogShown.value == true) {
         return
     }
 
@@ -156,20 +173,18 @@ function prepareNextQuestion() {
     settlementCountdownActive.value = true
 }
 
-function moveToNextQuestion(newQuestionIndex: number) {
+function moveToNextQuestion() {
     settlementDialogShown.value = false
-
-    currentQuestionIndex.value = newQuestionIndex
 }
 
 function sendMove(content: string) {
-    if(settlementDialogShown.value==true){
+    if (settlementDialogShown.value == true) {
         gameHub.invokeGameHub(
             'Chat',
             roomId,
             content
         )
-    }else{
+    } else {
         gameHub.invokeGameHub(
             'SendMove',
             roomId,
@@ -212,17 +227,21 @@ function receiveMoveListener(response: SignalrResponse) {
     } as Message)
 
     if (result === 'Correct') {
+        //回答正确
         prepareNextQuestion()
-    } else {
-        if (game.value.CurrentQuestionIndex != currentQuestionIndex.value) {
-            prepareNextQuestion()
-        }
+    } else if (response.Payload.MoveTonextQuestion) {
+        //没有回答机会了
+        prepareNextQuestion()
+    }
+    else if (game.value.IsClosed || game.value.IsCompleted) {
+        //游戏已结束
+        prepareNextQuestion()
     }
 }
 
 function gameInfoListener(response: SignalrResponse) {
-    if (response.Payload.Game) {
-        game.value = response.Payload.Game
+    if (response.Game) {
+        game.value = response.Game
     }
 
     players.value = response.PlayerList.map((p: any) => {
@@ -246,7 +265,6 @@ function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
 
     gameInfoListener(gameData)
-    currentQuestionIndex.value = game.value.CurrentQuestionIndex
 
     if (roomData.isClosed || roomData.isCompleted) {
         prepareNextQuestion()
@@ -273,6 +291,12 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 $guideHeight: 160px;
+
+.collapsed {
+    width: 0;
+    height: 0;
+    display: none;
+}
 
 .game-card {
     position: relative;
@@ -338,10 +362,10 @@ $guideHeight: 160px;
                 margin-right: 5px;
                 margin-left: 5px;
                 width: 200px;
-                
+
                 background: rgba(0, 0, 0, 0);
-                
-                .game-title{
+
+                .game-title {
                     width: 100%;
                     aspect-ratio: 10/4;
                     background: url(@/assets/images/cypherChallenge/title_content.png) center / contain no-repeat;
@@ -387,18 +411,6 @@ $guideHeight: 160px;
         display: flex;
         align-items: flex-end;
         padding-bottom: 30px;
-
-        .amiya-face {
-            width: 120px;
-            height: 100%;
-            background: center bottom / 100% no-repeat;
-            margin-right: 10px;
-        }
-
-        .amiya-chat {
-            height: fit-content;
-        }
     }
 }
-
 </style>

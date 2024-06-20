@@ -6,8 +6,14 @@
         </div>
         <div v-if="showAnswer" class="table-content-row">
             <div class="operator-name-cell left-align">
-                <n-avatar :src="getOperatorUrl(currentQuestion?.CharacterId)" size="large"
-                    :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
+                <n-tooltip placement="bottom" trigger="click">
+                    <template #trigger>
+
+                        <n-avatar :src="getOperatorUrl(currentQuestion?.CharacterId)" size="large"
+                            :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
+                    </template>
+                    <span> {{ currentQuestion?.CharacterName }} </span>
+                </n-tooltip>
             </div>
             <div v-for="header in headers" class="property-cell">
                 <template v-if="currentQuestion?.CharacterProperties[header]">
@@ -17,8 +23,13 @@
         </div>
         <div v-for="answer in currentAnswers" class="table-content-row">
             <div class="operator-name-cell left-align">
-                <n-avatar :src="getOperatorUrl(answer?.CharacterId)" size="large"
-                    :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
+                <n-tooltip placement="bottom" trigger="click">
+                    <template #trigger>
+                        <n-avatar :src="getOperatorUrl(answer?.CharacterId)" size="large"
+                            :img-props="{ referrerpolicy: 'no-referrer' }"></n-avatar>
+                    </template>
+                    <span> {{ answer?.CharacterName }} </span>
+                </n-tooltip>
             </div>
             <div v-for="header in headers" class="property-cell">
                 <template v-if="!showAnswer">
@@ -52,19 +63,15 @@
 import ThumbsUp from '@/assets/images/cypherChallenge/icon/thumbs-up.svg';
 import ThumbsDown from '@/assets/images/cypherChallenge/icon/thumbs-down.svg';
 import { computed } from 'vue'
+import { getOperatorUrl } from '@/arknights'
 
 interface Props {
     currentQuestion: any;
     playersMap: any;
-    headers: any;
     showAnswer: any;
 }
 
 const props = defineProps<Props>();
-
-function getOperatorUrl(CharacterId: string) {
-    return `https://web.hycdn.cn/arknights/game/assets/char_skin/avatar/${CharacterId}%231.png`
-}
 
 const currentAnswers = computed(() => {
     if (!props.currentQuestion) {
@@ -81,6 +88,31 @@ const blankRows = computed(() => {
     }
     return Array(rowCount).fill("");
 })
+
+const headers = computed(() => {
+    if (!props.currentQuestion) {
+        return []
+    }
+
+    const entries = Object.entries(props.currentQuestion.CharacterPropertiesUsed);
+
+    const headersValue = entries.filter(
+        ([, value]) => {
+            return value == true
+        }
+    ).map(
+        ([key]) => {
+            if (props.currentQuestion?.CharacterPropertiesRevealed[key] || props.showAnswer) {
+                return key
+            } else {
+                return '未知线索'
+            }
+        }
+    )
+
+    return headersValue
+}
+)
 
 </script>
 
@@ -191,7 +223,7 @@ const blankRows = computed(() => {
         }
     }
 
-    .empty-row{        
+    .empty-row {
         min-height: 40px;
         margin-bottom: 5px;
     }

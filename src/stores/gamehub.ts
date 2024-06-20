@@ -42,7 +42,7 @@ export const useGameHubStore = defineStore('gameHub', () => {
                 lastToken.value = currentToken
                 await close()
             }else{
-                if(isConnected){
+                if(isConnected.value){
                     return
                 }
             }
@@ -58,6 +58,9 @@ export const useGameHubStore = defineStore('gameHub', () => {
             connection.value.onclose(async (error) => {
                 console.error('Connection closed due to error.', error)
                 connection.value = null
+
+                //1秒后自动重新连接
+                setTimeout(connect, 1000)
             })
 
             // 启动连接
