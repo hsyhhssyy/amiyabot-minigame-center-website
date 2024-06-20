@@ -67,9 +67,9 @@ import type { GameRoom } from '@/api/game'
 import type { Message } from '@/def/signalr-common'
 import type { GamePlayer } from '@/def/players'
 import type { Question } from '@/def/skin-guess'
-import type { HitType } from '@/desktop/components/effects/HitEffect.vue'
-import HitEffect from '@/desktop/components/effects/HitEffect.vue'
-import GameBase from '@/desktop/views/GameBase.vue'
+import type { HitType } from '@/mobile/components/effects/HitEffect.vue'
+import HitEffect from '@/mobile/components/effects/HitEffect.vue'
+import GameBase from '@/mobile/views/GameBase.vue'
 import NextQuestion from '@/universal/components/NextQuestion.vue'
 import PlayerRanking from '@/desktop/components/PlayerRanking.vue'
 import AmiyaFace from '@/desktop/components/AmiyaFace.vue'
@@ -625,9 +625,10 @@ $guideHeight: 160px;
         }
 
         .hint-area {
+            //悬浮于父控件右下角
             position: absolute;
             right: 10px;
-            top: 10px;
+            bottom: 10px;
         }
     }
 

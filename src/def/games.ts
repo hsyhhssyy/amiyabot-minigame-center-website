@@ -28,15 +28,15 @@ export const gameList: GameItem[] = [
         settings: null,
         notAvailable: false
     },
-    {
-        id: 3,
-        image: '/games/SkillGuess.png',
-        name: '技能图标猜干员',
-        type: 'SkillGuess',
-        route: '/games/schulte-grid/',
-        settings: null,
-        notAvailable: true
-    },
+    // {
+    //     id: 3,
+    //     image: '/games/SkillGuess.png',
+    //     name: '技能图标猜干员',
+    //     type: 'SkillGuess',
+    //     route: '/games/schulte-grid/',
+    //     settings: null,
+    //     notAvailable: true
+    // },
     {
         id: 4,
         image: '/games/CypherChallenge.png',
