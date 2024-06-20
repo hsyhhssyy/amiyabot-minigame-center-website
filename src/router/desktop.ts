@@ -54,7 +54,7 @@ const desktopRoutes: RouteRecordRaw[] = [
             {
                 path: 'schulte-grid',
                 name: 'schulte-grid',
-                component: () => EmptyContainer,
+                component: EmptyContainer,
                 children: [
                   {
                     path: 'game/:roomId',
@@ -71,7 +71,7 @@ const desktopRoutes: RouteRecordRaw[] = [
             {
                 path: 'cypher-challenge',
                 name: 'cypher-challenge',
-                component: () => EmptyContainer,
+                component: EmptyContainer,
                 children: [
                   {
                     path: 'game/:roomId',
@@ -88,7 +88,7 @@ const desktopRoutes: RouteRecordRaw[] = [
             {
                 path: 'skin-guess',
                 name: 'skin-guess',
-                component: () => EmptyContainer,
+                component: EmptyContainer,
                 children: [
                   {
                     path: 'game/:roomId',

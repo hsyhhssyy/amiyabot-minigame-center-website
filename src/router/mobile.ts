@@ -54,7 +54,7 @@ const mobileRoutes: RouteRecordRaw[] = [
             {
                 path: 'schulte-grid',
                 name: 'schulte-grid-mobile',
-                component: () => EmptyContainer,
+                component: EmptyContainer,
                 children: [
                   {
                     path: 'game/:roomId',
@@ -71,7 +71,7 @@ const mobileRoutes: RouteRecordRaw[] = [
             {
                 path: 'cypher-challenge',
                 name: 'cypher-challenge-mobile',
-                component: () => EmptyContainer,
+                component: EmptyContainer,
                 children: [
                   {
                     path: 'game/:roomId',

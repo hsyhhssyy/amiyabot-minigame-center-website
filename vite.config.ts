@@ -9,6 +9,9 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    build: {
+        sourcemap: true, // 启用 source map
+      },
     plugins: [
         vue(),
         AutoImport({
