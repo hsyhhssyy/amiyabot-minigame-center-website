@@ -105,6 +105,7 @@ const lastQuestion = computed<Question>(() => {
 
 
     if (game.value.IsCompleted || game.value.IsClosed) {
+        console.log('currentQuestionIndex IsCompleted:', currentQuestionIndex.value)
         return game.value.QuestionList[currentQuestionIndex.value]
     }
     console.log('currentQuestionIndex:', currentQuestionIndex.value)
@@ -125,17 +126,6 @@ const hit = ref()
 
 const settlementDialogShown = ref(false)
 const settlementCountdownActive = ref(false)
-const hasNextQuestion = computed(() => {
-    if (game?.value?.IsCompleted) {
-        return false
-    }
-
-    if (currentQuestionIndex.value === 10) {
-        return false
-    }
-
-    return true
-})
 
 const slicedImages = ref<Map<number, HTMLCanvasElement> | null>(null);
 const slicedHintImages = ref<Map<number, HTMLCanvasElement> | null>(null);
@@ -360,7 +350,7 @@ const giveUpListener = (response: any) => {
         avatar: '/amiya.jpg'
     } as Message)
 
-    game.value = response.Payload.Game
+    game.value = response.Game
     giveUpPressed.value = false;
 
     prepareNextQuestion()
@@ -369,8 +359,8 @@ const giveUpListener = (response: any) => {
 function receiveMoveListener(response: SignalrResponse) {
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
 
-    if (response.Payload.Game) {
-        game.value = response.Payload.Game
+    if (response.Game) {
+        game.value = response.Game
     }
 
     const result = response.Payload.Result
@@ -407,7 +397,7 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 function gameCompletedListener(response: SignalrResponse) {
-    game.value = response.Payload.Game
+    game.value = response.Game
     prepareNextQuestion()
 }
 

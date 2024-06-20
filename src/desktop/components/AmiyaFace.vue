@@ -10,11 +10,10 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useGameHubStore } from '@/stores/gamehub'
 
 import type { HitType } from '@/desktop/components/effects/HitEffect.vue'
-import HitEffect from '@/desktop/components/effects/HitEffect.vue'
 import type { SignalrResponse } from '@/api/signalr'
 import type { GamePlayer } from '@/def/players'
 
-//定义Emit onHit
+// 定义Emit onHit
 const emits = defineEmits<{
     (e: 'onHit', face: HitType, text: string): void
 }>()
@@ -44,10 +43,6 @@ function chatting() {
     let face: HitType = 'doubt'
     let chat = ''
 
-    /**
-     * 骚话环节！这里的判断有点多，要在有人说话和有人回答之间做判断（有人说话不一定有人回答）
-     */
-
     if (timeRecord >= 20) {
         if (timeRecordChat < timeRecord) {
             face = 'tea'
@@ -68,20 +63,17 @@ function chatting() {
     }
 }
 
-
 function gameCompletedListener(response: SignalrResponse) {
     clearInterval(timeRecordInterval)
 
     amiyaFace.value = 'joy'
-    amiyaChat.value =
-        '游戏结束。'
-
+    amiyaChat.value = '游戏结束。'
 }
 
 function gameInfoListener(response: SignalrResponse) {
     if (timeRecordInterval === null) {
-        if (response.Payload.Game) {
-            if (response.Payload.Game.IsCompleted) {
+        if (response.Game) {
+            if (response.Game.IsCompleted) {
                 amiyaFace.value = 'wuwu'
                 amiyaChat.value = '博士，游戏已经结束了……下次请早点来吧~'
             } else {
@@ -99,7 +91,6 @@ function gameInfoListener(response: SignalrResponse) {
         }
     })
 }
-
 
 function receiveMoveListener(response: SignalrResponse) {
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
@@ -147,8 +138,9 @@ onUnmounted(() => {
     gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
-})
 
+    clearInterval(timeRecordInterval)
+})
 </script>
 
 <style scoped lang="scss">

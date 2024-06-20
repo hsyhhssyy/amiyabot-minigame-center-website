@@ -183,8 +183,8 @@ function sendMove(content: string) {
 function receiveMoveListener(response: SignalrResponse) {
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
 
-    if (response.Payload.Game) {
-        game.value = response.Payload.Game
+    if (response.Game) {
+        game.value = response.Game
     }
 
     const result = response.Payload.Result
@@ -229,7 +229,7 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 function gameCompletedListener(response: SignalrResponse) {
-    game.value = response.Payload.Game
+    game.value = response.Game
     prepareNextQuestion()
 }
 
