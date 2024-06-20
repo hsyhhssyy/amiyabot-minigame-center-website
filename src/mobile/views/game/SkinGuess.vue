@@ -165,14 +165,14 @@ function getRandomSquare(randomNum: any, imgWidth: any, imgHeight: any) {
     };
 }
 
-function resizeCanvas(originalCanvas, width, height) {
+function resizeCanvas(originalCanvas:HTMLCanvasElement, width:number, height:number) {
     // 创建一个新的canvas
     const resizedCanvas = document.createElement('canvas');
     resizedCanvas.width = width;
     resizedCanvas.height = height;
 
     // 获取新的canvas的绘图上下文
-    const ctx = resizedCanvas.getContext('2d');
+    const ctx = resizedCanvas.getContext('2d') as CanvasRenderingContext2D;
 
     // 获取原始canvas的宽度和高度
     const originalWidth = originalCanvas.width;
