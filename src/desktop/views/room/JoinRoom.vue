@@ -11,11 +11,14 @@ import { getGame } from '@/api/game'
 import { gameList } from '@/def/games'
 import { useDialog } from 'naive-ui'
 import { useGameHubStore } from '@/stores/gamehub'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
 const dialog = useDialog()
+
 const gameHub = useGameHubStore()
+const user = useUserStore()
 
 async function join(joinCode: string) {
     console.log(`加入房间号为 ${joinCode} 的房间`)
@@ -24,7 +27,7 @@ async function join(joinCode: string) {
 
 async function gameJoinListener(response: SignalrResponse) {
     const playerJoined = response.UserId
-    if (playerJoined != getData('user-id')) {
+    if (playerJoined != user.userInfo?.id || '') {
         // 意外收到别人的消息,不处理
         return
     }
@@ -69,7 +72,7 @@ async function initJoinRoom() {
 
 
             const playerList = game.playerList
-            const player = Object.keys(playerList).find((key) => key == getData('user-id'))
+            const player = Object.keys(playerList).find((key) => key == user.userInfo?.id || '')
 
             if (player) {
                 dialog.warning({

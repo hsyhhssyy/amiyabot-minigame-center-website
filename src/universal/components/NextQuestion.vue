@@ -45,7 +45,7 @@ const props = withDefaults(defineProps<{
     showClose: false // 这里设置 showClose 的默认值
 })
 
-// 该Emit触发时，指示外部控件可以进行下一题，传入参数为当前正在进行题目的Index（也就是下一题的Index）
+// 该Emit触发时，指示外部控件可以进行下一题
 const emits = defineEmits<{
     (e: 'onNextQuestion'): void
     (e: 'onCloseResultPopup'): void

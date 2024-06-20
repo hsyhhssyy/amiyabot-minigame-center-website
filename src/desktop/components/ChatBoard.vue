@@ -47,6 +47,7 @@ import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { SendOne } from '@icon-park/vue-next'
 import { getData } from '@/utils'
 import { useGameHubStore } from '@/stores/gamehub'
+import { useUserStore } from '@/stores/user'
 import IconButton from '@/universal/components/IconButton.vue'
 import type { SignalrResponse } from '@/api/signalr'
 import type { Player } from '@/def/players'
@@ -70,8 +71,9 @@ export interface ChatProps {
 const props = defineProps<ChatProps>()
 
 const gameHub = useGameHubStore()
+const user = useUserStore()
 
-const userId = getData<string>('user-id')
+const userId = user.userInfo?.id || ''
 const messages = ref<Message[]>([])
 const inputMessage = ref('')
 const chatBoard = ref()

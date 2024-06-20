@@ -12,12 +12,6 @@ export const useUserStore = defineStore('user', () => {
     const userName = ref('')
     const userAvatar = ref('/avatar.webp')
 
-    async function reset() {
-        userInfo.value = undefined
-        userName.value = ''
-        userAvatar.value = '/avatar.webp'
-    }
-
     async function init() {
         const descRet = await describeApi()
         if (!descRet) {
@@ -25,7 +19,10 @@ export const useUserStore = defineStore('user', () => {
             return
         }
 
-        await reset()
+        userInfo.value = undefined
+        userName.value = ''
+        userAvatar.value = '/avatar.webp'
+
         userInfo.value = descRet
         userName.value = descRet.nickname
         if (descRet.avatar) {

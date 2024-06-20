@@ -69,6 +69,7 @@ import { onMounted, onUnmounted, ref, watch,computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Close, Logout, Peoples, Play, ShareOne } from '@icon-park/vue-next'
 import { useGameHubStore } from '@/stores/gamehub'
+import { useUserStore } from '@/stores/user'
 import { getData, removeData, toast } from '@/utils'
 import type { GameTypes } from '@/def/games'
 import { getGameTypeMap } from '@/def/games'
@@ -93,8 +94,9 @@ const props = defineProps<WaitingRoomProps>()
 const route = useRoute()
 const router = useRouter()
 const gameHub = useGameHubStore()
+const user = useUserStore()
 
-const userId = getData<string>('user-id')
+const userId = user.userInfo?.id || ''
 const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 
 const isHost = ref(false)

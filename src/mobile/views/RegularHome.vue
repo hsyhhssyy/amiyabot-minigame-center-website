@@ -130,7 +130,7 @@ onMounted(async () => {
         return
     }
 
-    const userId = getData<string>('user-id')
+    const userId = user.userInfo?.id || ''
     if (userId) {
         const ret = await statisticsApi(userId)
         if (ret) {

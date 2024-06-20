@@ -27,12 +27,21 @@
             <div>
                 <div class="game-panel">
                     <hit-effect ref="hit"></hit-effect>
-                    <div class="question-prompt">
+                    <div class="question-prompt" v-if="rallyReached">
                         这是哪位干员立绘的一部分呢？
+                    </div>
+                    <div class="question-prompt" v-if="!rallyReached">
+                        正在加载，请稍等...
                     </div>
                     <div class="game-body">
                         <div class="question-display">
-                            <div v-if="!rallyReached" v-html="rallyText"></div>
+                            <div v-if="!rallyReached">
+                                <loading :room-id="roomId" 
+                                :value="(slicedImages?.size??0 )+ (slicedHintImages?.size??0)" 
+                                :maximum="(currentQuestionIndex??0+1)*2" :players="players"
+                                @on-loading-complete="imageLoadingCompleted"
+                                ></loading>
+                            </div>
                             <canvas id="masked-image" class="masked-image" v-show="rallyReached"></canvas>
                         </div>
                     </div>
@@ -60,7 +69,6 @@
 import { computed, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGameHubStore } from '@/stores/gamehub'
-import { listToDict } from '@/utils'
 import { Tips } from '@icon-park/vue-next'
 import type { SignalrResponse } from '@/api/signalr'
 import type { GameRoom } from '@/api/game'
@@ -74,6 +82,7 @@ import NextQuestion from '@/universal/components/NextQuestion.vue'
 import PlayerRanking from '@/desktop/components/PlayerRanking.vue'
 import AmiyaFace from '@/desktop/components/AmiyaFace.vue'
 import IconButton from '@/universal/components/IconButton.vue'
+import Loading from '@/universal/components/Loading.vue'
 
 const route = useRoute()
 const gameHub = useGameHubStore()
@@ -244,10 +253,6 @@ async function preprocessImages() {
     slicedImages.value = new Map();
     slicedHintImages.value = new Map();
 
-    //创建集结点
-    gameHub.invokeGameHub('RallyPointCreate', roomId, JSON.stringify({ Name: "ImageProcess" }));
-    gameHub.invokeGameHub('RallyPointStatus', roomId, JSON.stringify({ Name: "ImageProcess" }));
-
     await generateMaskedImage(currentQuestionIndex.value!);
     updateImage();
 
@@ -257,11 +262,6 @@ async function preprocessImages() {
         }
         await generateMaskedImage(i);
         updateImage();
-
-        //至少加载了本题和后面的三道题
-        if (i >= questionList.value.length - 1 || i >= currentQuestionIndex.value! + 3) {
-            gameHub.invokeGameHub('RallyPointReached', roomId, JSON.stringify({ Name: "ImageProcess" }));
-        }
     }
 }
 
@@ -289,6 +289,10 @@ const updateImage = function () {
             }
         }
     }
+}
+
+function imageLoadingCompleted() {
+    rallyReached.value = true;
 }
 
 function onFaceHit(face: HitType, _: string) {
@@ -332,9 +336,11 @@ const hintListener = (response: any) => {
     questionList.value[response.Payload.CurrentQuestionIndex].HintLevel = response.Payload.HintLevel;
     updateImage();
 
+    const playerHint = players.value.find((p) => p.id === response.Payload.PlayerId)
+
     base.value.pushMessage({
         userId: response.Payload.PlayerId,
-        content: '玩家申请提示',
+        content: `玩家${playerHint?.name}请求了提示`,
         style: 'Correct',
         nickname: '管理员兔兔',
         avatar: '/amiya.jpg'
@@ -565,6 +571,8 @@ $guideHeight: 160px;
             .question-display {
                 background-color: white;
                 border: 5px solid #ccc;
+
+                min-width: 300px;
             }
 
             .answer-list {
