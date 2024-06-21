@@ -28,7 +28,7 @@
                 <div class="game-panel">
                     <hit-effect ref="hit"></hit-effect>
                     <div class="question-prompt" v-if="rallyReached">
-                        这是哪位干员立绘的一部分呢？
+                        这是哪位干员立绘的一部分呢？{{ currentQuestionIndex }} {{ currentQuestion?.CharacterName }} {{game.MaxQuestionCount}}
                     </div>
                     <div class="question-prompt" v-if="!rallyReached">
                         正在加载，请稍等...
@@ -38,7 +38,7 @@
                             <div v-if="!rallyReached">
                                 <loading :room-id="roomId" 
                                 :value="(slicedImages?.size??0 )+ (slicedHintImages?.size??0)" 
-                                :maximum="(currentQuestionIndex??0+1)*2" :players="players"
+                                :maximum="loadMaximun" :players="players"
                                 @on-loading-complete="imageLoadingCompleted"
                                 ></loading>
                             </div>
@@ -119,6 +119,18 @@ const lastQuestion = computed<Question>(() => {
     }
     console.log('currentQuestionIndex:', currentQuestionIndex.value)
     return game.value.QuestionList[currentQuestionIndex.value - 1]
+})
+
+const loadMaximun = computed(() => {
+    if(currentQuestionIndex.value == null){
+        return 6 // 三道题
+    }
+    
+    if(game.value.MaxQuestionCount-currentQuestionIndex.value < 3){
+        return (game.value.MaxQuestionCount-currentQuestionIndex.value)*2
+    }
+
+    return 6
 })
 
 const game = ref<any>()
@@ -253,13 +265,11 @@ async function preprocessImages() {
     slicedImages.value = new Map();
     slicedHintImages.value = new Map();
 
-    await generateMaskedImage(currentQuestionIndex.value!);
-    updateImage();
-
-    for (let i = 0; i < questionList.value.length-1; i++) {
+    for (let i = currentQuestionIndex.value!; i < game.value.MaxQuestionCount; i++) {
         if (slicedImages.value.has(i)) {
             continue;
         }
+        console.log('preprocessImages:', i)
         await generateMaskedImage(i);
         updateImage();
     }

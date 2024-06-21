@@ -80,12 +80,9 @@ const renderCountdown = ({ seconds }: { seconds: number }) => {
 const rallyPointHistory = ref<any[] | null>(null)
 
 watch(computed(() => props.active), (newVal, oldVal) => {
+    clockActive.value = newVal
     if (newVal) {
-        //启动计时器
-        clockActive.value = true
         countdown.value.reset()
-        //currentQuestionIndex.value = game.value.CurrentQuestionIndex
-        //console.log('currentQuestionIndex force set', currentQuestionIndex.value)
     }
 })
 
@@ -102,10 +99,9 @@ watch(currentQuestionIndex, (newVal, oldVal) => {
 })
 
 function onCountdownFinish() {
-    if(game.value.CurrentQuestionIndex !== currentQuestionIndex.value) {
-        return
+    if(clockActive){
+        moveToNextQuestion()
     }
-    moveToNextQuestion()
 }
 
 function closeResultPopup() {
@@ -141,6 +137,7 @@ function rallyPointReachedListener(response: SignalrResponse) {
     if(response.Name !== getRallyPointData()) {
         return
     }
+    clockActive.value = false
     console.log('rally reached', response)
     moveToNextQuestion()
 }

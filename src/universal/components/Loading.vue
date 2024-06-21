@@ -40,14 +40,6 @@ const props = defineProps<LoadingProps>()
 
 const playerStatus = ref<Record<string, number>>({})
 
-const rallyText = computed(() => {
-    const players = props.players.map(p => {
-        const status = playerStatus.value[p.id] || 0;
-        return `<div>${p.name} - ${status / props.maximum * 100}%</div>`
-    }).join('')
-    return `<div>加载中...</div>${players}`
-})
-
 watch(() => props.value, (newValue, oldValue) => {
 
     if (newValue > 0 && (!oldValue || oldValue == 0)) {
