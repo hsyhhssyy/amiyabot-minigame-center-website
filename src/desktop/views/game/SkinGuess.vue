@@ -28,10 +28,10 @@
                 <div class="game-panel">
                     <hit-effect ref="hit"></hit-effect>
                     <div class="question-prompt" v-if="rallyReached">
-                        这是哪位干员立绘的一部分呢？{{ currentQuestionIndex }} {{ currentQuestion?.CharacterName }} {{game.MaxQuestionCount}}
+                        这是哪位干员立绘的一部分呢？
                     </div>
                     <div class="question-prompt" v-if="!rallyReached">
-                        正在加载，请稍等...
+                        正在加载，请稍等... {{ currentQuestionIndex??0 + 1 }} / {{ game?.MaxQuestionCount }}
                     </div>
                     <div class="game-body">
                         <div class="question-display">
@@ -51,6 +51,7 @@
                         <icon-button :icon="Tips" type="error" 
                             @click="handleGiveUp" 
                             :disabled="giveUpPressed"
+                            v-if="isHost"
                             >放弃</icon-button>
                     </div>
                 </div>
@@ -69,6 +70,7 @@
 import { computed, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGameHubStore } from '@/stores/gamehub'
+import { useUserStore } from '@/stores/user'
 import { Tips } from '@icon-park/vue-next'
 import type { SignalrResponse } from '@/api/signalr'
 import type { GameRoom } from '@/api/game'
@@ -86,6 +88,9 @@ import Loading from '@/universal/components/Loading.vue'
 
 const route = useRoute()
 const gameHub = useGameHubStore()
+const user = useUserStore()
+
+const isHost = computed(() => gameRestData.value?.creatorId == user.userInfo?.id)
 
 const players = ref<GamePlayer[]>([])
 const currentQuestionIndex = computed<number | null>(() => game.value?.CurrentQuestionIndex)
@@ -134,6 +139,7 @@ const loadMaximun = computed(() => {
 })
 
 const game = ref<any>()
+const gameRestData = ref<any>()
 const questionList = computed(() => {
     return game.value?.QuestionList ?? []
 })
@@ -447,6 +453,9 @@ const rallyPointReachedListener = (response: any) => {
 }
 
 function load(roomData: GameRoom, gameData: SignalrResponse) {
+
+    gameRestData.value = roomData
+
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
