@@ -9,14 +9,18 @@
 import { onMounted } from 'vue'
 import { removeData } from '@/utils'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user';
+import { useGameHubStore } from '@/stores/gamehub';
 
 const router = useRouter()
+const user = useUserStore()
+const gameHub = useGameHubStore()
 
 onMounted(async () => {
     removeData('jwt-token')
-    removeData('user-role')
-    removeData('user-id')
-    removeData('email')
+    
+    user.reset()
+    gameHub.close()
 
     // 给点延迟让大家看看可爱的兔兔！
     setTimeout(async () => await router.push('/login'), 1500)

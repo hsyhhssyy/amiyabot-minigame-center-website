@@ -4,22 +4,34 @@
             <n-input class="chat-input" :placeholder="props.placeholder || '输入干员名称...'" v-model:value="inputMessage"
                 @keydown.enter="sendMessage" />
             <icon-button class="chat-button" :icon="SendOne" type="success" @click="sendMessage"></icon-button>
-            <n-badge :value="unreadMessage" :max="99">
-                <icon-button class="chat-button" :icon="Communication" type="info" @click="openChatLog"></icon-button>
-            </n-badge>
+            <n-popover trigger="manual" :show="currentMessage?.show" width="300px">
+                <template #trigger>
+                    <n-badge :value="unreadMessage" :max="99">
+                        <icon-button class="chat-button" :icon="Communication" type="info"
+                            @click="openChatLog"></icon-button>
+                    </n-badge>
+                </template>
+                <div class="instant-message-container">
+                    <n-avatar :src="currentMessage.avatar" size="tiny" :img-props="{ referrerpolicy: 'no-referrer' }" />
+                    <div class="instant-message">
+                        {{ currentMessage.nickname }} : {{ currentMessage.content }}
+                    </div>
+                </div>
+
+            </n-popover>
             <icon-button class="chat-button" :icon="Peoples" type="warning" @click="openPlayerList"></icon-button>
         </div>
 
         <n-modal v-model:show="showChatLog" @on-after-enter="onModalShow" title="消息列表" preset="dialog">
             <n-card role="dialog" aria-modal="true" class="message-window" embedded size="small">
                 <div style="height: 100%; overflow: auto;" ref="chatBoard">
-                    <n-flex style="margin-bottom: 5px" v-for="(item, index) in messages"
-                        :key="index" :wrap="false" :justify="userId === item.userId ? 'end' : 'start'">
+                    <n-flex style="margin-bottom: 5px" v-for="(item, index) in messages" :key="index" :wrap="false"
+                        :justify="userId === item.userId ? 'end' : 'start'">
                         <n-flex>
                             <n-avatar :src="item.avatar" size="large" v-if="userId !== item.userId"
                                 :img-props="{ referrerpolicy: 'no-referrer' }" />
                         </n-flex>
-                        <div class="message-card-with-name" >
+                        <div class="message-card-with-name">
                             {{ item.nickname }}
                             <n-card class="message-content" size="small">
                                 <component :is="item.content" v-if="item.isComponent" />
@@ -78,6 +90,13 @@ const inputMessage = ref('')
 const chatBoard = ref()
 const showChatLog = ref(false)
 const unreadMessage = ref(0)
+const currentMessage = ref({
+    userId: '',
+    nickname: '阿米娅',
+    avatar: '/avatar.webp',
+    content: '这是一条消息',
+    show: false
+})
 
 function openChatLog() {
     unreadMessage.value = 0
@@ -121,14 +140,32 @@ async function chatListener(response: SignalrResponse) {
     }
 }
 
+var lastMessagePopupCloseInterval: NodeJS.Timeout | null = null
+
 function pushMessage(msg: Message) {
     messages.value.push(msg)
 
-    if ( (user.userInfo?.id || '') !== msg.userId) {
+    if ((user.userInfo?.id || '') !== msg.userId) {
         if (!showChatLog.value) {
             unreadMessage.value++
         }
     }
+
+    currentMessage.value = {
+        userId: msg.userId,
+        nickname: msg.nickname,
+        avatar: msg.avatar,
+        content: msg.content,
+        show: true
+    }
+
+    if(lastMessagePopupCloseInterval) {
+        clearTimeout(lastMessagePopupCloseInterval)
+    }
+
+    lastMessagePopupCloseInterval = setTimeout(() => {
+        currentMessage.value.show = false
+    }, 5000)
 }
 
 defineExpose({ pushMessage })
@@ -171,7 +208,17 @@ onUnmounted(async () => {
     }
 }
 
+.instant-message-container {
+    display: flex;
+    flex-direction: row;
 
+    .instant-message {
+        margin-left: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 80%;
+    }
+}
 
 .message-window {
     height: calc(80vh);

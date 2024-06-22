@@ -36,8 +36,8 @@
                     </div>
                 </div>
             </div>
-            <div style="height: 0;">
-                <amiya-face @on-hit="onFaceHit" :v-show="false"></amiya-face>
+            <div style="display: hidden;">
+                <amiya-face @on-hit="onFaceHit"></amiya-face>
             </div>
         </div>
         <template v-slot:players>

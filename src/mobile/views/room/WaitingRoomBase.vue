@@ -75,7 +75,7 @@ import type { Player } from '@/def/players'
 import type { SignalrResponse } from '@/api/signalr'
 import IconButton from '@/universal/components/IconButton.vue'
 import Icon from '@/universal/components/Icon.vue'
-import ChatBoard from '@/desktop/components/ChatBoard.vue' //注意这里是有意使用桌面端ChatBoard的
+import ChatBoard from '@/mobile/components/ChatBoard.vue' //注意这里是有意使用桌面端ChatBoard的
 import GameInfoCard from '@/universal/components/GameInfoCard.vue'
 
 interface WaitingRoomProps {

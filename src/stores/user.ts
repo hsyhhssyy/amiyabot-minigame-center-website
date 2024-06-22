@@ -14,6 +14,13 @@ export const useUserStore = defineStore('user', () => {
 
     const currentRoomId = ref<string | null>(null)
 
+    function reset() {
+        userInfo.value = undefined
+        userName.value = ''
+        userAvatar.value = '/avatar.webp'
+        currentRoomId.value = null
+    }
+
     async function init() {
         const descRet = await describeApi()
         if (!descRet) {
@@ -21,9 +28,7 @@ export const useUserStore = defineStore('user', () => {
             return
         }
 
-        userInfo.value = undefined
-        userName.value = ''
-        userAvatar.value = '/avatar.webp'
+        reset()
 
         userInfo.value = descRet
         userName.value = descRet.nickname
@@ -34,7 +39,7 @@ export const useUserStore = defineStore('user', () => {
 
     init().then()
 
-    return { userInfo, userName, userAvatar, currentRoomId, init }
+    return { userInfo, userName, userAvatar, currentRoomId, init , reset }
 })
 
 export function useUser() {

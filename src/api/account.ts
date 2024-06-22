@@ -36,19 +36,6 @@ export async function verifyTokenApi(token: string) {
 
     const user = await describeApi()
     if (user) {
-        const userRole = user.roles ? user.roles[0] : null
-        if (userRole) {
-            setData('user-role', userRole)
-        }
-        const email = user.email ? user.email : ''
-        if (user.id) {
-            setData('email', email)
-        }
-        const userId = user.id
-        if (userId) {
-            setData('user-id', userId)
-        }
-
         return true
     }
     return false

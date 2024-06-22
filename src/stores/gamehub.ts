@@ -38,6 +38,10 @@ export const useGameHubStore = defineStore('gameHub', () => {
 
             // 检查并更新 jwt-token
             const currentToken = getData<string>('jwt-token') || ''
+            if(currentToken === ''){
+                router.push('/regular-home').then()
+                return
+            }
             if (lastToken.value !== currentToken) {
                 lastToken.value = currentToken
                 await close()
@@ -194,7 +198,8 @@ export const useGameHubStore = defineStore('gameHub', () => {
         invokeGameHub,
         addGameHubListener,
         removeGameHubListener,
-        connect
+        connect,
+        close
     }
 })
 

@@ -27,8 +27,11 @@
             <div>
                 <div class="game-panel">
                     <hit-effect ref="hit"></hit-effect>
-                    <div class="question-prompt">
-                        这是哪位干员立绘的一部分呢？
+                    <div class="question-prompt" v-if="rallyReached && !settlementDialogShown">
+                        这是哪位干员立绘的一部分呢 ({{ (currentQuestionIndex??0) + 1 }} / {{ game?.MaxQuestionCount }})?
+                    </div>
+                    <div class="question-prompt" v-if="settlementDialogShown">
+                        这是哪位干员立绘的一部分呢 ({{ (currentQuestionIndex??0) }} / {{ game?.MaxQuestionCount }})?                       
                     </div>
                     <div class="hint-area">
                         <icon-button :icon="Tips" type="info" @click="handleRequestHint"
@@ -40,12 +43,18 @@
                     </div>
                     <div class="game-body">
                         <div class="question-display">
-                            <div v-if="!rallyReached" v-html="rallyText"></div>
+                            <div v-if="!rallyReached" style="min-width: 300px;">
+                                <loading :room-id="roomId" 
+                                :value="(slicedImages?.size??0 )+ (slicedHintImages?.size??0)" 
+                                :maximum="loadMaximun" :players="players"
+                                @on-loading-complete="imageLoadingCompleted"
+                                ></loading>
+                            </div>
                             <canvas id="masked-image" class="masked-image" v-show="rallyReached"></canvas>
                         </div>
                     </div>
                 </div>
-                <div style="height: 0;">
+                <div style="display: none;">
                     <amiya-face @on-hit="onFaceHit"></amiya-face>
                 </div>
             </div>
@@ -73,6 +82,7 @@ import NextQuestion from '@/universal/components/NextQuestion.vue'
 import PlayerRanking from '@/mobile/components/PlayerRanking.vue'
 import AmiyaFace from '@/desktop/components/AmiyaFace.vue'
 import IconButton from '@/universal/components/IconButton.vue'
+import Loading from '@/universal/components/Loading.vue'
 
 const route = useRoute()
 const gameHub = useGameHubStore()
@@ -109,6 +119,17 @@ const lastQuestion = computed<Question>(() => {
     }
     console.log('currentQuestionIndex:', currentQuestionIndex.value)
     return game.value.QuestionList[currentQuestionIndex.value - 1]
+})
+const loadMaximun = computed(() => {
+    if(currentQuestionIndex.value == null){
+        return 6 // 三道题
+    }
+    
+    if(game.value.MaxQuestionCount-currentQuestionIndex.value < 3){
+        return (game.value.MaxQuestionCount-currentQuestionIndex.value)*2
+    }
+
+    return 6
 })
 
 const game = ref<any>()
@@ -273,24 +294,13 @@ async function preprocessImages() {
     slicedImages.value = new Map();
     slicedHintImages.value = new Map();
 
-    //创建集结点
-    gameHub.invokeGameHub('RallyPointCreate', roomId, JSON.stringify({ Name: "ImageProcess" }));
-    gameHub.invokeGameHub('RallyPointStatus', roomId, JSON.stringify({ Name: "ImageProcess" }));
-
-    await generateMaskedImage(currentQuestionIndex.value!);
-    updateImage();
-
-    for (let i = 0; i < questionList.value.length-1; i++) {
+    for (let i = currentQuestionIndex.value!; i < game.value.MaxQuestionCount; i++) {
         if (slicedImages.value.has(i)) {
             continue;
         }
+        console.log('preprocessImages:', i)
         await generateMaskedImage(i);
         updateImage();
-
-        //至少加载了本题和后面的三道题
-        if (i >= questionList.value.length - 1 || i >= currentQuestionIndex.value! + 3) {
-            gameHub.invokeGameHub('RallyPointReached', roomId, JSON.stringify({ Name: "ImageProcess" }));
-        }
     }
 }
 
@@ -318,6 +328,10 @@ const updateImage = function () {
             }
         }
     }
+}
+
+function imageLoadingCompleted() {
+    rallyReached.value = true;
 }
 
 function onFaceHit(face: HitType, _: string) {
@@ -440,31 +454,10 @@ var handleGiveUp = () => {
     gameHub.invokeGameHub('GiveUp', roomId);
 }
 
-const rallyPointStatusListener = (response: any) => {
-    if (response.Name == "ImageProcess") {
-        rallyText.value = '正在加载题目....';
-        for (let i = 0; i < players.value.length; i++) {
-            if (response.Players.includes(players.value[i].id)) {
-                rallyText.value = rallyText.value + '<br/>' + players.value[i].name + ': 已加载';
-            } else {
-                rallyText.value = rallyText.value + '<br/>' + players.value[i].name + ': 加载中...';
-            }
-        }
-    }
-}
-
-const rallyPointReachedListener = (response: any) => {
-    if (response.Name == "ImageProcess") {
-        rallyReached.value = true;
-    }
-}
-
 function load(roomData: GameRoom, gameData: SignalrResponse) {
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener)
-    gameHub.addGameHubListener('RallyPointStatus', rallyPointStatusListener);
-    gameHub.addGameHubListener('RallyPointReached', rallyPointReachedListener);
     gameHub.addGameHubListener('Hint', hintListener)
     gameHub.addGameHubListener('GiveUp', giveUpListener)
 
@@ -484,8 +477,6 @@ onUnmounted(() => {
     gameHub.removeGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.removeGameHubListener('GameInfo', gameInfoListener)
     gameHub.removeGameHubListener('GameCompleted', gameCompletedListener)
-    gameHub.removeGameHubListener('RallyPointStatus', rallyPointStatusListener);
-    gameHub.removeGameHubListener('RallyPointReached', rallyPointReachedListener);
     gameHub.removeGameHubListener('Hint', hintListener)
     gameHub.removeGameHubListener('GiveUp', giveUpListener)
 
@@ -571,7 +562,7 @@ $guideHeight: 160px;
         position: relative;
 
         .question-prompt {
-            font-size: 24px;
+            font-size: 18px;
             color: bisque;
             text-shadow:
                 -1px -1px 0 #000,
