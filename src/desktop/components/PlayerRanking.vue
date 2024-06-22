@@ -80,7 +80,7 @@ function gameInfoListener(response: SignalrResponse) {
 
     if(!response.PlayerList) return
 
-    console.log('ranking updated')
+    //console.log('ranking updated')
     
     players.value = response.PlayerList.map((p: any) => {
         return {

@@ -104,7 +104,6 @@ const game = ref<any>()
 const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 const base = ref()
 const hit = ref()
-const countdown = ref()
 
 const settlementDialogShown = ref(false)
 const settlementCountdownActive = ref(false)
@@ -144,18 +143,19 @@ function closeResultPopup() {
 }
 
 function prepareNextQuestion() {
+    console.log('prepareNextQuestion enter')
     if (settlementCountdownActive.value == true) {
         return
     }
     settlementDialogShown.value = true
-    countdown.value?.reset()
     settlementCountdownActive.value = true
+    console.log('prepareNextQuestion exit')
 }
 
 function moveToNextQuestion() {
     settlementDialogShown.value = false
     settlementCountdownActive.value = false
-
+    console.log('moveToNextQuestion')
 }
 
 function onFaceHit(face: HitType, chat: string) {

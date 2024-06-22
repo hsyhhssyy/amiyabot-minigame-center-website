@@ -81,6 +81,7 @@ const rallyPointHistory = ref<any[] | null>(null)
 
 watch(computed(() => props.active), (newVal, oldVal) => {
     clockActive.value = newVal
+    console.log('props.active changed', newVal, oldVal)
     if (newVal) {
         countdown.value.reset()
     }
@@ -138,13 +139,14 @@ function rallyPointReachedListener(response: SignalrResponse) {
         return
     }
     clockActive.value = false
-    console.log('rally reached', response)
+    console.log('rally reached, clock deactive', response)
     moveToNextQuestion()
 }
 
 function moveToNextQuestion() {
     playersReadyList.value = []
 
+    console.log('NextQuestion moveToNextQuestion 1')
     // if (game.value.QuestionList.length > game.value.CurrentQuestionIndex) {
     //     currentQuestionIndex.value = game.value.CurrentQuestionIndex
     // }
@@ -152,6 +154,7 @@ function moveToNextQuestion() {
     currentQuestionIndex.value = currentQuestionIndex.value! + 1
 
     if (currentQuestionIndex.value !== null) {
+        console.log('NextQuestion moveToNextQuestion 2')
         emits('onNextQuestion')
     }
 }
