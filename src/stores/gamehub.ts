@@ -131,6 +131,12 @@ export const useGameHubStore = defineStore('gameHub', () => {
         }
         //console.log('注册事件：' + eventName)
 
+        const existingJsonCallback =  callbacks.find((x) => x.originalCallback == callback)
+
+        if(existingJsonCallback){
+            return
+        }
+
         const jsonParseCallback = (response: any) => {
             const responseObj = JSON.parse(response)
             if(eventName !== 'GameInfo'){
