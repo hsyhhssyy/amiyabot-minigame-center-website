@@ -51,6 +51,8 @@ async function gameJoinListener(response: SignalrResponse) {
 async function initJoinRoom() {
     gameHub.addGameHubListener('PlayerJoined', gameJoinListener)
 
+    //JoinRoom是在主界面的
+
     if (getData('current-game-id')) {
         // 重连检查
         const gameId = getData<string>('current-game-id') ?? ''

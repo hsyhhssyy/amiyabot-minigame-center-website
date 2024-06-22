@@ -74,7 +74,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Close, Logout, Peoples, Play, ShareOne } from '@icon-park/vue-next'
 import { useGameHubStore } from '@/stores/gamehub'
 import { useUserStore } from '@/stores/user'
-import { getData, removeData, toast } from '@/utils'
+import { getData, removeData, setData, toast } from '@/utils'
 import type { GameTypes } from '@/def/games'
 import { getGameTypeMap } from '@/def/games'
 import type { GameRoom } from '@/api/game'
@@ -169,6 +169,7 @@ async function playerLeftListener(response: SignalrResponse) {
     if (playerId == userId && method == 'Kicked') {
         await toast('您已被房主踢出房间', 'warning')
         //弹回首页
+        removeData('current-game-id')
         await router.push('/regular-home')
     }
 }
@@ -178,7 +179,7 @@ async function gameSettingsChangedListener(response: SignalrResponse) {
         //多标签页环境可能出现多个房间同开的情况
         return
     }
-    
+
     const settings = response.Settings
     emits('onSettingsLoaded', settings)
 }
