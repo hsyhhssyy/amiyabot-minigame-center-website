@@ -127,7 +127,9 @@ async function sendMessage() {
     inputMessage.value = ''
 }
 
-async function chatListener(response: SignalrResponse) {
+async function chatListener(response: SignalrResponse) {    
+    if (response.GameId != props.roomId) return //多标签页环境可能出现多个房间同开的情况
+
     const player = props.players.find((p) => p.id === response.UserId)
     if (player) {
 

@@ -1,42 +1,40 @@
 <template>
     <game-base ref="base" :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load">
         <div style="height: 100%" class="game-card">
-            <n-modal v-model:show="settlementDialogShown" :mask-closable="false">
-                <div class="overlay-card">
-                    <n-flex justify="center">
-                        <div class="correct-answer">
-                            正确答案：{{ lastQuestion?.CharacterName }}
-                        </div>
-                    </n-flex>
-                    <result-table :currentQuestion="lastQuestion" :playersMap="playersMap" :headers="headers"
-                        :showAnswer="true"></result-table>
-                    <next-question :room-id="roomId" :active="settlementCountdownActive"
-                        @on-next-question="moveToNextQuestion" :show-close="true"
-                        @on-close-result-popup="closeResultPopup" :game="game" :players="players"></next-question>
-
-                </div>
-            </n-modal>
-            <div>
-                <div class="game-panel">
-                    <hit-effect ref="hit"></hit-effect>
-                    <div class="game-body">
-                        <div :bordered="false" size="small" class="answer-list">
-                            <!-- <icon-button :icon="SendOne" type="success" @click="test">test</icon-button> -->
-                            <div class="property-revealed">
-                                <div v-for="header in headers" class="property-header">
-                                    <div class="property-value">
-                                        {{ header + ":" }} {{ currentQuestion.CharacterProperties[header] || '???' }}
-                                    </div>
+            <hit-effect ref="hit"></hit-effect>
+            <div class="game-panel" :style="{ 'display': settlementDialogShown ? 'flex' : 'none' }">
+                <n-flex justify="center">
+                    <div class="correct-answer">
+                        正确答案：{{ lastQuestion?.CharacterName }}
+                    </div>
+                </n-flex>
+                <result-table :currentQuestion="lastQuestion" :playersMap="playersMap" :headers="headers"
+                    :showAnswer="true"></result-table>
+                <next-question :room-id="roomId" :active="settlementCountdownActive"
+                        @on-next-question="moveToNextQuestion" :show-close="false" 
+                        :game="game" :players="players"></next-question>
+            </div>
+            <div class="game-panel" :style="{ 'display': !settlementDialogShown ? 'flex' : 'none' }">
+                <div class="game-body">
+                    <div :bordered="false" size="small" class="answer-list">
+                        <!-- <icon-button :icon="SendOne" type="success" @click="test">test</icon-button> -->
+                        <div class="property-revealed">
+                            <div v-for="header in headers" class="property-header">
+                                <div class="property-value" v-if="header!=='未知线索'">
+                                    {{ currentQuestion.CharacterProperties[header] || '???' }}
+                                </div>
+                                <div class="property-value" v-if="header==='未知线索'">
+                                    {{ header }} : ???
                                 </div>
                             </div>
                         </div>
-                        <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
-                            :showAnswer="false"></result-table>
-
                     </div>
+                    <result-table :currentQuestion="currentQuestion" :playersMap="playersMap" :headers="headers"
+                        :showAnswer="false"></result-table>
+
                 </div>
             </div>
-            <div style="display: hidden;">
+            <div style="display: none;">
                 <amiya-face @on-hit="onFaceHit"></amiya-face>
             </div>
         </div>
@@ -181,6 +179,8 @@ function sendMove(content: string) {
 }
 
 function receiveMoveListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
 
     if (response.Game) {
@@ -214,6 +214,8 @@ function receiveMoveListener(response: SignalrResponse) {
 }
 
 function gameInfoListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     if (response.Game) {
         game.value = response.Game
     }
@@ -229,6 +231,8 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 function gameCompletedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     game.value = response.Game
     prepareNextQuestion()
 }
@@ -254,14 +258,13 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-$guideHeight: 160px;
 
 .game-card {
     position: relative;
     overflow: hidden;
 
     .game-panel {
-        height: calc(100% - $guideHeight);
+        height: 100%;
         background: url(@/assets/images/cypherChallenge/loading.jpg) center / cover no-repeat;
         border-radius: 4px;
         padding: 5px 5px;
@@ -319,24 +322,6 @@ $guideHeight: 160px;
                 }
             }
 
-        }
-    }
-
-    .game-guide {
-        height: $guideHeight;
-        display: flex;
-        align-items: flex-end;
-        padding-bottom: 30px;
-
-        .amiya-face {
-            width: 120px;
-            height: 100%;
-            background: center bottom / 100% no-repeat;
-            margin-right: 10px;
-        }
-
-        .amiya-chat {
-            height: fit-content;
         }
     }
 }

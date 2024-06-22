@@ -190,6 +190,10 @@ async function gameStartedListener(response: SignalrResponse) {
         return
     }
 
+    await jumpToGameRoom()
+}
+
+async function jumpToGameRoom(){
     if (gameRoomData.value?.gameType) {
         const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
         await router.push(gameData.route + "game/" + roomId)
@@ -258,7 +262,11 @@ watch(
 )
 
 onMounted(async () => {
+    gameRoomData.value = await getGame(roomId)
 
+    if(gameRoomData.value?.isStarted) {
+        await jumpToGameRoom()
+    }
 })
 
 onUnmounted(async () => {

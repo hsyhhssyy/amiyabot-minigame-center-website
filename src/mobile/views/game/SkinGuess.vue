@@ -372,6 +372,8 @@ function sendMove(content: string) {
 }
 
 const hintListener = (response: any) => {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     questionList.value[response.Payload.CurrentQuestionIndex].HintLevel = response.Payload.HintLevel;
     updateImage();
 
@@ -385,6 +387,8 @@ const hintListener = (response: any) => {
 }
 
 const giveUpListener = (response: any) => {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     base.value.pushMessage({
         userId: response.Payload.PlayerId,
         content: '房主选择放弃本题',
@@ -400,6 +404,8 @@ const giveUpListener = (response: any) => {
 }
 
 function receiveMoveListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
 
     if (response.Game) {
@@ -425,6 +431,8 @@ function receiveMoveListener(response: SignalrResponse) {
 }
 
 function gameInfoListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     if (response.Game) {
         game.value = response.Game
     }
@@ -440,6 +448,8 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 function gameCompletedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+    
     game.value = response.Game
     prepareNextQuestion()
 }

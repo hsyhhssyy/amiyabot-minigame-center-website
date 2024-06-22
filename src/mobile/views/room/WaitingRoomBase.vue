@@ -111,7 +111,16 @@ watch( computed(() => props.settings), (value:any) => {
 
 let getGameInterval: any = null
 
+async function jumpToGameRoom(){
+    if (gameRoomData.value?.gameType) {
+        const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
+        await router.push(gameData.route + "game/" + roomId)
+    }
+}
+
 async function gameInfoListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     const playerList = response.PlayerList
 
     isHost.value = response.Game.CreatorId == userId
@@ -126,7 +135,7 @@ async function gameInfoListener(response: SignalrResponse) {
     })
 
     if (response.Game.IsStarted) {
-        await gameStartedListener()
+        await jumpToGameRoom()
     }
 }
 
@@ -135,6 +144,8 @@ async function playerJoinedListener() {
 }
 
 async function playerLeftListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     const playerId = response.LeavingPlayerId
     const method = response.LeavingMethod
 
@@ -147,19 +158,22 @@ async function playerLeftListener(response: SignalrResponse) {
 }
 
 async function gameSettingsChangedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     const settings = response.Settings
     emits('onSettingsLoaded', settings)
 }
 
-async function gameStartedListener() {
-    if (gameRoomData.value?.gameType) {
-        const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
-        await router.push(gameData.route + "game/" + roomId)
-    }
+async function gameStartedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
+    await jumpToGameRoom()
 }
 
-async function gameClosedListener() {
-    await toast('房间已关闭', 'warning')
+async function gameClosedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
+    await toast('房间已被关闭', 'warning')
     await router.push('/regular-home')
 }
 
@@ -214,6 +228,10 @@ watch(
 
 onMounted(async () => {
     gameRoomData.value = await getGame(roomId)
+
+    if(gameRoomData.value?.isStarted) {
+        await jumpToGameRoom()
+    }
 })
 
 onUnmounted(async () => {

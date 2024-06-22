@@ -94,6 +94,8 @@ async function sendMove(content: string) {
 }
 
 function receiveMoveListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
     const result = response.Payload.Result
     const characterName = response.Payload.CharacterName
@@ -171,6 +173,8 @@ function receiveMoveListener(response: SignalrResponse) {
 
 
 function gameCompletedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     const answers = response.Payload.RemainingAnswers
     if (isCompleted.value === false) {
         isCompleted.value = true
@@ -212,6 +216,8 @@ function pushRemainingAnswers(answers: any) {
 }
 
 async function gameInfoListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+    
     if (expandedData.value.length == 0) {
         const grid = response.Payload.Grid
         if (grid.length > 0) {

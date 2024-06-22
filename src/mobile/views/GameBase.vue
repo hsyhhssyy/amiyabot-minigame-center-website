@@ -79,6 +79,7 @@ async function endGame(){
 }
 
 function gameCompletedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
     isCompleted.value = true
 }
 
@@ -87,6 +88,8 @@ async function gameClosedListener(response: SignalrResponse) {
 }
 
 function gameInfoListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+    
     gameInfoData.value = response;
     if (isGameInfoReceiving.value == true) {
         isGameInfoReceiving.value = false
