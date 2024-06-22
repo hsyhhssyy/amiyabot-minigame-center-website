@@ -50,9 +50,6 @@ async function gameJoinListener(response: SignalrResponse) {
 
 async function initJoinRoom() {
     gameHub.addGameHubListener('PlayerJoined', gameJoinListener)
-    gameHub.addGameHubListener('Alert', async (response: SignalrResponse) => {
-        await toast(response.Message, 'error')
-    })
 
     if (getData('current-game-id')) {
         // 重连检查
@@ -118,9 +115,6 @@ async function initJoinRoom() {
 
 async function delJoinRoom() {
     gameHub.removeGameHubListener('PlayerJoined', gameJoinListener)
-    gameHub.removeGameHubListener('Alert', async (response: SignalrResponse) => {
-        await toast(response.Message, 'error')
-    })
 }
 
 watch(

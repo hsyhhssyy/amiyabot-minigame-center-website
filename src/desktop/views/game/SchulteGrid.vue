@@ -63,7 +63,7 @@
             </n-spin>
         </n-card>
         <template v-slot:players>
-            <player-ranking></player-ranking>
+            <player-ranking :room-id="roomId"></player-ranking>
         </template>
     </game-base>
 </template>
@@ -208,6 +208,8 @@ function sendMove(content: string) {
 }
 
 function gameCompletedListener(response: SignalrResponse) {
+    if(response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     isCompleted.value = true
     const answers = response.Payload.RemainingAnswers
 
@@ -224,6 +226,8 @@ function gameCompletedListener(response: SignalrResponse) {
 }
 
 function receiveMoveListener(response: SignalrResponse) {
+    if(response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
     const result = response.Payload.Result
     const characterName = response.Payload.CharacterName
@@ -289,6 +293,7 @@ function receiveMoveListener(response: SignalrResponse) {
 }
 
 function gameInfoListener(response: SignalrResponse) {
+    if(response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
 
     isCompleted.value = response.Game.IsCompleted
 

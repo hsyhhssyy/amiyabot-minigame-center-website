@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUser } from '@/stores/user'
-import { getData, setData } from '@/utils'
+import { getData, setData, toast } from '@/utils'
 import store from '@/stores/index'
 
 // @ts-ignore
@@ -90,6 +90,10 @@ export const useGameHubStore = defineStore('gameHub', () => {
                 setData('connection-id', responseObj.ConnectionId)
             })
 
+            connection.value.on('Alert', async (response) => {
+                await toast(response.Message, 'error')
+            })
+
             connection.value.on('ServerTime', (response) => {
                 const responseObj = JSON.parse(response)
                 const utcTime = new Date(responseObj.UtcNow)
@@ -115,8 +119,9 @@ export const useGameHubStore = defineStore('gameHub', () => {
         if (!connection.value) {
             return
         }
-        connection.value.invoke(methodName, ...args).catch((err) => {
+        connection.value.invoke(methodName, ...args).catch(async (err) => {
             console.error(err)
+            connection.value?.stop()
         })
     }
 

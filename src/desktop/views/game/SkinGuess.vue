@@ -70,7 +70,7 @@
             </div>
         </n-card>
         <template v-slot:players>
-            <player-ranking></player-ranking>
+            <player-ranking :room-id="roomId"></player-ranking>
         </template>
     </game-base>
 </template>

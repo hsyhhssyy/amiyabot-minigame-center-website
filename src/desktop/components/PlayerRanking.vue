@@ -30,6 +30,13 @@ import type { GamePlayer } from '@/def/players'
 import type { RankNames } from '@/def/games'
 import type { SignalrResponse } from '@/api/signalr'
 
+//定义prop roomid
+export interface RankingProps {
+    roomId: string
+}
+
+const props = defineProps<RankingProps>()
+
 const gameHub = useGameHubStore()
 
 const players = ref<GamePlayer[]>([])
@@ -69,6 +76,8 @@ const playersRanking = computed(() => {
 })
 
 function gameInfoListener(response: SignalrResponse) {
+    if(response.Game.Id !== props.roomId) return
+
     if(!response.PlayerList) return
 
     console.log('ranking updated')

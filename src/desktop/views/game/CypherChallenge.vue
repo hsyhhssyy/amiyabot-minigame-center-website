@@ -49,7 +49,7 @@
             </div>
         </n-card>
         <template v-slot:players>
-            <player-ranking></player-ranking>
+            <player-ranking :room-id="roomId"></player-ranking>
         </template>
     </game-base>
 </template>
@@ -196,6 +196,8 @@ function sendMove(content: string) {
 }
 
 function receiveMoveListener(response: SignalrResponse) {
+    if(response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     const player = players.value.find((p) => p.id === response.Payload.PlayerId)
 
     if (response.Game) {
@@ -240,6 +242,8 @@ function receiveMoveListener(response: SignalrResponse) {
 }
 
 function gameInfoListener(response: SignalrResponse) {
+    if(response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     if (response.Game) {
         game.value = response.Game
     }
@@ -255,6 +259,8 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 function gameCompletedListener(response: SignalrResponse) {
+    if(response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     game.value = response.Game
     prepareNextQuestion()
 }

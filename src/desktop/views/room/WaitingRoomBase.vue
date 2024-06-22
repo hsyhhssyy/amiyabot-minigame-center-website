@@ -30,7 +30,11 @@
                 </template>
                 <n-space :size="20" style="padding-top: 10px">
                     <n-space vertical align="center" v-for="(item, index) in players" :key="index" :size="0">
-                        <n-popover :trigger="isHost ? 'hover' : 'manual'">
+                        <n-popconfirm :trigger="(isHost && item.id!=user.userInfo?.id ) ? 'hover' : 'manual'"
+                            positive-text="踢!"
+                            :negative-text="null"
+                            @positive-click="handleKickPlayer(item)"
+                            >
                             <template #trigger>
                                 <n-badge
                                     :type="item.id === hostId ? 'error' : 'info'"
@@ -43,8 +47,8 @@
                                     />
                                 </n-badge>
                             </template>
-                            <span>要踢我吗？但是这个功能还没实现捏！</span>
-                        </n-popover>
+                            <span>是否踢出玩家{{item.name}}？</span>
+                        </n-popconfirm>
                         <span>{{ item.name }}</span>
                     </n-space>
                 </n-space>
@@ -115,7 +119,15 @@ watch( computed(() => props.settings), (value:any) => {
 
 let getGameInterval: any = null
 
+async function handleKickPlayer(params:Player) {
+    gameHub.invokeGameHub('KickPlayer', roomId, params.id)
+}
+
 async function gameInfoListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) {
+        //多标签页环境可能出现多个房间同开的情况
+        return
+    }
     const playerList = response.PlayerList
 
     isHost.value = response.CreatorId == userId
@@ -130,15 +142,24 @@ async function gameInfoListener(response: SignalrResponse) {
     })
 
     if (response.GameStarted) {
-        await gameStartedListener()
+        await gameStartedListener(response)
     }
 }
 
-async function playerJoinedListener() {
+async function playerJoinedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) {
+        //多标签页环境可能出现多个房间同开的情况
+        return
+    }
     gameHub.invokeGameHub('GetGame', roomId)
 }
 
 async function playerLeftListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) {
+        //多标签页环境可能出现多个房间同开的情况
+        return
+    }
+
     const playerId = response.LeavingPlayerId
     const method = response.LeavingMethod
 
@@ -147,22 +168,39 @@ async function playerLeftListener(response: SignalrResponse) {
     // 如果是自己被踢，弹出提示并返回首页
     if (playerId == userId && method == 'Kicked') {
         await toast('您已被房主踢出房间', 'warning')
+        //弹回首页
+        await router.push('/regular-home')
     }
 }
 
 async function gameSettingsChangedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) {
+        //多标签页环境可能出现多个房间同开的情况
+        return
+    }
+    
     const settings = response.Settings
     emits('onSettingsLoaded', settings)
 }
 
-async function gameStartedListener() {
+async function gameStartedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) {
+        //多标签页环境可能出现多个房间同开的情况
+        return
+    }
+
     if (gameRoomData.value?.gameType) {
         const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
         await router.push(gameData.route + "game/" + roomId)
     }
 }
 
-async function gameClosedListener() {
+async function gameClosedListener(response: SignalrResponse) {
+    if (response.Game.Id != roomId) {
+        //多标签页环境可能出现多个房间同开的情况
+        return
+    }
+
     await toast('房间已关闭', 'warning')
     await router.push('/regular-home')
 }

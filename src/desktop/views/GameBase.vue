@@ -88,6 +88,8 @@ async function endGame() {
 }
 
 function gameInfoListener(response: SignalrResponse) {
+    if(response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     gameInfoData.value = response;
     if (isGameInfoReceiving.value == true) {
         isGameInfoReceiving.value = false
@@ -95,12 +97,13 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 function gameClosedListener(response: SignalrResponse) {
-    // emits('onGameClosed', response)
+    if(response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
 }
 
 function gameCompletedListener(response: SignalrResponse) {
+    if(response.Game.Id != roomId) return //多标签页环境可能出现多个房间同开的情况
+
     isCompleted.value = true
-    // emits('onGameCompleted', response)
 }
 
 function pushMessage(msg: Message) {
