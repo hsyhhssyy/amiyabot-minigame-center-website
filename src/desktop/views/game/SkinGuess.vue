@@ -43,7 +43,7 @@
                     </div>
                     <div class="game-body">
                         <div class="question-display">
-                            <div v-if="!rallyReached">
+                            <div v-if="!rallyReached" style="min-width: 300px;">
                                 <loading :room-id="roomId" 
                                 :value="(slicedImages?.size??0 )+ (slicedHintImages?.size??0)" 
                                 :maximum="loadMaximun" :players="players"
@@ -607,8 +607,6 @@ $guideHeight: 160px;
             .question-display {
                 background-color: white;
                 border: 5px solid #ccc;
-
-                min-width: 300px;
             }
 
             .answer-list {
