@@ -129,10 +129,13 @@ export const useGameHubStore = defineStore('gameHub', () => {
         if (!connection.value) {
             return
         }
-        console.log('注册事件：' + eventName)
+        //console.log('注册事件：' + eventName)
 
         const jsonParseCallback = (response: any) => {
             const responseObj = JSON.parse(response)
+            if(eventName !== 'GameInfo'){
+                console.log('收到事件：' + eventName, responseObj)
+            }
             callback(responseObj)
         }
 
@@ -148,7 +151,7 @@ export const useGameHubStore = defineStore('gameHub', () => {
         if (!connection.value) {
             return
         }
-        console.log('移除事件：' + eventName)
+        //console.log('移除事件：' + eventName)
 
         const callbackObj = callbacks.find((x) => x.originalCallback == callback)
         if (callbackObj) {

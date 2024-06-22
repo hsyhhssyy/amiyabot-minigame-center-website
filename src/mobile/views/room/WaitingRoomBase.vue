@@ -114,8 +114,8 @@ let getGameInterval: any = null
 async function gameInfoListener(response: SignalrResponse) {
     const playerList = response.PlayerList
 
-    isHost.value = response.CreatorId == userId
-    hostId.value = response.CreatorId
+    isHost.value = response.Game.CreatorId == userId
+    hostId.value = response.Game.CreatorId
     players.value = playerList.map((p: SignalrResponse) => {
         const avatar = p.UserAvatar ? p.UserAvatar : '/avatar.webp'
         return {
@@ -125,7 +125,7 @@ async function gameInfoListener(response: SignalrResponse) {
         }
     })
 
-    if (response.GameStarted) {
+    if (response.Game.IsStarted) {
         await gameStartedListener()
     }
 }
@@ -172,7 +172,7 @@ async function closeRoom() {
 }
 
 async function leaveRoom() {
-    removeData('current-game-id')
+    user.currentRoomId = null
     gameHub.invokeGameHub('LeaveGame', roomId)
     await router.push('/regular-home')
 }
@@ -183,23 +183,37 @@ async function shareRoom() {
     await toast('已复制加入链接到剪贴板', 'success')
 }
 
+watch(
+    computed(() => gameHub.isConnected),
+    (value: boolean) => {
+
+        if (value) {
+            gameHub.addGameHubListener('GameInfo', gameInfoListener)
+            gameHub.addGameHubListener('PlayerJoined', playerJoinedListener)
+            gameHub.addGameHubListener('PlayerLeft', playerLeftListener)
+            gameHub.addGameHubListener('PlayerKicked', playerLeftListener)
+            gameHub.addGameHubListener('GameClosed', gameClosedListener)
+            gameHub.addGameHubListener('GameStarted', gameStartedListener)
+            gameHub.addGameHubListener('GameSettingsChanged', gameSettingsChangedListener)
+
+            gameHub.invokeGameHub('GetGame', roomId)
+
+            // 间隔一段时间获取一次房间信息
+            getGameInterval = setInterval(() => {
+                gameHub.invokeGameHub('GetGame', roomId)
+            }, 4000)
+
+        } else {
+            clearInterval(getGameInterval)
+        }
+    },
+    {
+        immediate: true
+    }
+)
+
 onMounted(async () => {
     gameRoomData.value = await getGame(roomId)
-
-    gameHub.addGameHubListener('GameInfo', gameInfoListener)
-    gameHub.addGameHubListener('PlayerJoined', playerJoinedListener)
-    gameHub.addGameHubListener('PlayerLeft', playerLeftListener)
-    gameHub.addGameHubListener('PlayerKicked', playerLeftListener)
-    gameHub.addGameHubListener('GameClosed', gameClosedListener)
-    gameHub.addGameHubListener('GameStarted', gameStartedListener)
-    gameHub.addGameHubListener('GameSettingsChanged', gameSettingsChangedListener)
-
-    gameHub.invokeGameHub('GetGame', roomId)
-
-    // 间隔一段时间获取一次房间信息
-    getGameInterval = setInterval(() => {
-        gameHub.invokeGameHub('GetGame', roomId)
-    }, 4000)
 })
 
 onUnmounted(async () => {

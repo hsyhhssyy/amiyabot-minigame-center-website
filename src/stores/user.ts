@@ -12,6 +12,8 @@ export const useUserStore = defineStore('user', () => {
     const userName = ref('')
     const userAvatar = ref('/avatar.webp')
 
+    const currentRoomId = ref<string | null>(null)
+
     async function init() {
         const descRet = await describeApi()
         if (!descRet) {
@@ -32,7 +34,7 @@ export const useUserStore = defineStore('user', () => {
 
     init().then()
 
-    return { userInfo, userName, userAvatar, init }
+    return { userInfo, userName, userAvatar, currentRoomId, init }
 })
 
 export function useUser() {

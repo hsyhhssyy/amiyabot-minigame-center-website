@@ -49,9 +49,11 @@ import { Back,Help } from '@icon-park/vue-next'
 import IconButton from '@/universal/components/IconButton.vue'
 import Icon from '@/universal/components/Icon.vue'
 import type { SignalrResponse } from '@/api/signalr'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const gameHub = useGameHubStore()
+const user = useUserStore()
 
 const isGameCreating = ref(false)
 const isPrivateRoom = ref(false)
@@ -89,8 +91,8 @@ function gameCreateListener(response: SignalrResponse) {
 
     console.log(response)
 
-    const gameId = response.GameId
-    setData('current-game-id', gameId)
+    const gameId = response.Game.Id
+    user.currentRoomId = gameId
 
     //获取GameRoute
     const gameRoute = gameList.find((game) => game.type === response.Game.GameType)

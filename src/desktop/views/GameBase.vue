@@ -78,7 +78,7 @@ const isCompleted = ref(false)
 const isHost = computed(() => gameRoomData.value?.creatorId == user.userInfo?.id)
 
 async function leaveRoom() {
-    removeData('current-game-id')
+    user.currentRoomId=null
     gameHub.invokeGameHub('LeaveGame', roomId)
     await router.push('/regular-home')
 }

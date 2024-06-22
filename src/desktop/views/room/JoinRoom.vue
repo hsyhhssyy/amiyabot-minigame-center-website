@@ -33,7 +33,7 @@ async function gameJoinListener(response: SignalrResponse) {
     }
 
     const gameId = response.GameId
-    setData('current-game-id', gameId)
+    user.currentRoomId = gameId
 
     //获取GameRoute
     const gameRoute = gameList.find((game) => game.type === response.Game.GameType)
@@ -53,15 +53,15 @@ async function initJoinRoom() {
 
     //JoinRoom是在主界面的
 
-    if (getData('current-game-id')) {
+    if (user.currentRoomId) {
         // 重连检查
-        const gameId = getData<string>('current-game-id') ?? ''
+        const gameId = user.currentRoomId ?? ''
 
         try {
             const game = await getGame(gameId)
 
             if (game.isClosed) {
-                removeData('current-game-id')
+                user.currentRoomId = null
                 return
             }
 
@@ -93,7 +93,7 @@ async function initJoinRoom() {
                         // 跳转到房间等待页面
                         await router.push(route + "room/" + gameId)
                     },
-                    onNegativeClick: async () => removeData('current-game-id')
+                    onNegativeClick: async () => user.currentRoomId = null
                 })
             } else {
                 dialog.success({
@@ -105,12 +105,12 @@ async function initJoinRoom() {
                     onPositiveClick: async () => {
                         await join(game.joinCode)
                     },
-                    onNegativeClick: async () => removeData('current-game-id')
+                    onNegativeClick: async () => user.currentRoomId = null
                 })
             }
         } catch (e) {
             console.log('RegularHome 读取房间失败，清理房间')
-            removeData('current-game-id')
+            user.currentRoomId = null
         }
     }
 }

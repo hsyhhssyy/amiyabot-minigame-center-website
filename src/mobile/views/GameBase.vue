@@ -94,7 +94,7 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 async function leaveRoom() {
-    removeData('current-game-id')
+    user.currentRoomId = null
     gameHub.invokeGameHub('LeaveGame', roomId)
     await router.push('/regular-home')
 }

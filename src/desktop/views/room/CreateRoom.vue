@@ -39,7 +39,7 @@ import type { CSSProperties } from 'vue'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameHubStore } from '@/stores/gamehub'
-import { setData } from '@/utils'
+import { useUserStore } from '@/stores/user'
 import type { GameItem } from '@/def/games'
 import { gameList } from '@/def/games'
 import { Back } from '@icon-park/vue-next'
@@ -48,6 +48,7 @@ import type { SignalrResponse } from '@/api/signalr'
 
 const router = useRouter()
 const gameHub = useGameHubStore()
+const user = useUserStore()
 
 const isGameCreating = ref(false)
 const isPrivateRoom = ref(false)
@@ -85,8 +86,8 @@ function gameCreateListener(response: SignalrResponse) {
 
     console.log(response)
 
-    const gameId = response.GameId
-    setData('current-game-id', gameId)
+    const gameId = response.Game.Id
+    user.currentRoomId = gameId
 
     //获取GameRoute
     const gameRoute = gameList.find((game) => game.type === response.Game.GameType)
