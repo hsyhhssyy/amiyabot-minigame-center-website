@@ -107,11 +107,6 @@ export const useGameHubStore = defineStore('gameHub', () => {
             })
 
             await connection.value.invoke('Me')
-
-            // 重新注册事件
-            for (const callback of callbacks) {
-                connection.value.on(callback.eventName, callback.jsonCallback)
-            }
         }
     }
 
