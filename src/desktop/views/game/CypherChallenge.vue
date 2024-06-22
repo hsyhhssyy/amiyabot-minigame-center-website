@@ -37,6 +37,9 @@
                                     </div>
                                 </div>
                             </div>
+                            <div>
+                                {{ currentQuestionIndex! + 1 }} / {{ game?.MaxQuestionCount }}
+                            </div>
                         </n-card>
                         <result-table :currentQuestion="currentQuestion" :playersMap="playersMap"
                             :showAnswer="false"></result-table>
