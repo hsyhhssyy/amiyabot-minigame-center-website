@@ -153,6 +153,8 @@ const remainingAnswerList = ref<Answer[]>([])
 const expandedData = ref<ExpandedDataItem[]>([])
 //填充100个问号
 
+const isCompleted = ref(false)
+
 const selectedSkill = ref<Answer>()
 
 const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
@@ -248,16 +250,25 @@ function colors(item: ExpandedDataItem) {
 }
 
 function sendMove(content: string) {
-    gameHub.invokeGameHub(
-        'SendMove',
-        roomId,
-        JSON.stringify({
-            CharacterName: content
-        })
-    )
+    if (isCompleted.value == true) {
+        gameHub.invokeGameHub(
+            'Chat',
+            roomId,
+            content
+        )
+    } else {
+        gameHub.invokeGameHub(
+            'SendMove',
+            roomId,
+            JSON.stringify({
+                CharacterName: content
+            })
+        )
+    }
 }
 
 function gameCompletedListener(response: SignalrResponse) {
+    isCompleted.value = true
     const answers = response.Payload.RemainingAnswers
 
     remainingAnswerList.value = answers
@@ -338,6 +349,9 @@ function receiveMoveListener(response: SignalrResponse) {
 }
 
 function gameInfoListener(response: SignalrResponse) {
+
+    isCompleted.value = response.Game.IsCompleted
+
     if (expandedData.value.length == 0) {
         const grid = response.Payload.Grid
         if (grid.length > 0) {
@@ -391,9 +405,12 @@ function gameInfoListener(response: SignalrResponse) {
 }
 
 function load(roomData: GameRoom, gameData: SignalrResponse) {
+
     gameHub.addGameHubListener('ReceiveMove', receiveMoveListener)
     gameHub.addGameHubListener('GameInfo', gameInfoListener)
     gameHub.addGameHubListener('GameCompleted', gameCompletedListener);
+
+    gameInfoListener(gameData)
 
     if (roomData.isClosed) {
         amiyaFace.value = 'wuwu'

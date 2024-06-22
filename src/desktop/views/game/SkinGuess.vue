@@ -27,11 +27,19 @@
             <div>
                 <div class="game-panel">
                     <hit-effect ref="hit"></hit-effect>
-                    <div class="question-prompt" v-if="rallyReached">
-                        这是哪位干员立绘的一部分呢？
+                    <div class="question-prompt" v-if="rallyReached && !settlementDialogShown">
+                        这是哪位干员立绘的一部分呢（{{ (currentQuestionIndex??0) + 1 }} / {{ game?.MaxQuestionCount }}）？
+                    </div>
+                    <div class="question-prompt" v-if="settlementDialogShown">
+                        这是哪位干员立绘的一部分呢（{{ (currentQuestionIndex??0) }} / {{ game?.MaxQuestionCount }}）？                        
                     </div>
                     <div class="question-prompt" v-if="!rallyReached">
-                        正在加载，请稍等... {{ currentQuestionIndex??0 + 1 }} / {{ game?.MaxQuestionCount }}
+                        正在加载，请稍等... 
+                        <div v-if="loadingTimeTooLong">加载时间过久...
+                        <icon-button type="info" :icon="Tips" style="margin-left: 10px;"
+                        @click="reload()"
+                        >刷新页面</icon-button>
+                        </div>
                     </div>
                     <div class="game-body">
                         <div class="question-display">
@@ -47,6 +55,7 @@
                     </div>
                     <div class="hint-area">
                         <icon-button :icon="Tips" type="info" @click="handleRequestHint"
+                            :disabled="currentQuestion?.HintLevel=='1'"
                             style="margin: 10px;">提示</icon-button>
                         <icon-button :icon="Tips" type="error" 
                             @click="handleGiveUp" 
@@ -96,6 +105,7 @@ const players = ref<GamePlayer[]>([])
 const currentQuestionIndex = computed<number | null>(() => game.value?.CurrentQuestionIndex)
 
 const giveUpPressed = ref(false)
+const loadingTimeTooLong = ref(false)
 
 const currentQuestion = computed<Question>(() => {
     if (game?.value?.QuestionList == null) {
@@ -158,6 +168,9 @@ const slicedImages = ref<Map<number, HTMLCanvasElement> | null>(null);
 const slicedHintImages = ref<Map<number, HTMLCanvasElement> | null>(null);
 const cachedFullImages = ref<Map<string, HTMLImageElement>>(new Map());
 
+function reload(){
+    location.reload()
+}
 
 async function fetchImage(url: any) {
     const response = await fetch(url);
@@ -352,7 +365,7 @@ const hintListener = (response: any) => {
     questionList.value[response.Payload.CurrentQuestionIndex].HintLevel = response.Payload.HintLevel;
     updateImage();
 
-    const playerHint = players.value.find((p) => p.id === response.Payload.PlayerId)
+    const playerHint = players.value.find((p) => p.id === response.PlayerId)
 
     base.value.pushMessage({
         userId: response.Payload.PlayerId,
@@ -453,6 +466,10 @@ const rallyPointReachedListener = (response: any) => {
 }
 
 function load(roomData: GameRoom, gameData: SignalrResponse) {
+
+    setTimeout(() => {
+        loadingTimeTooLong.value = true;
+    }, 10000);
 
     gameRestData.value = roomData
 

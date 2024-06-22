@@ -173,6 +173,7 @@ watch(
 )
 
 function onLoadedCheck() {
+    adjustLayout()
     console.log("onLoadedCheck", !isGameHubLoading.value, !!chat.value, !isMounting.value, !isGameInfoReceiving.value)
     if (isGameHubLoading.value == false && chat.value && isMounting.value == false && isGameInfoReceiving.value == false) {
         emits('onLoaded', gameRoomData.value!, gameInfoData.value!)
@@ -210,12 +211,12 @@ function adjustLayout() {
 }
 
 onMounted(async () => {
+    window.addEventListener('resize', adjustLayout);
+    adjustLayout()
     gameRoomData.value = await getGame(roomId)
     isCompleted.value = gameRoomData.value?.isCompleted || false
     // emits('onRoomData', gameRoomData.value as GameRoom)
     isMounting.value = false;
-    window.addEventListener('resize', adjustLayout);
-    adjustLayout()
 })
 
 onUnmounted(() => {

@@ -96,8 +96,8 @@ export const useGameHubStore = defineStore('gameHub', () => {
                 const localTime = new Date(responseObj.LocalNow)
                 const timeDiff = new Date().getTime() - utcTime.getTime()
 
-                console.log('Server time: ', utcTime, localTime)
-                console.log('Time difference: ', timeDiff)
+                //console.log('Server time: ', utcTime, localTime)
+                //console.log('Time difference: ', timeDiff)
 
                 setData('server-time-diff', timeDiff.toString())
             })

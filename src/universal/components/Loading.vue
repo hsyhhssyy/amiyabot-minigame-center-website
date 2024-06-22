@@ -1,17 +1,16 @@
 <template>
     <div class="grid">
-    <div v-for="player in players" class="player-loading">
-        <div class="player-loading-content">
-            <n-avatar size="large" :src="player.avatar" :img-props="{ referrerpolicy: 'no-referrer' }" />
-            <div>{{ player.name }}</div>
+        <div v-for="player in players" class="player-loading">
+            <div class="player-loading-content">
+                <n-avatar size="large" :src="player.avatar" :img-props="{ referrerpolicy: 'no-referrer' }" />
+                <div>{{ player.name }}</div>
+            </div>
+            <div class="progress">
+                <n-progress type="line" :percentage="round(playerStatus[player.id] / maximum * 100)"
+                    :status="playerStatus[player.id] >= maximum ? 'success' : 'info'" :show-indicator="false">
+                </n-progress>
+            </div>
         </div>
-        <div class="progress">
-            <n-progress type="line" :percentage="round(playerStatus[player.id] / maximum * 100)" 
-            :status="playerStatus[player.id]>=maximum?'success':'info'"
-            :show-indicator="false">
-            </n-progress>
-        </div>
-    </div>
     </div>
 </template>
 
@@ -79,7 +78,7 @@ function rallyPointStatusListener(response: SignalrResponse) {
         if (response.Players) {
             for (const playerId of response.Players) {
                 //排除我自己
-                if (playerId == user.userInfo?.id??"") {
+                if (playerId == user.userInfo?.id ?? "") {
                     continue;
                 }
                 playerStatus.value[playerId] = props.maximum;
@@ -108,32 +107,30 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-
-.grid{
+.grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     margin: 10px;
 
     .player-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 10px;
-
-    .player-loading-content{
         display: flex;
-        width: 90%;
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
-        justify-content: start;
-    }
+        margin-top: 10px;
 
-    .progress{
-        margin: 5px;
-        width: 90%;
+        .player-loading-content {
+            display: flex;
+            width: 90%;
+            flex-direction: row;
+            align-items: center;
+            justify-content: start;
+        }
+
+        .progress {
+            margin: 5px;
+            width: 90%;
+        }
     }
 }
-}
-
 </style>
