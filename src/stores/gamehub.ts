@@ -95,7 +95,8 @@ export const useGameHubStore = defineStore('gameHub', () => {
             })
 
             connection.value.on('Alert', async (response) => {
-                await toast(response.Message, 'error')
+                const responseObj = JSON.parse(response)
+                await toast(responseObj.Message, 'error')
             })
 
             connection.value.on('ServerTime', (response) => {

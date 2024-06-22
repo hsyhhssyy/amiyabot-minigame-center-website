@@ -52,7 +52,7 @@
             <n-form>
                 <n-form-item label="房间号">
                     <n-input-group>
-                        <n-input placeholder="请输入房间号" v-model:value="joinRoomCode"></n-input>
+                        <n-input placeholder="请输入房间号" v-model:value="joinRoomCode" style="margin-right: 10px"></n-input>
                         <icon-button :icon="Lightning" type="success" @click="joinGame()">确认加入</icon-button>
                     </n-input-group>
                 </n-form-item>
