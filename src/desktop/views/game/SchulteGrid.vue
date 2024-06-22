@@ -63,25 +63,7 @@
             </n-spin>
         </n-card>
         <template v-slot:players>
-            <template v-for="(items, name) in playersRanking" :key="name">
-                <template v-if="items.length">
-                    <div class="rank-title">{{ playersRankingNames[name] }}</div>
-                    <div class="play-item" v-for="(item, index) in items" :key="index">
-                        <template v-if="name != 'others'">
-                            <n-avatar size="large" round :src="item.avatar"
-                                :img-props="{ referrerpolicy: 'no-referrer' }" />
-                            <div style="padding-left: 5px">
-                                <div>{{ item.name }}</div>
-                                <div class="score">得分: {{ item.score }}</div>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <n-avatar round :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }" />
-                            <span style="padding-left: 5px">{{ item.name }}</span>
-                        </template>
-                    </div>
-                </template>
-            </template>
+            <player-ranking></player-ranking>
         </template>
     </game-base>
 </template>
@@ -100,6 +82,7 @@ import type { HitType } from '@/desktop/components/effects/HitEffect.vue'
 import HitEffect from '@/desktop/components/effects/HitEffect.vue'
 import GameBase from '@/desktop/views/GameBase.vue'
 import Icon from '@/universal/components/Icon.vue'
+import PlayerRanking from '@/desktop/components/PlayerRanking.vue'
 import { getOperatorUrl, getSkillUrl } from '@/arknights'
 
 interface GamePlayer extends Player {
@@ -130,15 +113,6 @@ interface Answer {
     CharacterId: string
     GridPointList: { X: number; Y: number }[]
     AnswerTime: string
-}
-
-type RankNames = 'golden' | 'silver' | 'bronze' | 'others'
-
-const playersRankingNames: { [key in RankNames]: string } = {
-    golden: '🏅 金榜',
-    silver: '🥈 银榜',
-    bronze: '🥉 铜榜',
-    others: '🍉 吃瓜群众'
 }
 
 const route = useRoute()
@@ -182,40 +156,6 @@ const answersDisplay = computed<Answer[]>(() => {
 
 const playersMap = computed(() => {
     return listToDict<GamePlayer>(players.value, 'id')
-})
-
-const playersRanking = computed(() => {
-    const playerList = players.value
-    const sortedData = [...playerList]
-
-    sortedData.sort((a, b) => b.score - a.score)
-
-    const result: { [key in RankNames]: GamePlayer[] } = { golden: [], silver: [], bronze: [], others: [] }
-
-    if (sortedData.length) {
-        let goldScore = sortedData[0].score || -1 // 金榜分数线
-        let silverScore = -1 // 银榜分数线
-
-        for (const item of sortedData) {
-            if (item.score && item.score < goldScore) {
-                silverScore = item.score
-                break
-            }
-        }
-
-        for (const item of playerList) {
-            if (item.score === goldScore) {
-                result.golden.push(item)
-            } else if (item.score === silverScore) {
-                result.silver.push(item)
-            } else if (item.score > 0) {
-                result.bronze.push(item)
-            } else {
-                result.others.push(item)
-            }
-        }
-    }
-    return result
 })
 
 watch(
@@ -614,7 +554,7 @@ $guideHeight: 160px;
 }
 
 .answer-list-container{
-    scrollbar-width: thick;
+    scrollbar-width: unset !important;
 }
 
 </style>
