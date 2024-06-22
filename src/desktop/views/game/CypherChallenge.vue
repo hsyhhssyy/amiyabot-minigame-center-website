@@ -175,7 +175,7 @@ function prepareNextQuestion() {
 
 function moveToNextQuestion() {
     settlementDialogShown.value = false
-    settlementCountdownActive.value = true
+    settlementCountdownActive.value = false
 }
 
 function sendMove(content: string) {
