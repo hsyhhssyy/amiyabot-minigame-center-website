@@ -69,7 +69,7 @@
                     width="12"
                     height="12"
                 />
-                <a class="friendly-link" href="https://beian.miit.gov.cn/" target="_blank"> 京ICP备2022033983号 </a>
+                <a class="friendly-link" href="https://beian.miit.gov.cn/" target="_blank"> 京ICP备2022033983-2号 </a>
             </div>
         </div>
     </div>

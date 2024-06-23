@@ -39,7 +39,7 @@
                                     <n-avatar size="large" :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }"/>
                                 </n-badge>
                             </template>
-                            <span>要踢我吗？但是这个功能还没实现捏！</span>
+                            <span>要踢我吗？但是这个功能只在电脑版页面做了！</span>
                         </n-popover>
                         <span>{{ item.name }}</span>
                     </n-space>

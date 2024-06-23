@@ -133,6 +133,10 @@ async function quickRegister() {
         await toast('昵称不能为空')
         return
     }
+    if (nickname.value.length > 15) {
+        await toast('昵称最多15个字符')
+        return
+    }
     const res = await quickRegisterApi(nickname.value)
     if (res && res.token) {
         if (await verifyTokenApi(res.token)) {
