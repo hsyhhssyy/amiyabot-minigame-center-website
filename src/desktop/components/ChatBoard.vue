@@ -45,7 +45,6 @@
 <script lang="ts" setup>
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { SendOne } from '@icon-park/vue-next'
-import { getData } from '@/utils'
 import { useGameHubStore } from '@/stores/gamehub'
 import { useUserStore } from '@/stores/user'
 import IconButton from '@/universal/components/IconButton.vue'

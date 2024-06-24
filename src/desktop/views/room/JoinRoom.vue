@@ -5,7 +5,6 @@
 <script lang="ts" setup>
 import { computed, onUnmounted, watch } from 'vue'
 import type { SignalrResponse } from '@/api/signalr'
-import { getData, removeData, setData, toast } from '@/utils'
 import { useRoute, useRouter } from 'vue-router'
 import { getGame } from '@/api/game'
 import { gameList } from '@/def/games'

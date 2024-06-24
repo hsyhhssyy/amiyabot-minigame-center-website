@@ -70,7 +70,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useGameHubStore } from '@/stores/gamehub'
 import { useUserStore } from '@/stores/user'
 import { statisticsApi } from '@/api/game'
-import { getData } from '@/utils'
 import { Lightning, Logout, Editor } from '@icon-park/vue-next'
 import IconButton from '@/universal/components/IconButton.vue'
 import JoinRoom from '@/desktop/views/room/JoinRoom.vue'
@@ -81,7 +80,7 @@ const router = useRouter()
 const user = useUserStore()
 const gameHub = useGameHubStore()
 
-const email = ref(getData('email') || '')
+const email = ref(user.userInfo?.email || '')
 const isLoading = ref(true)
 
 const joinRoomComp = ref()
