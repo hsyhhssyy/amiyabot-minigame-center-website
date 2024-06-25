@@ -32,6 +32,16 @@
                     </div>
                     <div class="question-prompt" v-if="settlementDialogShown">
                         这是哪位干员立绘的一部分呢（{{ (currentQuestionIndex??0) }} / {{ game?.MaxQuestionCount }}）？                        
+                    </div>                    
+                    <div v-if="rallyReached">
+                        <icon-button :icon="Tips" type="info" @click="handleRequestHint"
+                            :disabled="currentQuestion?.HintLevel=='1'"
+                            style="margin: 10px;">提示</icon-button>
+                        <icon-button :icon="Tips" type="error" 
+                            @click="handleGiveUp" 
+                            :disabled="giveUpPressed"
+                            v-if="isHost"
+                            >放弃</icon-button>
                     </div>
                     <div class="question-prompt" v-if="!rallyReached">
                         正在加载，请稍等... 
@@ -53,19 +63,9 @@
                             <canvas id="masked-image" class="masked-image" v-show="rallyReached"></canvas>
                         </div>
                     </div>
-                    <div class="hint-area">
-                        <icon-button :icon="Tips" type="info" @click="handleRequestHint"
-                            :disabled="currentQuestion?.HintLevel=='1'"
-                            style="margin: 10px;">提示</icon-button>
-                        <icon-button :icon="Tips" type="error" 
-                            @click="handleGiveUp" 
-                            :disabled="giveUpPressed"
-                            v-if="isHost"
-                            >放弃</icon-button>
-                    </div>
                 </div>
                 <div class="game-guide">
-                    <amiya-face @on-hit="onFaceHit"></amiya-face>
+                    <amiya-face @on-hit="onFaceHit" :players="players"></amiya-face>
                 </div>
             </div>
         </n-card>
@@ -91,7 +91,7 @@ import HitEffect from '@/desktop/components/effects/HitEffect.vue'
 import GameBase from '@/desktop/views/GameBase.vue'
 import NextQuestion from '@/universal/components/NextQuestion.vue'
 import PlayerRanking from '@/desktop/components/PlayerRanking.vue'
-import AmiyaFace from '@/desktop/components/AmiyaFace.vue'
+import AmiyaFace from '@/universal/components/AmiyaFace.vue'
 import IconButton from '@/universal/components/IconButton.vue'
 import Loading from '@/universal/components/Loading.vue'
 
@@ -525,7 +525,7 @@ $guideHeight: 160px;
 .game-card {
     position: relative;
     overflow: hidden;
-    width: 1080px; // 此处固定宽度,是因为amiya face，会改变宽度，因此偷懒临时固定宽度
+    width: 600px; // 此处固定宽度,是因为amiya face，会改变宽度，因此偷懒临时固定宽度
 
 
     .overlay {

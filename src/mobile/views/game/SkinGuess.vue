@@ -65,7 +65,7 @@
                     </div>
                 </div>
                 <div style="display: none;">
-                    <amiya-face @on-hit="onFaceHit"></amiya-face>
+                    <amiya-face @on-hit="onFaceHit" :players="players"></amiya-face>
                 </div>
             </div>
         </n-card>
@@ -91,7 +91,7 @@ import HitEffect from '@/mobile/components/effects/HitEffect.vue'
 import GameBase from '@/mobile/views/GameBase.vue'
 import NextQuestion from '@/universal/components/NextQuestion.vue'
 import PlayerRanking from '@/mobile/components/PlayerRanking.vue'
-import AmiyaFace from '@/desktop/components/AmiyaFace.vue'
+import AmiyaFace from '@/universal/components/AmiyaFace.vue'
 import IconButton from '@/universal/components/IconButton.vue'
 import Loading from '@/universal/components/Loading.vue'
 
@@ -353,8 +353,8 @@ function imageLoadingCompleted() {
     rallyReached.value = true;
 }
 
-function onFaceHit(face: HitType, _: string) {
-    hit.value.hit(face)
+function onFaceHit(face: HitType, msg: string) {
+    hit.value.hit(face,msg)
 }
 
 function prepareNextQuestion() {

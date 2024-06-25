@@ -21,6 +21,8 @@ const layoutComponent = computed(() => {
 })
 
 const handleResize = () => {
+    if(route.path=="/") return
+
     if (window.innerWidth < 768 && !route.path.startsWith('/m/')) {
         router.replace(`/m${route.fullPath}`)
     }

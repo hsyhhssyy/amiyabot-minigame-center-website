@@ -35,7 +35,7 @@
                 </div>
             </div>
             <div style="display: none;">
-                <amiya-face @on-hit="onFaceHit"></amiya-face>
+                <amiya-face @on-hit="onFaceHit" :players="players"></amiya-face>
             </div>
         </div>
         <template v-slot:players>
@@ -60,7 +60,7 @@ import NextQuestion from '@/universal/components/NextQuestion.vue'
 import type { Question } from '@/def/cypher-challenge'
 import type { Message } from '@/def/signalr-common'
 import PlayerRanking from '@/mobile/components/PlayerRanking.vue'
-import AmiyaFace from '@/desktop/components/AmiyaFace.vue'
+import AmiyaFace from '@/universal/components/AmiyaFace.vue'
 
 const route = useRoute()
 const gameHub = useGameHubStore()
@@ -262,8 +262,6 @@ onUnmounted(() => {
 .game-card {
     position: relative;
     overflow: hidden;
-
-    max-width: 1000px;
 
     .game-panel {
         height: 100%;

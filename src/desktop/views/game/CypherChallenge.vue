@@ -47,7 +47,7 @@
                     </div>
                 </div>
                 <div class="game-guide">
-                    <amiya-face @on-hit="onFaceHit"></amiya-face>
+                    <amiya-face @on-hit="onFaceHit" :players="players"></amiya-face>
                 </div>
             </div>
         </n-card>
@@ -74,7 +74,7 @@ import GameBase from '@/desktop/views/GameBase.vue'
 import ResultTable from '@/desktop/components/cypherChallenge/ResultTable.vue'
 import NextQuestion from '@/universal/components/NextQuestion.vue'
 import PlayerRanking from '@/desktop/components/PlayerRanking.vue'
-import AmiyaFace from '@/desktop/components/AmiyaFace.vue'
+import AmiyaFace from '@/universal/components/AmiyaFace.vue'
 
 const route = useRoute()
 const gameHub = useGameHubStore()

@@ -24,7 +24,11 @@ let timeRecord = 0
 let timeRecordChat = 0
 let timeRecordInterval: any = null
 
-const players = ref<GamePlayer[]>([])
+interface AmiyaFaceProps {
+    players: GamePlayer[]
+}
+
+const props = defineProps<AmiyaFaceProps>()
 
 const amiyaFace = ref<HitType>('smile')
 const amiyaChat = ref(
@@ -81,19 +85,10 @@ function gameInfoListener(response: SignalrResponse) {
             }
         }
     }
-
-    players.value = response.PlayerList.map((p: any) => {
-        return {
-            id: p.UserId,
-            name: p.UserName,
-            avatar: p.UserAvatar ? p.UserAvatar : '/avatar.webp',
-            score: p.Score
-        }
-    })
 }
 
 function receiveMoveListener(response: SignalrResponse) {
-    const player = players.value.find((p) => p.id === response.Payload.PlayerId)
+    const player = props.players.find((p) => p.id === response.Payload.PlayerId)
 
     const result = response.Payload.Result
     const characterName = response.Payload.CharacterName
