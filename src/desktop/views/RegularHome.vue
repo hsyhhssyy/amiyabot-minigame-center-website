@@ -126,8 +126,7 @@ watch(
 
 onMounted(async () => {
     if (!email.value) {
-        await router.push('/login')
-        return
+        user.init()
     }    
 
     const userId = user.userInfo?.id || ''

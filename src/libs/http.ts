@@ -142,7 +142,11 @@ export default class HttpRequest<R> {
         } else if (responseData?.message) {
             errorMessage = responseData?.message
         } else if (response?.status) {
-            errorMessage = `${response?.config.url}\nCode: ${response?.status} ${response?.statusText}`
+            if(response?.status==401){
+                errorMessage = '登录状态已过期，请重新登录'
+            }else{
+                errorMessage = `${response?.config.url}\nCode: ${response?.status} ${response?.statusText}`
+            }
         } else {
             errorMessage = '接口请求失败'
         }

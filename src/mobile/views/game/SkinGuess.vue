@@ -396,12 +396,14 @@ const hintListener = (response: any) => {
     questionList.value[response.Payload.CurrentQuestionIndex].HintLevel = response.Payload.HintLevel;
     updateImage();
 
+    const playerHint = players.value.find((p) => p.id === response.PlayerId)
+
     base.value.pushMessage({
         userId: response.Payload.PlayerId,
-        content: '玩家申请提示',
+        content: `请求提示`,
         style: 'Correct',
-        nickname: '管理员兔兔',
-        avatar: '/amiya.jpg'
+        nickname: playerHint?.name,
+        avatar: playerHint?.avatar
     } as Message)
 }
 

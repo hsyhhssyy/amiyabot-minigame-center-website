@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, onMounted, onUnmounted, ref, computed, watch } from 'vue'
+import { onMounted, onUnmounted, ref, computed, watch } from 'vue'
 import { Check, SendOne, Close } from '@icon-park/vue-next'
 import { useGameHubStore } from '@/stores/gamehub'
 import type { SignalrResponse } from '@/api/signalr';

@@ -164,9 +164,9 @@ function pushMessage(msg: Message) {
         clearTimeout(lastMessagePopupCloseInterval)
     }
 
-    lastMessagePopupCloseInterval = setTimeout(() => {
-        currentMessage.value.show = false
-    }, 5000)
+    // lastMessagePopupCloseInterval = setTimeout(() => {
+    //     currentMessage.value.show = false
+    // }, 5000)
 }
 
 defineExpose({ pushMessage })
@@ -217,7 +217,8 @@ onUnmounted(async () => {
         margin-left: 5px;
         white-space: nowrap;
         overflow: hidden;
-        max-width: 80%;
+        text-overflow: ellipsis !important;
+        width: calc(100% - 30px);
     }
 }
 
