@@ -4,7 +4,7 @@
             <n-input class="chat-input" :placeholder="props.placeholder || '输入干员名称...'" v-model:value="inputMessage"
                 @keydown.enter="sendMessage" />
             <icon-button class="chat-button" :icon="SendOne" type="success" @click="sendMessage"></icon-button>
-            <n-popover trigger="manual" :show="currentMessage?.show" width="300px">
+            <n-popover trigger="manual" :show="currentMessage?.show">
                 <template #trigger>
                     <n-badge :value="unreadMessage" :max="99">
                         <icon-button class="chat-button" :icon="Communication" type="info"
@@ -26,9 +26,9 @@
             <n-card role="dialog" aria-modal="true" class="message-window" embedded size="small">
                 <div style="height: 100%; overflow: auto;" ref="chatBoard">
                     <n-flex style="margin-bottom: 5px" v-for="(item, index) in messages" :key="index" :wrap="false"
-                        :justify="userId === item.userId ? 'end' : 'start'">
+                        :justify=" (user.userInfo?.id || '') === item.userId ? 'end' : 'start'">
                         <n-flex>
-                            <n-avatar :src="item.avatar" size="large" v-if="userId !== item.userId"
+                            <n-avatar :src="item.avatar" size="large" v-if=" (user.userInfo?.id || '') !== item.userId"
                                 :img-props="{ referrerpolicy: 'no-referrer' }" />
                         </n-flex>
                         <div class="message-card-with-name">
@@ -39,7 +39,7 @@
                             </n-card>
                         </div>
                         <n-flex>
-                            <n-avatar :src="item.avatar" size="large" v-if="userId === item.userId"
+                            <n-avatar :src="item.avatar" size="large" v-if=" (user.userInfo?.id || '') === item.userId"
                                 :img-props="{ referrerpolicy: 'no-referrer' }" />
                         </n-flex>
                     </n-flex>
@@ -83,7 +83,6 @@ const emits = defineEmits<{
 const gameHub = useGameHubStore()
 const user = useUserStore()
 
-const userId = user.userInfo?.id || ''
 const messages = ref<Message[]>([])
 const inputMessage = ref('')
 const chatBoard = ref()

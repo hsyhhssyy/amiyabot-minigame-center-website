@@ -51,6 +51,10 @@ async function initJoinRoom() {
     gameHub.addGameHubListener('PlayerJoined', gameJoinListener)
 
     //JoinRoom是在主界面的
+    
+    //TODO 此处一定不会有user.currentRoomId
+    //需要从服务器获取!
+    //能走到这里,那么服务器已经连上了
 
     if (user.currentRoomId) {
         // 重连检查

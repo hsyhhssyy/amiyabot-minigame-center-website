@@ -7,15 +7,15 @@
                     v-for="(item, index) in messages"
                     :key="index"
                     :size="6"
-                    :justify="userId === item.userId ? 'end' : 'start'"
+                    :justify=" (user.userInfo?.id || '') === item.userId ? 'end' : 'start'"
                 >
                     <n-avatar
                         :src="item.avatar"
                         size="large"
-                        v-if="userId !== item.userId"
+                        v-if=" (user.userInfo?.id || '') !== item.userId"
                         :img-props="{ referrerpolicy: 'no-referrer' }"
                     />
-                    <n-space vertical :size="0" :align="userId === item.userId ? 'end' : 'start'">
+                    <n-space vertical :size="0" :align=" (user.userInfo?.id || '') === item.userId ? 'end' : 'start'">
                         {{ item.nickname }}
                         <n-card class="message-content" size="small">
                             <component :is="item.content" v-if="item.isComponent" />
@@ -25,7 +25,7 @@
                     <n-avatar
                         :src="item.avatar"
                         size="large"
-                        v-if="userId === item.userId"
+                        v-if=" (user.userInfo?.id || '') === item.userId"
                         :img-props="{ referrerpolicy: 'no-referrer' }"
                     />
                 </n-space>
@@ -72,7 +72,6 @@ const props = defineProps<ChatProps>()
 const gameHub = useGameHubStore()
 const user = useUserStore()
 
-const userId = user.userInfo?.id || ''
 const messages = ref<Message[]>([])
 const inputMessage = ref('')
 const chatBoard = ref()

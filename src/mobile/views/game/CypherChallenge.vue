@@ -263,6 +263,8 @@ onUnmounted(() => {
     position: relative;
     overflow: hidden;
 
+    max-width: 1000px;
+
     .game-panel {
         height: 100%;
         background: url(@/assets/images/cypherChallenge/loading.jpg) center / cover no-repeat;

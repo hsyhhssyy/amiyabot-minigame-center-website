@@ -92,7 +92,6 @@ const router = useRouter()
 const gameHub = useGameHubStore()
 const user = useUserStore()
 
-const userId = user.userInfo?.id || ''
 const roomId = Array.isArray(route.params.roomId) ? route.params.roomId.join(',') : route.params.roomId
 
 const isHost = ref(false)
@@ -123,7 +122,7 @@ async function gameInfoListener(response: SignalrResponse) {
 
     const playerList = response.PlayerList
 
-    isHost.value = response.Game.CreatorId == userId
+    isHost.value = response.Game.CreatorId ==  (user.userInfo?.id || '')
     hostId.value = response.Game.CreatorId
     players.value = playerList.map((p: SignalrResponse) => {
         const avatar = p.UserAvatar ? p.UserAvatar : '/avatar.webp'
@@ -152,7 +151,7 @@ async function playerLeftListener(response: SignalrResponse) {
     players.value = players.value.filter((p) => p.id !== playerId)
 
     // 如果是自己被踢，弹出提示并返回首页
-    if (playerId == userId && method == 'Kicked') {
+    if (playerId ==  (user.userInfo?.id || '') && method == 'Kicked') {
         await toast('您已被房主踢出房间', 'warning')
     }
 }
