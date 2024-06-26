@@ -14,7 +14,6 @@
                 'game-info': browserClass !== 'android-edge',
             }" :room-data="gameRoomData">
                 <template #buttons>
-                    {{ browserClass }}
                     <icon-button :icon="Sport" type="warning" @click="endGame" v-if="isHost&&!isCompleted">放弃游戏</icon-button>
                     <icon-button :icon="Logout" type="error" @click="leaveRoom" v-if="!isHost||isCompleted">{{ isHost?'关闭':'退出'}}房间</icon-button>
                 </template>
@@ -226,7 +225,7 @@ onUnmounted(() => {
     overflow-y: auto; /* 允许垂直滚动 */
 
     .game-info {
-        margin-bottom: 200px;
+        margin-bottom: 50px;
     }
 
     .game-info-android-edge {
