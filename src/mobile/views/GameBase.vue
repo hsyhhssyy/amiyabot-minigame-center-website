@@ -204,23 +204,20 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .game-base {
     width: 100%;
-    height: 100%;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-
-    & > div {
-        width: calc(100% - 5px);
-    }
+    overflow-y: auto; /* 允许垂直滚动 */
 
     .game-info {
         margin-bottom: 10px;
     }
 
     .player-panel {
-        height: 100%;
         display: flex;
         flex-direction: column;
+        min-height: 230px;
 
         .chat-area {
             display: flex;
