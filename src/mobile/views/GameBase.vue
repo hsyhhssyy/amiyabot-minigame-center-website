@@ -1,8 +1,6 @@
 <template>
     <div class="game-base" v-if="!isGameHubLoading && gameRoomData">
-        <div>
-            <slot></slot>
-        </div>
+        <slot></slot>
         <div class="player-panel">
             <chat-board
                 :room-id="props.roomId"
@@ -211,7 +209,7 @@ onUnmounted(() => {
     overflow-y: auto; /* 允许垂直滚动 */
 
     .game-info {
-        margin-bottom: 10px;
+        margin-bottom: 200px;
     }
 
     .player-panel {

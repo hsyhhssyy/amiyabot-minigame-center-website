@@ -122,6 +122,9 @@ const headers = computed(() => {
     background: transparent;
     color: #f0f0f0;
     flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    overflow-y: auto;
 
     .table-header-row {
         display: flex;
@@ -152,6 +155,7 @@ const headers = computed(() => {
         .table-header-no-bg {
             text-align: left;
             flex-grow: 1;
+            min-width: 40px;
         }
     }
 
@@ -179,6 +183,8 @@ const headers = computed(() => {
 
             overflow: hidden;
             margin-left: 5px;
+
+            min-width: 40px;
 
             .operator-name {
                 margin-left: 5px;
