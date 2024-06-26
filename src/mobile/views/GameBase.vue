@@ -230,7 +230,7 @@ onUnmounted(() => {
     }
 
     .game-info-android-edge {
-        margin-bottom: 300px;
+        margin-bottom: 330px;
     }
 
     .player-panel {
