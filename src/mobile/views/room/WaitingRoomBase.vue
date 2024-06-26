@@ -161,6 +161,7 @@ async function playerLeftListener(response: SignalrResponse) {
     // 如果是自己被踢，弹出提示并返回首页
     if (playerId ==  (user.userInfo?.id || '') && method == 'Kicked') {
         await toast('您已被房主踢出房间', 'warning')
+        user.currentRoomId = null
     }
 }
 

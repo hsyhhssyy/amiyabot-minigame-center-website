@@ -1,50 +1,43 @@
 <template>
     <div class="home">
         <div class="title">{{ route.meta.pageName }}</div>
-        <template v-if="!isLoading && user.userInfo">
-            <div class="user-panel" v-if="route.name === 'regular-home-mobile'">
-                <n-card class="user-card" size="small">
-                    <div class="user-avatar">
-                        <img :src="user.userAvatar" alt="avatar" class="avatar" referrerpolicy="no-referrer" />
-                        <div class="nickname">
-                            <span>{{ user.userName }}</span>
-                            <span>通行证ID: {{ user.userInfo?.id }}</span>
-                        </div>
+        <div class="user-panel" v-if="route.name === 'regular-home-mobile'">
+            <n-card class="user-card" size="small">
+                <div class="user-avatar">
+                    <img :src="user.userAvatar" alt="avatar" class="avatar" referrerpolicy="no-referrer" />
+                    <div class="nickname">
+                        <span>{{ user.userName }}</span>
+                        <span>通行证ID: {{ user.userInfo?.id }}</span>
                     </div>
-                    <n-descriptions label-placement="top" :column="3" size="small">
-                        <n-descriptions-item label="总场次">{{ totalGamePlayed }}</n-descriptions-item>
-                        <n-descriptions-item label="回答命中率" :span="2">
-                            {{ totalAnswerAccuracy }}
-                        </n-descriptions-item>
-                        <n-descriptions-item label="冠军">{{ totalGameTop1 }}</n-descriptions-item>
-                        <n-descriptions-item label="亚军">{{ totalGameTop2 }}</n-descriptions-item>
-                        <n-descriptions-item label="季军">{{ totalGameTop3 }}</n-descriptions-item>
-                    </n-descriptions>
-                    <icon-button class="edit-profile" :icon="Editor" @click="editProfile"></icon-button>
-                </n-card>
-                <div class="actions">
-                    <n-card class="action-item" hoverable embedded size="small" @click="createGame">
-                        <div class="item create">创建游戏</div>
-                    </n-card>
-                    <n-card class="action-item" hoverable embedded size="small" @click="showJoinModal = true">
-                        <div class="item join">加入游戏</div>
-                    </n-card>
-                    <n-card class="action-item" hoverable embedded size="small" @click="roomList">
-                        <div class="item room">游戏大厅</div>
-                    </n-card>
-                    <n-card class="action-item" hoverable embedded size="small" @click="logout">
-                        <div class="item logout">登出</div>
-                    </n-card>
                 </div>
+                <n-descriptions label-placement="top" :column="3" size="small">
+                    <n-descriptions-item label="总场次">{{ totalGamePlayed }}</n-descriptions-item>
+                    <n-descriptions-item label="回答命中率" :span="2">
+                        {{ totalAnswerAccuracy }}
+                    </n-descriptions-item>
+                    <n-descriptions-item label="冠军">{{ totalGameTop1 }}</n-descriptions-item>
+                    <n-descriptions-item label="亚军">{{ totalGameTop2 }}</n-descriptions-item>
+                    <n-descriptions-item label="季军">{{ totalGameTop3 }}</n-descriptions-item>
+                </n-descriptions>
+                <icon-button class="edit-profile" :icon="Editor" @click="editProfile"></icon-button>
+            </n-card>
+            <div class="actions">
+                <n-card class="action-item" hoverable embedded size="small" @click="createGame">
+                    <div class="item create">创建游戏</div>
+                </n-card>
+                <n-card class="action-item" hoverable embedded size="small" @click="showJoinModal = true">
+                    <div class="item join">加入游戏</div>
+                </n-card>
+                <n-card class="action-item" hoverable embedded size="small" @click="roomList">
+                    <div class="item room">游戏大厅</div>
+                </n-card>
+                <n-card class="action-item" hoverable embedded size="small" @click="logout">
+                    <div class="item logout">登出</div>
+                </n-card>
             </div>
-            <div v-else class="view-container">
-                <router-view @onJoin="joinGame" />
-            </div>
-        </template>
-        <div v-else class="loading">
-            <img src="/face/31ebcd457ec04b3b712e417c926a0dba36816755.gif" alt="loading" />
-            <div>连接服务器中，请稍候...</div>
-            <icon-button :icon="Logout" @click="logout" type="error">退出登录</icon-button>
+        </div>
+        <div v-else class="view-container">
+            <router-view @onJoin="joinGame" />
         </div>
     </div>
     <n-modal class="create-collection" v-model:show="showJoinModal" :mask-closable="false" style="width: 80vw">
@@ -79,7 +72,6 @@ const user = useUserStore()
 const gameHub = useGameHubStore()
 
 const email = ref(user.userInfo?.email || '')
-const isLoading = ref(true)
 
 const joinRoomComp = ref()
 const joinRoomCode = ref('')
@@ -113,16 +105,6 @@ async function logout() {
     await router.push('/m/logout')
 }
 
-watch(
-    computed(() => gameHub.isConnected),
-    (value: boolean) => {
-        isLoading.value = !value
-    },
-    {
-        immediate: true
-    }
-)
-
 onMounted(async () => {
     if (!email.value) {
         user.init()
@@ -138,7 +120,7 @@ onMounted(async () => {
             totalGameTop2.value = ret.totalGamesSecondPlace
             totalGameTop1.value = ret.totalGamesFirstPlace
             totalAnswerAccuracy.value = ret.totalAnswersCorrect == 0 ? '0%' : accu.toFixed(2) + '%'
-        }else{
+        } else {
             await router.push('/m/logout')
         }
     }
@@ -273,12 +255,6 @@ onMounted(async () => {
     height: calc(100% - 120px);
     padding: 20px;
 }
-
-
 </style>
 
-<style lang="scss">
-
-
-
-</style>
+<style lang="scss"></style>

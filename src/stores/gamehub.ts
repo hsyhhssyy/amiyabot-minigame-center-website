@@ -96,7 +96,12 @@ export const useGameHubStore = defineStore('gameHub', () => {
 
             connection.value.on('Alert', async (response) => {
                 const responseObj = JSON.parse(response)
-                await toast(responseObj.Message, 'error')
+                if(responseObj.Message=="您需要先加入该房间才能查看房间信息。"){
+                    await toast('您已被移出该房间。', 'error')
+                    router.push('/regular-home').then()
+                }else{
+                    await toast(responseObj.Message, 'error')
+                }
             })
 
             connection.value.on('ServerTime', (response) => {
@@ -137,7 +142,8 @@ export const useGameHubStore = defineStore('gameHub', () => {
         }
         //console.log('注册事件：' + eventName)
 
-        const existingJsonCallback =  callbacks.find((x) => x.originalCallback == callback)
+        const existingJsonCallback =  callbacks.find((x) => x.originalCallback == callback
+            && x.eventName == eventName)
 
         if(existingJsonCallback){
             return
@@ -165,7 +171,8 @@ export const useGameHubStore = defineStore('gameHub', () => {
         }
         //console.log('移除事件：' + eventName)
 
-        const callbackObj = callbacks.find((x) => x.originalCallback == callback)
+        const callbackObj = callbacks.find((x) => x.originalCallback == callback
+            && x.eventName == eventName)
         if (callbackObj) {
             connection.value.off(eventName, callbackObj.jsonCallback)
         }
