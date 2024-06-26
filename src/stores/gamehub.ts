@@ -112,6 +112,12 @@ export const useGameHubStore = defineStore('gameHub', () => {
             })
 
             await connection.value.invoke('Me')
+
+            //注册事件
+            callbacks.forEach((callback) => {
+                connection.value?.off(callback.eventName, callback.jsonCallback)
+                connection.value?.on(callback.eventName, callback.jsonCallback)
+            })
         }
     }
 
