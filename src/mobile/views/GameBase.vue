@@ -9,7 +9,10 @@
                 @on-show-player-list="openPlayerList"
                 ref="chat"
             />
-            <game-info-card class="game-info" :room-data="gameRoomData">
+            <game-info-card :class="{
+                'game-info-android-edge': browserClass === 'android-edge',
+                'game-info': browserClass !== 'android-edge',
+            }" :room-data="gameRoomData">
                 <template #buttons>
                     <icon-button :icon="Sport" type="warning" @click="endGame" v-if="isHost&&!isCompleted">放弃游戏</icon-button>
                     <icon-button :icon="Logout" type="error" @click="leaveRoom" v-if="!isHost||isCompleted">{{ isHost?'关闭':'退出'}}房间</icon-button>
@@ -42,7 +45,7 @@ import type { ChatProps, Message } from '@/mobile/components/ChatBoard.vue'
 import ChatBoard from '@/mobile/components/ChatBoard.vue'
 import GameInfoCard from '@/universal/components/GameInfoCard.vue'
 import IconButton from '@/universal/components/IconButton.vue'
-import { removeData } from '@/utils'
+import Bowser from "bowser";
 
 interface GameProps extends ChatProps {}
 
@@ -66,6 +69,7 @@ const isGameHubLoading = ref(true)
 const isMounting = ref(true) //GameBase的OnMount
 const isGameInfoReceiving = ref(true) // 第一次接收到GameInfo
 const chat = ref()
+const browserClass = ref("")
 
 const isCompleted = ref(false)
 const isHost = computed(() => gameRoomData.value?.creatorId == user.userInfo?.id)
@@ -187,6 +191,18 @@ onMounted(async () => {
 
     isMounting.value = false;
 
+    const browser = Bowser.getParser(window.navigator.userAgent);
+    const browserInfo = browser.getBrowser();
+    const platformInfo = browser.getPlatform();
+    const osInfo = browser.getOS();
+    
+    if (
+    browserInfo.name === "Microsoft Edge" &&
+    platformInfo.type === "mobile" &&
+    osInfo.name === "Android"
+    ) {
+        browserClass.value = "android-edge";
+    }
 })
 
 onUnmounted(() => {
@@ -210,6 +226,10 @@ onUnmounted(() => {
 
     .game-info {
         margin-bottom: 200px;
+    }
+
+    .game-info-android-edge {
+        margin-bottom: 300px;
     }
 
     .player-panel {

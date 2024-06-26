@@ -14,7 +14,9 @@
     "dependencies": {
         "@icon-park/vue-next": "^1.4.2",
         "@microsoft/signalr": "^8.0.0",
+        "@types/bowser": "^1.1.1",
         "axios": "1.6.0",
+        "bowser": "^2.11.0",
         "marked": "^13.0.0",
         "pinia": "^2.0.36",
         "vue": "^3.3.2",

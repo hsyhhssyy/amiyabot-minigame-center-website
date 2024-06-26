@@ -12,12 +12,12 @@
                     </n-button>
                 </div>
             </n-space>
-            <n-space align="center">
+            <div class="buttons">
                 <slot name="tags"></slot>
                 <n-tag type="primary" v-if="props.roomData.isPrivate">私人房间</n-tag>
                 <n-tag type="success" v-else>公开房间</n-tag>
                 <n-tag type="info" @click="ruleClick">查看规则</n-tag>
-            </n-space>
+            </div>
         </n-space>
         <div class="game-actions" style="margin-top: 20px">
             <slot name="buttons"></slot>
@@ -85,6 +85,17 @@ async function ruleClick(){
     .game-logo {
         width: 50px;
         border-radius: 4px;
+    }
+
+    .buttons{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+
+        @media (min-width: 360px) {
+            flex-direction: row;
+        }
     }
 
     .game-actions {
