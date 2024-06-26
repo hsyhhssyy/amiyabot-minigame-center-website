@@ -1,5 +1,6 @@
 <template>
     <game-base ref="base" :room-id="roomId" :input-handler="sendMove" :players="players" @on-loaded="load">
+    <div>
         <n-card style="height: 100%" class="game-card">
             <div :class="{
                 'overlay': settlementDialogShown,
@@ -69,6 +70,7 @@
                 </div>
             </div>
         </n-card>
+    </div>
         <template v-slot:players>
             <player-ranking :room-id="roomId"></player-ranking>
         </template>
@@ -525,8 +527,6 @@ $guideHeight: 160px;
 .game-card {
     position: relative;
     overflow: hidden;
-    width: 600px; // 此处固定宽度,是因为amiya face，会改变宽度，因此偷懒临时固定宽度
-
 
     .overlay {
         position: absolute;
