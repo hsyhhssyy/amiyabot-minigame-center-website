@@ -217,7 +217,7 @@ onUnmounted(async () => {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis !important;
-        width: calc(100% - 30px);
+        width: calc(100vw - 200px);
     }
 }
 
