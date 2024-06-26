@@ -30,7 +30,11 @@
                 </template>
                 <n-space :size="20" style="padding-top: 10px">
                     <n-space vertical align="center" v-for="(item, index) in players" :key="index" :size="0">
-                        <n-popover :trigger="isHost ? 'hover' : 'manual'">
+                        <n-popconfirm :trigger="(isHost && item.id!=user.userInfo?.id ) ? 'click' : 'manual'"
+                            positive-text="踢!"
+                            :negative-text="null"
+                            @positive-click="handleKickPlayer(item)"
+                            >
                             <template #trigger>
                                 <n-badge
                                     :type="item.id === hostId ? 'error' : 'info'"
@@ -39,8 +43,8 @@
                                     <n-avatar size="large" :src="item.avatar" :img-props="{ referrerpolicy: 'no-referrer' }"/>
                                 </n-badge>
                             </template>
-                            <span>要踢我吗？但是这个功能只在电脑版页面做了！</span>
-                        </n-popover>
+                            <span>是否踢出玩家{{item.name}}？</span>
+                        </n-popconfirm>
                         <span>{{ item.name }}</span>
                     </n-space>
                 </n-space>
@@ -115,6 +119,10 @@ async function jumpToGameRoom(){
         const gameData = gameTypeMap.value[gameRoomData.value?.gameType]
         await router.push(gameData.route + "game/" + roomId)
     }
+}
+
+async function handleKickPlayer(params:Player) {
+    gameHub.invokeGameHub('KickPlayer', roomId, params.id)
 }
 
 async function gameInfoListener(response: SignalrResponse) {
@@ -198,7 +206,20 @@ async function shareRoom() {
 
 watch(
     computed(() => gameHub.isConnected),
-    (value: boolean) => {
+    async (value: boolean) => {
+        gameRoomData.value = await getGame(roomId)
+
+        //如果房间没有我,则跳转回主页
+        if (!gameRoomData.value?.playerList[user.userInfo?.id || '']) {
+            user.currentRoomId = roomId
+            await router.push('/regular-home')
+            return
+        }
+
+        if(gameRoomData.value?.isStarted) {
+            await jumpToGameRoom()
+            return
+        }
 
         if (value) {
             gameHub.addGameHubListener('GameInfo', gameInfoListener)
@@ -226,11 +247,7 @@ watch(
 )
 
 onMounted(async () => {
-    gameRoomData.value = await getGame(roomId)
-
-    if(gameRoomData.value?.isStarted) {
-        await jumpToGameRoom()
-    }
+    
 })
 
 onUnmounted(async () => {

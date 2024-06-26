@@ -236,6 +236,18 @@ watch(
         if (value) {
             gameRoomData.value = await getGame(roomId)
 
+            if(gameRoomData.value?.isStarted) {
+                await jumpToGameRoom()
+                return
+            }
+                
+            //如果房间没有我,则跳转回主页
+            if (!gameRoomData.value?.playerList[user.userInfo?.id || '']) {
+                user.currentRoomId = roomId
+                await router.push('/regular-home')
+                return
+            }
+
             gameHub.addGameHubListener('GameInfo', gameInfoListener)
             gameHub.addGameHubListener('PlayerJoined', playerJoinedListener)
             gameHub.addGameHubListener('PlayerLeft', playerLeftListener)
@@ -261,11 +273,7 @@ watch(
 )
 
 onMounted(async () => {
-    gameRoomData.value = await getGame(roomId)
 
-    if(gameRoomData.value?.isStarted) {
-        await jumpToGameRoom()
-    }
 })
 
 onUnmounted(async () => {
