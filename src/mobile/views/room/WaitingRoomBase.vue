@@ -232,7 +232,7 @@ watch(
 
             gameHub.invokeGameHub('GetGame', roomId)
 
-            // 间隔一段时间获取一次房间信息
+            //间隔一段时间获取一次房间信息
             getGameInterval = setInterval(() => {
                 gameHub.invokeGameHub('GetGame', roomId)
             }, 4000)
