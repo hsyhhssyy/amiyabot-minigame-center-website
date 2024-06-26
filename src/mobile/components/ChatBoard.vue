@@ -1,34 +1,35 @@
 <template>
-    <n-card class="chat">
-        <div class="chat-input-container">
-            <n-input class="chat-input" :placeholder="props.placeholder || '输入干员名称...'" v-model:value="inputMessage"
-                @keydown.enter="sendMessage" />
-            <icon-button class="chat-button" :icon="SendOne" type="success" @click="sendMessage"></icon-button>
-            <n-popover trigger="manual" :show="currentMessage?.show">
-                <template #trigger>
+    <n-card class="chat"> <n-popover trigger="manual" :show="currentMessage?.show">
+            <template #trigger>
+                <div class="chat-input-container">
+                    <n-input class="chat-input" :placeholder="props.placeholder || '输入干员名称...'"
+                        v-model:value="inputMessage" @keydown.enter="sendMessage" />
+                    <icon-button class="chat-button" :icon="SendOne" type="success" @click="sendMessage"></icon-button>
+
                     <n-badge :value="unreadMessage" :max="99">
                         <icon-button class="chat-button" :icon="Communication" type="info"
                             @click="openChatLog"></icon-button>
                     </n-badge>
-                </template>
-                <div class="instant-message-container">
-                    <n-avatar :src="currentMessage.avatar" size="tiny" :img-props="{ referrerpolicy: 'no-referrer' }" />
-                    <div class="instant-message">
-                        {{ currentMessage.nickname }} : {{ currentMessage.content }}
-                    </div>
+                    <icon-button class="chat-button" :icon="Peoples" type="warning"
+                        @click="openPlayerList"></icon-button>
                 </div>
+            </template>
+            <div class="instant-message-container">
+                <n-avatar :src="currentMessage.avatar" size="tiny" :img-props="{ referrerpolicy: 'no-referrer' }" />
+                <div class="instant-message">
+                    {{ currentMessage.nickname }} : {{ currentMessage.content }}
+                </div>
+            </div>
 
-            </n-popover>
-            <icon-button class="chat-button" :icon="Peoples" type="warning" @click="openPlayerList"></icon-button>
-        </div>
+        </n-popover>
 
         <n-modal v-model:show="showChatLog" @on-after-enter="onModalShow" title="消息列表" preset="dialog">
             <n-card role="dialog" aria-modal="true" class="message-window" embedded size="small">
                 <div style="height: 100%; overflow: auto;" ref="chatBoard">
                     <n-flex style="margin-bottom: 5px" v-for="(item, index) in messages" :key="index" :wrap="false"
-                        :justify=" (user.userInfo?.id || '') === item.userId ? 'end' : 'start'">
+                        :justify="(user.userInfo?.id || '') === item.userId ? 'end' : 'start'">
                         <n-flex>
-                            <n-avatar :src="item.avatar" size="large" v-if=" (user.userInfo?.id || '') !== item.userId"
+                            <n-avatar :src="item.avatar" size="large" v-if="(user.userInfo?.id || '') !== item.userId"
                                 :img-props="{ referrerpolicy: 'no-referrer' }" />
                         </n-flex>
                         <div class="message-card-with-name">
@@ -39,7 +40,7 @@
                             </n-card>
                         </div>
                         <n-flex>
-                            <n-avatar :src="item.avatar" size="large" v-if=" (user.userInfo?.id || '') === item.userId"
+                            <n-avatar :src="item.avatar" size="large" v-if="(user.userInfo?.id || '') === item.userId"
                                 :img-props="{ referrerpolicy: 'no-referrer' }" />
                         </n-flex>
                     </n-flex>
@@ -125,7 +126,7 @@ async function sendMessage() {
     inputMessage.value = ''
 }
 
-async function chatListener(response: SignalrResponse) {    
+async function chatListener(response: SignalrResponse) {
     if (response.GameId != props.roomId) return //多标签页环境可能出现多个房间同开的情况
 
     const player = props.players.find((p) => p.id === response.UserId)
@@ -159,13 +160,13 @@ function pushMessage(msg: Message) {
         show: true
     }
 
-    if(lastMessagePopupCloseInterval) {
+    if (lastMessagePopupCloseInterval) {
         clearTimeout(lastMessagePopupCloseInterval)
     }
 
-    // lastMessagePopupCloseInterval = setTimeout(() => {
-    //     currentMessage.value.show = false
-    // }, 5000)
+    lastMessagePopupCloseInterval = setTimeout(() => {
+        currentMessage.value.show = false
+    }, 5000)
 }
 
 defineExpose({ pushMessage })
@@ -217,7 +218,7 @@ onUnmounted(async () => {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis !important;
-        width: calc(100vw - 200px);
+        width: calc(100vw - 100px);
     }
 }
 
