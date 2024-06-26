@@ -47,6 +47,11 @@ const mobileRoutes: RouteRecordRaw[] = [
         ]
     },
     {
+        path: '/m/invitation/:roomId',
+        name: 'invitation-mobile',
+        component: () => import('@/universal/views/Invitation.vue')
+    },
+    {
         path: '/m/games',
         name: 'games-mobile',
         component: EmptyContainer,

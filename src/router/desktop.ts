@@ -47,6 +47,11 @@ const desktopRoutes: RouteRecordRaw[] = [
         ]
     },
     {
+        path: '/invitation/:roomId',
+        name: 'invitation',
+        component: () => import('@/universal/views/Invitation.vue')
+    },
+    {
         path: '/games',
         name: 'games',
         component: EmptyContainer,

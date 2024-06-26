@@ -5,23 +5,26 @@ import mobileRoutes from '@/router/mobile'
 
 const router = createRouter({
     history: createWebHashHistory(import.meta.env.BASE_URL),
-    routes: [...desktopRoutes, ...mobileRoutes]
+    routes: [
+        ...desktopRoutes,
+        ...mobileRoutes
+    ]
 })
 
 router.beforeEach((to, _from, next) => {
-    
+
     //移动端强制跳转
-    if(window.innerWidth < 768 && to.path.startsWith('/m/') === false){
+    if (window.innerWidth < 768 && to.path.startsWith('/m/') === false) {
         next(`/m${to.path}`)
         return
     }
-    if(window.innerWidth >= 768 && to.path.startsWith('/m/') === true){
-        next(to.path.replace('/m/','/'))
+    if (window.innerWidth >= 768 && to.path.startsWith('/m/') === true) {
+        next(to.path.replace('/m/', '/'))
         return
     }
 
 
-    if (to.path !== '/' && to.path !== '/regular-home' && to.path !== '/m/' && to.path !== '/m/regular-home'){
+    if (to.path !== '/' && to.path !== '/regular-home' && to.path !== '/m/' && to.path !== '/m/regular-home') {
         next()
         return
     }
@@ -30,7 +33,7 @@ router.beforeEach((to, _from, next) => {
         next('/regular-home')
         return
     }
-    
+
     if (to.path === '/m/') {
         next('/m/regular-home')
         return
